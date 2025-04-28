@@ -10,7 +10,6 @@ import { Upload } from 'lucide-react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { VegaLiteSpec } from 'vega-lite';
 import { genVegaSpec } from "@/services/vega";
-import vegaEmbed from 'vega-embed';
 
 export default function Home() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -30,7 +29,7 @@ export default function Home() {
       const headers = lines[0].split(",").map((header: string) => header.trim());
       setTableHeaders(headers);
 
-      const parsedData = [];
+      const parsedData: any[] = [];
       for (let i = 1; i < lines.length; i++) {
         const data: any = {};
         const currentLine = lines[i].split(",");
@@ -44,18 +43,35 @@ export default function Home() {
           data[headers[j]] = currentLine[j].trim();
         }
 
-        // Transform data: convert numeric values to numbers, if possible
-        const transformedData: { [key: string]: any } = {};
-        headers.forEach((header) => {
-          const value = data[header];
-          const num = Number(value);
-          transformedData[header] = isNaN(num) ? value : num; // Convert to number if it's not NaN
-        });
-
-        parsedData.push(transformedData);
+        parsedData.push(data);
       }
 
-      setJsonData(parsedData);
+      // Data Cleaning and Transformation
+      const cleanedData = parsedData.map(row => {
+        const transformedRow: { [key: string]: any } = {};
+        Object.keys(row).forEach(key => {
+          const value = row[key];
+          if (typeof value === 'string') {
+            const num = Number(value);
+            transformedRow[key] = isNaN(num) ? value : num;
+          } else {
+            transformedRow[key] = value;
+          }
+        });
+        return transformedRow;
+      });
+
+      // Identify and remove invalid data
+      const validData = cleanedData.filter(item => {
+        const isValid = Object.values(item).every(value => value !== undefined && value !== null && value !== '');
+        if (!isValid) {
+          console.warn('Invalid data removed:', item);
+        }
+        return isValid;
+      });
+
+      setJsonData(validData);
+
       toast({
         title: "CSV file parsed!",
         description: "Data is ready for preview and visualization.",
@@ -69,6 +85,7 @@ export default function Home() {
       });
     }
   };
+
 
   const renderVisualization = async () => {
     if (jsonData.length === 0) {
@@ -86,6 +103,7 @@ export default function Home() {
       setVegaSpec(spec);
 
       // Embed the visualization using vega-embed
+      const vegaEmbed = await import('vega-embed');
       vegaEmbed.embed("#vis", spec).catch(error => {
         console.error("Error embedding VegaLite:", error);
         toast({
@@ -140,7 +158,7 @@ export default function Home() {
                         ))}
                       </TableRow>
                     </TableHeader>
-                    <TableBody>
+                    <TableBody style={{ maxHeight: '200px', overflowY: 'scroll' }}>
                       {jsonData.map((row, index) => (
                         <TableRow key={index}>
                           {tableHeaders.map((header) => (
@@ -172,3 +190,4 @@ export default function Home() {
     </div>
   );
 }
+
