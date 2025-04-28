@@ -105,6 +105,9 @@ export default function Home() {
       const spec = await genVegaSpec(tableHeaders, validData);
       setVegaSpec(spec);
 
+      // Serialize data to JSON string before passing to vegaEmbed
+      const serializedData = JSON.stringify(validData);
+
       // Embed the visualization using vega-embed
       vegaEmbed("#vis", spec, { actions: false }).then(() => {
         toast({
