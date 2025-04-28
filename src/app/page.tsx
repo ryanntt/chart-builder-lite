@@ -104,7 +104,7 @@ export default function Home() {
 
       // Embed the visualization using vega-embed
       const vegaEmbed = await import('vega-embed');
-      vegaEmbed.embed("#vis", spec).catch(error => {
+      vegaEmbed.default("#vis", spec).catch(error => {
         console.error("Error embedding VegaLite:", error);
         toast({
           title: "Visualization Error",
@@ -190,4 +190,5 @@ export default function Home() {
     </div>
   );
 }
+
 
