@@ -203,7 +203,7 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              <div className="flex flex-col space-y-4">
+              <div className="flex flex-col space-y-4 col-span-2">
                 <Card className="p-4 rounded-md bg-muted overflow-x-auto">
                   <CardHeader>
                     <CardTitle className="text-md font-semibold">Selected Fields</CardTitle>
@@ -247,4 +247,5 @@ export default function Home() {
     </div>
   );
 }
+
 
