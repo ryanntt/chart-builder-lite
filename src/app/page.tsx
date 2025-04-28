@@ -20,6 +20,7 @@ export default function Home() {
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [validData, setValidData] = useState<any[]>([]); // Store valid data
   const [selectedFields, setSelectedFields] = useState<string[]>([]); // Track selected fields for visualization
+  const [renderVisualization, setRenderVisualization] = useState(false);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -102,70 +103,66 @@ export default function Home() {
   };
 
 
-  useEffect(() => {
-    const renderVisualization = async () => {
-      if (selectedFields.length < 2) {
-        console.warn("Please select at least two fields for visualization.");
-        return;
-      }
-
-      const selectedData = validData.map(item => {
-          const selectedItem: { [key: string]: any } = {};
-          selectedFields.forEach(field => {
-              selectedItem[field] = item[field];
-          });
-          return selectedItem;
+  const visualizeData = async () => {
+    if (selectedFields.length < 2) {
+      toast({
+        title: "Visualization Error",
+        description: "Please select at least two fields for visualization.",
+        variant: "destructive",
       });
-
-
-      if (selectedData.length === 0) {
+      return;
+    }
+  
+    const selectedData = validData.map(item => {
+      const selectedItem: { [key: string]: any } = {};
+      selectedFields.forEach(field => {
+        selectedItem[field] = item[field];
+      });
+      return selectedItem;
+    });
+  
+    if (selectedData.length === 0) {
+      toast({
+        title: "No Data to Visualize",
+        description: "Please upload a CSV file to parse the data.",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    try {
+      // Generate Vega-Lite specification based on the schema and data
+      const spec = await genVegaSpec(selectedFields, selectedData);
+      setVegaSpec(spec);
+  
+      // Serialize data to JSON string before passing to vegaEmbed
+      const serializedData = JSON.stringify(selectedData);
+  
+      // Embed the visualization using vega-embed
+      vegaEmbed("#vis", spec, { actions: false }).then(() => {
         toast({
-          title: "No Data to Visualize",
-          description: "Please upload a CSV file to parse the data.",
-          variant: "destructive",
+          title: "Visualization Rendered!",
+          description: "Data visualization has been successfully rendered.",
         });
-        return;
-      }
-
-      try {
-        // Generate Vega-Lite specification based on the schema and data
-        const spec = await genVegaSpec(selectedFields, selectedData);
-        setVegaSpec(spec);
-
-        // Serialize data to JSON string before passing to vegaEmbed
-        const serializedData = JSON.stringify(selectedData);
-
-        // Embed the visualization using vega-embed
-        vegaEmbed("#vis", spec, { actions: false }).then(() => {
-          toast({
-            title: "Visualization Rendered!",
-            description: "Data visualization has been successfully rendered.",
-          });
-        }).catch(error => {
-          console.error("Error embedding VegaLite:", error);
-          toast({
-            title: "Visualization Error",
-            description: "Failed to render the visualization.",
-            variant: "destructive",
-          });
-        });
-
-
-      } catch (error: any) {
-        console.error("Visualization error:", error);
+      }).catch(error => {
+        console.error("Error embedding VegaLite:", error);
         toast({
           title: "Visualization Error",
-          description: error.message || "Failed to render the visualization.",
+          description: "Failed to render the visualization.",
           variant: "destructive",
         });
-      }
-    };
-
-    if (validData.length > 0) {
-        renderVisualization();
+      });
+  
+  
+    } catch (error: any) {
+      console.error("Visualization error:", error);
+      toast({
+        title: "Visualization Error",
+        description: error.message || "Failed to render the visualization.",
+        variant: "destructive",
+      });
     }
-  }, [selectedFields, validData]);
-
+  };
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen py-2 bg-secondary">
@@ -203,6 +200,7 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
+                  <Button onClick={visualizeData}>Visualize</Button>
                 </CardContent>
               </Card>
 
@@ -229,21 +227,13 @@ export default function Home() {
                       ))}
                     </TableBody>
                   </Table>
+                  <div id="vis" />
                 </CardContent>
               </Card>
             </div>
           )}
-           <Card className="p-4 rounded-md bg-muted">
-                <CardHeader>
-                  <CardTitle className="text-md font-semibold">Visualization</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div id="vis" />
-                </CardContent>
-              </Card>
         </CardContent>
       </Card>
     </div>
   );
 }
-
