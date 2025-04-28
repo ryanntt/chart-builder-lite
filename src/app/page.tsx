@@ -16,6 +16,7 @@ export default function Home() {
   const [jsonData, setJsonData] = useState<any[]>([]);
   const [vegaSpec, setVegaSpec] = useState<VegaLiteSpec | null>(null);
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
+  const [validData, setValidData] = useState<any[]>([]); // Store valid data
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -62,7 +63,7 @@ export default function Home() {
       });
 
       // Identify and remove invalid data
-      const validData = cleanedData.filter(item => {
+      const validatedData = cleanedData.filter(item => {
         const isValid = Object.values(item).every(value => value !== undefined && value !== null && value !== '');
         if (!isValid) {
           console.warn('Invalid data removed:', item);
@@ -70,7 +71,8 @@ export default function Home() {
         return isValid;
       });
 
-      setJsonData(validData);
+      setJsonData(validatedData);
+      setValidData(validatedData);  // Store valid data
 
       toast({
         title: "CSV file parsed!",
@@ -88,7 +90,7 @@ export default function Home() {
 
 
   const renderVisualization = async () => {
-    if (jsonData.length === 0) {
+    if (validData.length === 0) {
       toast({
         title: "No Data to Visualize",
         description: "Please upload a CSV file to parse the data.",
@@ -99,12 +101,17 @@ export default function Home() {
 
     try {
       // Generate Vega-Lite specification based on the schema and data
-      const spec = await genVegaSpec(tableHeaders, jsonData);
+      const spec = await genVegaSpec(tableHeaders, validData);
       setVegaSpec(spec);
 
       // Embed the visualization using vega-embed
       const vegaEmbed = await import('vega-embed');
-      vegaEmbed.default("#vis", spec).catch(error => {
+      vegaEmbed.embed("#vis", spec).then(() => {
+        toast({
+          title: "Visualization Rendered!",
+          description: "Data visualization has been successfully rendered.",
+        });
+      }).catch(error => {
         console.error("Error embedding VegaLite:", error);
         toast({
           title: "Visualization Error",
@@ -113,10 +120,7 @@ export default function Home() {
         });
       });
 
-      toast({
-        title: "Visualization Rendered!",
-        description: "Data visualization has been successfully rendered.",
-      });
+
     } catch (error: any) {
       console.error("Visualization error:", error);
       toast({
@@ -159,7 +163,7 @@ export default function Home() {
                       </TableRow>
                     </TableHeader>
                     <TableBody style={{ maxHeight: '200px', overflowY: 'scroll' }}>
-                      {jsonData.map((row, index) => (
+                      {jsonData.slice(0, 10).map((row, index) => (
                         <TableRow key={index}>
                           {tableHeaders.map((header) => (
                             <TableCell key={header}>{row[header]}</TableCell>
@@ -190,5 +194,3 @@ export default function Home() {
     </div>
   );
 }
-
-
