@@ -178,7 +178,20 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              <Button onClick={renderVisualization} className="bg-primary text-primary-foreground hover:bg-primary/80">
+              <Button
+                  onClick={() => {
+                    if (validData.length === 0) {
+                      toast({
+                        title: "No Data to Visualize",
+                        description: "Please upload a CSV file to parse the data.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    renderVisualization();
+                  }}
+                  className="bg-primary text-primary-foreground hover:bg-primary/80"
+              >
                 Render Visualization
               </Button>
 
@@ -197,4 +210,5 @@ export default function Home() {
     </div>
   );
 }
+
 
