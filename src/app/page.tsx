@@ -20,7 +20,6 @@ export default function Home() {
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [validData, setValidData] = useState<any[]>([]); // Store valid data
   const [selectedFields, setSelectedFields] = useState<string[]>([]); // Track selected fields for visualization
-  const [renderVisualization, setRenderVisualization] = useState(false);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -177,7 +176,7 @@ export default function Home() {
             <Input id="csv-upload" type="file" accept=".csv" onChange={handleFileChange} />
           </div>
           {jsonData.length > 0 && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <Card className="p-4 rounded-md bg-muted overflow-x-auto">
                 <CardHeader>
                   <CardTitle className="text-md font-semibold">Data Preview</CardTitle>
@@ -200,7 +199,6 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
-                  <Button onClick={visualizeData}>Visualize</Button>
                 </CardContent>
               </Card>
 
@@ -227,6 +225,15 @@ export default function Home() {
                       ))}
                     </TableBody>
                   </Table>
+                </CardContent>
+              </Card>
+
+              <Card className="p-4 rounded-md bg-muted">
+                <CardHeader>
+                  <CardTitle className="text-md font-semibold">Visualization</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={visualizeData}>Visualize</Button>
                   <div id="vis" />
                 </CardContent>
               </Card>
@@ -237,3 +244,4 @@ export default function Home() {
     </div>
   );
 }
+
