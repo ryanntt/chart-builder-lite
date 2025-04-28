@@ -8,11 +8,9 @@ import { toast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { Upload } from 'lucide-react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import * as vegaLite from 'vega-lite';
 import { VegaLiteSpec } from 'vega-lite';
 import { genVegaSpec } from "@/services/vega";
-import { compile, View } from 'vega-lite';
-import {render} from 'vega-embed';
+import * as vegaEmbed from 'vega-embed';
 
 export default function Home() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -79,10 +77,7 @@ export default function Home() {
       setVegaSpec(spec);
 
       // Embed the visualization using vega-embed
-      render({
-        element: document.querySelector("#vis"),
-        spec: spec,
-      });
+      vegaEmbed.embed("#vis", spec);
 
       toast({
         title: "Visualization Rendered!",
