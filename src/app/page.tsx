@@ -8,16 +8,16 @@ import { toast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { Upload } from 'lucide-react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import * as vega from 'vega';
 import * as vegaLite from 'vega-lite';
 import { VegaLiteSpec } from 'vega-lite';
 import { genVegaSpec } from "@/services/vega";
+import { compile, View } from 'vega-lite';
+import {render} from 'vega-embed';
 
 export default function Home() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [jsonData, setJsonData] = useState<any[]>([]);
   const [vegaSpec, setVegaSpec] = useState<VegaLiteSpec | null>(null);
-  const [view, setView] = useState<vega.View | null>(null);
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,18 +78,11 @@ export default function Home() {
       const spec = await genVegaSpec(tableHeaders, jsonData);
       setVegaSpec(spec);
 
-      // Compile the Vega-Lite specification
-      const compiledSpec = vegaLite.compile(spec).spec;
-
-      // Create a Vega view
-      const runtime = vega.parse(compiledSpec);
-      const newView = new vega.View(runtime)
-        .renderer('canvas')  // set renderer (canvas or svg)
-        .initialize('#vis') // ID of the DOM element to mount the visualization
-        .insert(jsonData)    // insert data
-        .hover()             // enable hover event
-        .run();              // run the visualization
-      setView(newView);
+      // Embed the visualization using vega-embed
+      render({
+        element: document.querySelector("#vis"),
+        spec: spec,
+      });
 
       toast({
         title: "Visualization Rendered!",
@@ -106,13 +99,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Clean up Vega view on unmount
-    return () => {
-      if (view) {
-        view.finalize();
-      }
-    };
-  }, [view]);
+    // No need to finalize view anymore, vega-embed handles cleanup
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen py-2 bg-secondary">
