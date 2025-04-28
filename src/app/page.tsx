@@ -138,7 +138,8 @@ export default function Home() {
       const serializedData = JSON.stringify(selectedData);
   
       // Embed the visualization using vega-embed
-      vegaEmbed("#vis", spec, { actions: false }).then(() => {
+      const vegaEmbedModule = await import('vega-embed');
+      vegaEmbedModule.default("#vis", spec, { actions: false }).then(() => {
         toast({
           title: "Visualization Rendered!",
           description: "Data visualization has been successfully rendered.",
@@ -177,7 +178,7 @@ export default function Home() {
           </div>
           {jsonData.length > 0 && (
             <div className="grid grid-cols-3 gap-4">
-              <Card className="p-4 rounded-md bg-muted overflow-x-auto">
+              <Card style={{ width: '300px' }} className="p-4 rounded-md bg-muted overflow-x-auto">
                 <CardHeader>
                   <CardTitle className="text-md font-semibold">Data Preview</CardTitle>
                 </CardHeader>
@@ -202,41 +203,43 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              <Card className="p-4 rounded-md bg-muted overflow-x-auto">
-                <CardHeader>
-                  <CardTitle className="text-md font-semibold">Selected Fields</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        {selectedFields.map((header) => (
-                          <TableHead key={header}>{header}</TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody style={{ maxHeight: '200px', overflowY: 'scroll' }}>
-                      {jsonData.slice(0, 10).map((row, index) => (
-                        <TableRow key={index}>
+              <div className="flex flex-col space-y-4">
+                <Card className="p-4 rounded-md bg-muted overflow-x-auto">
+                  <CardHeader>
+                    <CardTitle className="text-md font-semibold">Selected Fields</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
                           {selectedFields.map((header) => (
-                            <TableCell key={header}>{row[header]}</TableCell>
+                            <TableHead key={header}>{header}</TableHead>
                           ))}
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+                      </TableHeader>
+                      <TableBody style={{ maxHeight: '200px', overflowY: 'scroll' }}>
+                        {jsonData.slice(0, 10).map((row, index) => (
+                          <TableRow key={index}>
+                            {selectedFields.map((header) => (
+                              <TableCell key={header}>{row[header]}</TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
 
-              <Card className="p-4 rounded-md bg-muted">
-                <CardHeader>
-                  <CardTitle className="text-md font-semibold">Visualization</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={visualizeData}>Visualize</Button>
-                  <div id="vis" />
-                </CardContent>
-              </Card>
+                <Card className="p-4 rounded-md bg-muted">
+                  <CardHeader>
+                    <CardTitle className="text-md font-semibold">Visualization</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Button onClick={visualizeData}>Visualize</Button>
+                    <div id="vis" />
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
         </CardContent>
@@ -244,5 +247,4 @@ export default function Home() {
     </div>
   );
 }
-
 
