@@ -77,7 +77,14 @@ export default function Home() {
       setVegaSpec(spec);
 
       // Embed the visualization using vega-embed
-      vegaEmbed.embed("#vis", spec);
+      vegaEmbed.embed("#vis", spec).catch(error => {
+        console.error("Error embedding VegaLite:", error);
+        toast({
+          title: "Visualization Error",
+          description: "Failed to render the visualization.",
+          variant: "destructive",
+        });
+      });
 
       toast({
         title: "Visualization Rendered!",
@@ -156,3 +163,4 @@ export default function Home() {
     </div>
   );
 }
+
