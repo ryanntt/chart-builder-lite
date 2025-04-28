@@ -54,16 +54,16 @@ export default function Home() {
       const cleanedData = parsedData.map(row => {
         const transformedRow: { [key: string]: any } = {};
         Object.keys(row).forEach(key => {
-          const value = row[key];
+          let value = row[key];
           if (typeof value === 'string') {
             const num = Number(value);
-            transformedRow[key] = isNaN(num) ? value : num;
-          } else {
-            transformedRow[key] = value;
+            value = isNaN(num) ? value : num;
           }
+          transformedRow[key] = value;
         });
         return transformedRow;
       });
+
 
       // Identify and remove invalid data
       const validatedData = cleanedData.filter(item => {
