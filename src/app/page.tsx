@@ -166,7 +166,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-start min-h-screen py-2 bg-secondary">
       <Toaster />
-      <Card className="w-full max-w-4xl space-y-4 p-4 rounded-lg shadow-md">
+      <Card className="w-full max-w-7xl space-y-4 p-4 rounded-lg shadow-md">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-center">CSV Data Visualizer</CardTitle>
         </CardHeader>
@@ -244,4 +244,5 @@ export default function Home() {
     </div>
   );
 }
+
 
