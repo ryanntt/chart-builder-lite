@@ -11,6 +11,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { VegaLiteSpec } from 'vega-lite';
 import { genVegaSpec } from "@/services/vega";
 import vegaEmbed from 'vega-embed';
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Home() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -18,6 +19,7 @@ export default function Home() {
   const [vegaSpec, setVegaSpec] = useState<VegaLiteSpec | null>(null);
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [validData, setValidData] = useState<any[]>([]); // Store valid data
+  const [selectedFields, setSelectedFields] = useState<string[]>([]); // Track selected fields for visualization
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -77,7 +79,7 @@ export default function Home() {
 
       toast({
         title: "CSV file parsed!",
-        description: "Data is ready for preview and visualization.",
+        description: "Data is ready for preview.",
       });
     } catch (error) {
       console.error("Error parsing CSV:", error);
@@ -89,54 +91,81 @@ export default function Home() {
     }
   };
 
-
-  const renderVisualization = async () => {
-    if (validData.length === 0) {
-      toast({
-        title: "No Data to Visualize",
-        description: "Please upload a CSV file to parse the data.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Generate Vega-Lite specification based on the schema and data
-      const spec = await genVegaSpec(tableHeaders, validData);
-      setVegaSpec(spec);
-
-      // Serialize data to JSON string before passing to vegaEmbed
-      const serializedData = JSON.stringify(validData);
-
-      // Embed the visualization using vega-embed
-      vegaEmbed("#vis", spec, { actions: false }).then(() => {
-        toast({
-          title: "Visualization Rendered!",
-          description: "Data visualization has been successfully rendered.",
-        });
-      }).catch(error => {
-        console.error("Error embedding VegaLite:", error);
-        toast({
-          title: "Visualization Error",
-          description: "Failed to render the visualization.",
-          variant: "destructive",
-        });
-      });
-
-
-    } catch (error: any) {
-      console.error("Visualization error:", error);
-      toast({
-        title: "Visualization Error",
-        description: error.message || "Failed to render the visualization.",
-        variant: "destructive",
-      });
-    }
+  const handleFieldSelect = (field: string) => {
+    setSelectedFields(prev => {
+      if (prev.includes(field)) {
+        return prev.filter(f => f !== field);
+      } else {
+        return [...prev, field];
+      }
+    });
   };
 
+
   useEffect(() => {
-    // No need to finalize view anymore, vega-embed handles cleanup
-  }, []);
+    const renderVisualization = async () => {
+      if (selectedFields.length < 2) {
+        console.warn("Please select at least two fields for visualization.");
+        return;
+      }
+
+      const selectedData = validData.map(item => {
+          const selectedItem: { [key: string]: any } = {};
+          selectedFields.forEach(field => {
+              selectedItem[field] = item[field];
+          });
+          return selectedItem;
+      });
+
+
+      if (selectedData.length === 0) {
+        toast({
+          title: "No Data to Visualize",
+          description: "Please upload a CSV file to parse the data.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        // Generate Vega-Lite specification based on the schema and data
+        const spec = await genVegaSpec(selectedFields, selectedData);
+        setVegaSpec(spec);
+
+        // Serialize data to JSON string before passing to vegaEmbed
+        const serializedData = JSON.stringify(selectedData);
+
+        // Embed the visualization using vega-embed
+        vegaEmbed("#vis", spec, { actions: false }).then(() => {
+          toast({
+            title: "Visualization Rendered!",
+            description: "Data visualization has been successfully rendered.",
+          });
+        }).catch(error => {
+          console.error("Error embedding VegaLite:", error);
+          toast({
+            title: "Visualization Error",
+            description: "Failed to render the visualization.",
+            variant: "destructive",
+          });
+        });
+
+
+      } catch (error: any) {
+        console.error("Visualization error:", error);
+        toast({
+          title: "Visualization Error",
+          description: error.message || "Failed to render the visualization.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (validData.length > 0) {
+        renderVisualization();
+    }
+  }, [selectedFields, validData]);
+
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen py-2 bg-secondary">
@@ -151,16 +180,41 @@ export default function Home() {
             <Input id="csv-upload" type="file" accept=".csv" onChange={handleFileChange} />
           </div>
           {jsonData.length > 0 && (
-            <>
+            <div className="grid grid-cols-2 gap-4">
               <Card className="p-4 rounded-md bg-muted overflow-x-auto">
                 <CardHeader>
                   <CardTitle className="text-md font-semibold">Data Preview</CardTitle>
+                </CardHeader>
+                <CardContent className="max-h-[400px] overflow-y-auto">
+                <ul>
+                    {tableHeaders.map((header) => (
+                      <li key={header} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={header}
+                          checked={selectedFields.includes(header)}
+                          onCheckedChange={() => handleFieldSelect(header)}
+                        />
+                        <label
+                          htmlFor={header}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {header}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="p-4 rounded-md bg-muted overflow-x-auto">
+                <CardHeader>
+                  <CardTitle className="text-md font-semibold">Selected Fields</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {tableHeaders.map((header) => (
+                        {selectedFields.map((header) => (
                           <TableHead key={header}>{header}</TableHead>
                         ))}
                       </TableRow>
@@ -168,7 +222,7 @@ export default function Home() {
                     <TableBody style={{ maxHeight: '200px', overflowY: 'scroll' }}>
                       {jsonData.slice(0, 10).map((row, index) => (
                         <TableRow key={index}>
-                          {tableHeaders.map((header) => (
+                          {selectedFields.map((header) => (
                             <TableCell key={header}>{row[header]}</TableCell>
                           ))}
                         </TableRow>
@@ -177,25 +231,9 @@ export default function Home() {
                   </Table>
                 </CardContent>
               </Card>
-
-              <Button
-                  onClick={() => {
-                    if (validData.length === 0) {
-                      toast({
-                        title: "No Data to Visualize",
-                        description: "Please upload a CSV file to parse the data.",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    renderVisualization();
-                  }}
-                  className="bg-primary text-primary-foreground hover:bg-primary/80"
-              >
-                Render Visualization
-              </Button>
-
-              <Card className="p-4 rounded-md bg-muted">
+            </div>
+          )}
+           <Card className="p-4 rounded-md bg-muted">
                 <CardHeader>
                   <CardTitle className="text-md font-semibold">Visualization</CardTitle>
                 </CardHeader>
@@ -203,12 +241,9 @@ export default function Home() {
                   <div id="vis" />
                 </CardContent>
               </Card>
-            </>
-          )}
         </CardContent>
       </Card>
     </div>
   );
 }
-
 
