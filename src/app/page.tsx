@@ -10,7 +10,7 @@ import { Upload } from 'lucide-react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { VegaLiteSpec } from 'vega-lite';
 import { genVegaSpec } from "@/services/vega";
-import * as vegaEmbed from 'vega-embed';
+import vegaEmbed from 'vega-embed';
 
 export default function Home() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -106,7 +106,7 @@ export default function Home() {
       setVegaSpec(spec);
 
       // Embed the visualization using vega-embed
-      vegaEmbed.embed("#vis", spec).then(() => {
+      vegaEmbed("#vis", spec, { actions: false }).then(() => {
         toast({
           title: "Visualization Rendered!",
           description: "Data visualization has been successfully rendered.",
