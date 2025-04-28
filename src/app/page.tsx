@@ -10,7 +10,7 @@ import { Upload } from 'lucide-react';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { VegaLiteSpec } from 'vega-lite';
 import { genVegaSpec } from "@/services/vega";
-import * as vegaEmbed from 'vega-embed';
+import vegaEmbed from 'vega-embed';
 
 export default function Home() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
