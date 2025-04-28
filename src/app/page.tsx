@@ -43,7 +43,16 @@ export default function Home() {
         for (let j = 0; j < headers.length; j++) {
           data[headers[j]] = currentLine[j].trim();
         }
-        parsedData.push(data);
+
+        // Transform data: convert numeric values to numbers, if possible
+        const transformedData: { [key: string]: any } = {};
+        headers.forEach((header) => {
+          const value = data[header];
+          const num = Number(value);
+          transformedData[header] = isNaN(num) ? value : num; // Convert to number if it's not NaN
+        });
+
+        parsedData.push(transformedData);
       }
 
       setJsonData(parsedData);
@@ -163,4 +172,3 @@ export default function Home() {
     </div>
   );
 }
-
