@@ -9,7 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
-// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS - Removed as it's moved to layout.tsx
+// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS - Moved to layout.tsx
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,6 +19,20 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as Accordi
 import { useTheme } from "next-themes";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 
+const getFieldTypeIcon = (type: string) => {
+  switch (type) {
+    case 'string':
+      return <Type className="h-4 w-4 text-muted-foreground" />;
+    case 'number':
+      return <Hash className="h-4 w-4 text-muted-foreground" />;
+    case 'date':
+      return <CalendarDays className="h-4 w-4 text-muted-foreground" />;
+    case 'boolean':
+      return <ToggleLeft className="h-4 w-4 text-muted-foreground" />;
+    default:
+      return <FileText className="h-4 w-4 text-muted-foreground" />;
+  }
+};
 
 const AppHeader = () => (
   <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -39,6 +53,9 @@ export default function Home() {
   const [headerTypes, setHeaderTypes] = useState<Record<string, string>>({});
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [chartOptions, setChartOptions] = useState<AgChartOptions | null>(null);
+  const chartApiRef = useRef<AgChart | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const { theme: resolvedTheme } = useTheme();
   
   const [chartType, setChartType] = useState<string>('bar');
   const [xAxisField, setXAxisField] = useState<string | null>(null);
@@ -47,38 +64,11 @@ export default function Home() {
   const [draggedItem, setDraggedItem] = useState<{ field: string; origin: 'x' | 'y' } | null>(null);
   const [isChartLoading, setIsChartLoading] = useState(false);
 
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartApiRef = useRef<AgChart | null>(null);
-  const { resolvedTheme } = useTheme();
-
-  const getFieldTypeIcon = (type: string) => {
-    switch (type) {
-      case 'string':
-        return <Type className="h-4 w-4 text-blue-500" />;
-      case 'number':
-        return <Hash className="h-4 w-4 text-green-500" />;
-      case 'boolean':
-        return <ToggleLeft className="h-4 w-4 text-purple-500" />;
-      case 'date': 
-        return <CalendarDays className="h-4 w-4 text-orange-500" />;
-      default:
-        return <FileText className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     setCsvFile(file);
-    setJsonData([]);
-    setTableHeaders([]);
-    setHeaderTypes({});
-    setSelectedFields([]);
-    setChartOptions(null);
-    setXAxisField(null);
-    setYAxisField(null);
-    setIsChartLoading(false);
+    setIsChartLoading(true);
 
     try {
       const text = await file.text();
@@ -90,6 +80,7 @@ export default function Home() {
           variant: "destructive",
         });
         setCsvFile(null); 
+        setIsChartLoading(false);
         return;
       }
       
@@ -143,7 +134,7 @@ export default function Home() {
         title: "CSV file parsed!",
         description: `${parsedData.length} data rows ready for preview.`,
       });
-
+      setIsChartLoading(false);
     } catch (error) {
       console.error("Error parsing CSV:", error);
       toast({
@@ -162,46 +153,57 @@ export default function Home() {
       const newSelection = prev.includes(field)
         ? prev.filter(f => f !== field)
         : [...prev, field];
+
+      // If a field is deselected, remove it from X or Y axis
+      if (!newSelection.includes(field)) {
+        if (xAxisField === field) setXAxisField(null);
+        if (yAxisField === field) setYAxisField(null);
+      }
       return newSelection;
     });
   };
   
-  useEffect(() => {
+ useEffect(() => {
     if (jsonData.length > 0 && selectedFields.length > 0) {
-      let currentX = xAxisField;
-      let currentY = yAxisField;
+        let currentX = xAxisField;
+        let currentY = yAxisField;
 
-      if (currentX && !selectedFields.includes(currentX)) {
-        currentX = null;
-        setXAxisField(null);
-      }
-      if (currentY && !selectedFields.includes(currentY)) {
-        currentY = null;
-        setYAxisField(null);
-      }
-      
-      if (!currentX) {
-         const newX = selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) ||
-                       selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
-                       (selectedFields[0] !== currentY ? selectedFields[0] : null);
-        if (newX) {
-          setXAxisField(newX);
+        // Deselect if not in selectedFields anymore
+        if (currentX && !selectedFields.includes(currentX)) {
+            currentX = null;
+            setXAxisField(null);
         }
-      }
-      
-      if (!currentY) {
-        const newY = selectedFields.find(f => headerTypes[f] === 'number' && f !== currentX) || 
-                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object'); // Ensure y-axis doesn't pick object type
-        if (newY) {
-          setYAxisField(newY);
+        if (currentY && !selectedFields.includes(currentY)) {
+            currentY = null;
+            setYAxisField(null);
         }
-      }
+        
+        // Auto-select X if empty and Y is set, or if both are empty
+        if (!currentX && (currentY || (!currentX && !currentY))) {
+            const potentialX = 
+                selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) ||
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
+                selectedFields.find(f => f !== currentY); // any field not used by Y
+            if (potentialX) {
+                setXAxisField(potentialX);
+                currentX = potentialX; 
+            }
+        }
+        
+        // Auto-select Y if empty and X is set, or if both are empty and X was just set
+        if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) { // Ensure xAxisField is checked if currentX just updated
+            const potentialY = 
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || xAxisField)) || 
+                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object'); // any field not used by X
+            if (potentialY) {
+                setYAxisField(potentialY);
+            }
+        }
     } else if (selectedFields.length === 0) {
         setXAxisField(null);
         setYAxisField(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData, headerTypes]); 
+  }, [selectedFields, jsonData, headerTypes, xAxisField, yAxisField]);
 
 
   const handleDragStart = (field: string, origin: 'x' | 'y') => {
@@ -210,28 +212,30 @@ export default function Home() {
 
   const handleDrop = (target: 'x' | 'y') => {
     if (draggedItem) {
-      const sourceField = draggedItem.field;
-      const currentX = xAxisField;
-      const currentY = yAxisField;
+        const sourceField = draggedItem.field;
+        const currentX = xAxisField;
+        const currentY = yAxisField;
 
-      if (target === 'x') {
-        if (sourceField === currentY) { 
-          setXAxisField(sourceField);
-          setYAxisField(currentX);
-        } else if (sourceField !== currentX) {
-          setXAxisField(sourceField);
+        if (target === 'x') {
+            if (sourceField === currentY) { // Field dragged from Y to X
+                setXAxisField(sourceField);
+                setYAxisField(currentX); // Old X becomes new Y (swap)
+            } else if (sourceField !== currentX) { // Field dragged from list to X, or different field already on X
+                 if (yAxisField === sourceField) setYAxisField(null); // Clear Y if it's the same as new X
+                setXAxisField(sourceField);
+            }
+        } else { // Target is 'y'
+            if (sourceField === currentX) { // Field dragged from X to Y
+                setYAxisField(sourceField);
+                setXAxisField(currentY); // Old Y becomes new X (swap)
+            } else if (sourceField !== currentY) { // Field dragged from list to Y, or different field already on Y
+                if (xAxisField === sourceField) setXAxisField(null); // Clear X if it's the same as new Y
+                setYAxisField(sourceField);
+            }
         }
-      } else { 
-        if (sourceField === currentX) { 
-          setYAxisField(sourceField);
-          setXAxisField(currentY);
-        } else if (sourceField !== currentY) { 
-          setYAxisField(sourceField);
-        }
-      }
-      setDraggedItem(null);
+        setDraggedItem(null);
     }
-  };
+};
   
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
@@ -240,6 +244,7 @@ export default function Home() {
   const visualizeData = () => {
     if (!xAxisField || !yAxisField) {
       setIsChartLoading(false);
+      setChartOptions(null); // Clear chart if axes are not set
       return;
     }
 
@@ -363,7 +368,7 @@ export default function Home() {
       series: series,
       axes: axes.length > 0 ? axes : undefined,
       autoSize: true, 
-      theme: resolvedTheme === 'dark' ? 'ag-default-dark' : 'ag-default',
+      theme: resolvedTheme === 'dark' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine',
     };
     setChartOptions(newChartOptions);
     setChartRenderKey(prevKey => prevKey + 1); 
@@ -386,12 +391,21 @@ export default function Home() {
       return () => clearTimeout(timer);
     } else {
       if (jsonData.length === 0 || selectedFields.length === 0) {
-        setChartOptions(null);
+        // setChartOptions(null); // Keep existing chart if axes are temporarily unset but data/fields exist
+      } else if (!xAxisField || !yAxisField) {
+        // Don't clear chart options here if one axis is temporarily null during selection
+        // Only clear if data itself is gone or no fields are selected.
+      }
+       if (jsonData.length > 0 && selectedFields.length > 0 && (!xAxisField || !yAxisField)) {
+        // If data and fields are present, but axes are not, don't clear chart, show placeholder
+      } else {
+         setChartOptions(null); // Clear chart if no data or no fields selected
       }
       setIsChartLoading(false); 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, resolvedTheme, headerTypes]);
+  }, [chartType, xAxisField, yAxisField, jsonData.length, selectedFields.length, resolvedTheme, headerTypes]); // Watch counts for jsonData and selectedFields
+
 
   const sanitizeFilename = (name: string | undefined): string => {
     if (!name) return 'chart.png';
@@ -514,7 +528,7 @@ export default function Home() {
                <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
                 <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow"> 
                   <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
-                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold transition-all hover:no-underline [&[data-state=open]&gt;svg]:rotate-180">
                        Visualization
                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
                     </AccordionPrimitiveTrigger>
@@ -548,11 +562,11 @@ export default function Home() {
                         <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
                         <div
                           id="xAxisContainer" 
-                          draggable={!!xAxisField && selectedFields.length > 0}
+                          draggable={!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField)}
                           onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
                           onDrop={() => handleDrop('x')}
                           onDragOver={handleDragOver}
-                          className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                          className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                         >
                           <span className="truncate" title={xAxisField || "Select field for X-Axis"}>{xAxisField || 'Select Field'}</span>
                           {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); }}><XIcon className="w-3 h-3" /></Button>}
@@ -562,11 +576,11 @@ export default function Home() {
                         <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
                         <div
                           id="yAxisContainer"
-                          draggable={!!yAxisField && selectedFields.length > 0}
+                          draggable={!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField)}
                           onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
                           onDrop={() => handleDrop('y')}
                           onDragOver={handleDragOver}
-                          className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                          className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                         >
                           <span className="truncate" title={yAxisField || "Select field for Y-Axis"}>{yAxisField || 'Select Field'}</span>
                           {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); }}><XIcon className="w-3 h-3" /></Button>}
@@ -619,3 +633,4 @@ export default function Home() {
     </div>
   );
 }
+
