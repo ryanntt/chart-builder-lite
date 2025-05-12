@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'CSV Atlas Uploader',
-  description: 'Upload CSV data and transfer to MongoDB Atlas.',
+  title: 'Data Uploader & Visualizer',
+  description: 'Upload CSV data and visualize it.',
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased bg-secondary`}>
         {children}
         <Toaster />
       </body>
