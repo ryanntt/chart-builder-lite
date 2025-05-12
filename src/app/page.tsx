@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 
 const AppHeader = () => (
@@ -51,7 +52,7 @@ export default function Home() {
         return <Hash className="h-4 w-4 text-green-500" />;
       case 'boolean':
         return <ToggleLeft className="h-4 w-4 text-purple-500" />;
-      case 'date': // Assuming you might add date detection later
+      case 'date': 
         return <CalendarDays className="h-4 w-4 text-orange-500" />;
       default:
         return <FileText className="h-4 w-4 text-gray-500" />;
@@ -80,7 +81,7 @@ export default function Home() {
           description: "CSV file must contain a header row and at least one data row.",
           variant: "destructive",
         });
-        setCsvFile(null); // Clear invalid file
+        setCsvFile(null); 
         return;
       }
       
@@ -97,8 +98,16 @@ export default function Home() {
           types[header] = 'number';
         } else if (sampleValue?.toLowerCase() === 'true' || sampleValue?.toLowerCase() === 'false') {
           types[header] = 'boolean';
+        // Basic date detection (YYYY-MM-DD or MM/DD/YYYY), can be expanded
+        } else if (sampleValue && (/\d{4}-\d{2}-\d{2}/.test(sampleValue) || /\d{1,2}\/\d{1,2}\/\d{4}/.test(sampleValue))) {
+          // Further check if it's a valid date
+          if (!isNaN(new Date(sampleValue).getTime())) {
+            types[header] = 'date';
+          } else {
+            types[header] = 'string';
+          }
         } else {
-          types[header] = 'string'; // Default to string
+          types[header] = 'string'; 
         }
       });
       setHeaderTypes(types);
@@ -111,11 +120,13 @@ export default function Home() {
         }
         const rowData: any = {};
         for (let j = 0; j < headers.length; j++) {
-          let value: string | number | boolean | null = currentLineValues[j];
+          let value: string | number | boolean | Date | null = currentLineValues[j];
           if (types[headers[j]] === 'number') {
             value = value === "" ? null : Number(value); 
           } else if (types[headers[j]] === 'boolean') {
             value = value.toLowerCase() === 'true';
+          } else if (types[headers[j]] === 'date') {
+            value = value === "" ? null : new Date(value);
           }
           rowData[headers[j]] = value;
         }
@@ -134,8 +145,8 @@ export default function Home() {
         description: "Failed to read or parse the CSV file.",
         variant: "destructive",
       });
-      setCsvFile(null); // Clear file on error
-      setJsonData([]); // Clear data on error
+      setCsvFile(null); 
+      setJsonData([]); 
     }
   };
 
@@ -164,17 +175,21 @@ export default function Home() {
         setChartOptions(null);
       }
       
+      // Prioritize string/date for X-axis, then number, then first selected
       if (!currentX) {
-        const newX = selectedFields.find(f => headerTypes[f] === 'string') || selectedFields[0];
-        if (newX && newX !== currentY) {
+         const newX = selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) ||
+                       selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
+                       (selectedFields[0] !== currentY ? selectedFields[0] : null);
+        if (newX) {
           setXAxisField(newX);
           currentX = newX;
         }
       }
       
+      // Prioritize number for Y-axis, then first available different from X
       if (!currentY) {
         const newY = selectedFields.find(f => headerTypes[f] === 'number' && f !== currentX) || 
-                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object'); // Avoid complex types like objects
+                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object'); // Avoid complex types
         if (newY) {
           setYAxisField(newY);
         }
@@ -185,7 +200,7 @@ export default function Home() {
         setChartOptions(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData, headerTypes]);
+  }, [selectedFields, jsonData, headerTypes]); // Removed xAxisField, yAxisField to avoid loops, handled internally
 
 
   const handleDragStart = (field: string, origin: 'x' | 'y') => {
@@ -200,19 +215,17 @@ export default function Home() {
       const currentY = yAxisField;
 
       if (target === 'x') {
-        // If dropping on X, and it's currently Y, swap
-        if (sourceField === currentY) {
+        if (sourceField === currentY) { // Swapping
           setXAxisField(sourceField);
           setYAxisField(currentX);
-        } else {
+        } else if (sourceField !== currentX) { // Assigning new or same field to X
           setXAxisField(sourceField);
         }
       } else { // target === 'y'
-        // If dropping on Y, and it's currently X, swap
-        if (sourceField === currentX) {
+        if (sourceField === currentX) { // Swapping
           setYAxisField(sourceField);
           setXAxisField(currentY);
-        } else {
+        } else if (sourceField !== currentY) { // Assigning new or same field to Y
           setYAxisField(sourceField);
         }
       }
@@ -256,11 +269,10 @@ export default function Home() {
     let axes: AgCartesianAxisOptions[] = [];
     let titleText = `${yAxisField} by ${xAxisField}`;
 
-    // Filter for top 20 unique string values on X-axis for bar/horizontal-bar charts if X is string
-    if ((chartType === 'bar' || (chartType === 'horizontal-bar' && xFieldType === 'string') ) && xFieldType === 'string') {
+    
+    if ( (chartType === 'bar' && xFieldType === 'string') || (chartType === 'bar' && xFieldType === 'date') ) {
         const valueCounts = chartData.reduce((acc, row) => {
             const value = String(row[xAxisField]);
-             // Sum yAxisField if it's a number, otherwise count occurrences
             acc[value] = (acc[value] || 0) + (yFieldType === 'number' && typeof row[yAxisField] === 'number' ? Number(row[yAxisField]) : 1);
             return acc;
         }, {} as Record<string, number>);
@@ -277,10 +289,9 @@ export default function Home() {
                 description: `X-axis field "${xAxisField}" displaying top 20 unique values by their aggregated Y-axis values or frequency.`,
             });
         }
-    }  else if (chartType === 'horizontal-bar' && yFieldType === 'string') { // For horizontal bar, Y is category
+    }  else if ( (chartType === 'horizontal-bar' && yFieldType === 'string') || (chartType === 'horizontal-bar' && yFieldType === 'date') ) { 
         const valueCounts = chartData.reduce((acc, row) => {
             const value = String(row[yAxisField]);
-             // Sum xAxisField if it's a number, otherwise count occurrences
             acc[value] = (acc[value] || 0) + (xFieldType === 'number' && typeof row[xAxisField] === 'number' ? Number(row[xAxisField]) : 1);
             return acc;
         }, {} as Record<string, number>);
@@ -313,28 +324,27 @@ export default function Home() {
       case 'bar':
         series = [{ type: 'bar', xKey: xAxisField, yKey: yAxisField, yName: yAxisField }];
         axes = [
-          { type: xFieldType === 'string' ? 'category' : 'number', position: 'bottom', title: { text: xAxisField } },
+          { type: (xFieldType === 'string' || xFieldType === 'date') ? 'category' : 'number', position: 'bottom', title: { text: xAxisField } },
           { type: 'number', position: 'left', title: { text: yAxisField } },
         ];
         break;
       case 'horizontal-bar':
-        // AG Charts: For horizontal bar, yKey is category, xKey is value.
-        series = [{ type: 'bar', xKey: yAxisField, yKey: xAxisField, xName: yAxisField, yName: xAxisField }]; 
+        series = [{ type: 'bar', yKey: yAxisField, xKey: xAxisField, yName: yAxisField, xName: xAxisField, direction: 'horizontal' }]; 
         axes = [
-            { type: yFieldType === 'string' ? 'category' : 'number', position: 'left', title: { text: yAxisField } }, // Category axis on the left
-            { type: 'number', position: 'bottom', title: { text: xAxisField } }, // Numeric axis on the bottom
+            { type: (yFieldType === 'string' || yFieldType === 'date') ? 'category' : 'number', position: 'left', title: { text: yAxisField } }, 
+            { type: 'number', position: 'bottom', title: { text: xAxisField } }, 
         ];
-        titleText = `${xAxisField} by ${yAxisField}`; // Title reflects what is being plotted
+        titleText = `${xAxisField} by ${yAxisField}`; 
         break;
       case 'scatter':
-        if (xFieldType !== 'number' || yFieldType !== 'number') {
-            toast({ title: "Type Error", description: "Scatter plots require numeric X and Y axes.", variant: "destructive"});
+        if ((xFieldType !== 'number' && xFieldType !== 'date') || (yFieldType !== 'number' && yFieldType !== 'date')) {
+            toast({ title: "Type Error", description: "Scatter plots require numeric or date X and Y axes.", variant: "destructive"});
             return;
         }
         series = [{ type: 'scatter', xKey: xAxisField, yKey: yAxisField, xName: xAxisField, yName: yAxisField }];
         axes = [
-          { type: 'number', position: 'bottom', title: { text: xAxisField } },
-          { type: 'number', position: 'left', title: { text: yAxisField } },
+          { type: xFieldType === 'date' ? 'time' : 'number', position: 'bottom', title: { text: xAxisField } },
+          { type: yFieldType === 'date' ? 'time' : 'number', position: 'left', title: { text: yAxisField } },
         ];
         break;
       case 'pie':
@@ -342,8 +352,8 @@ export default function Home() {
             toast({ title: "Type Error", description: "Pie charts require a numeric field for values (Angle Key).", variant: "destructive"});
             return;
         }
-         if (xFieldType !== 'string') {
-            toast({ title: "Type Error", description: "Pie charts require a categorical field for labels (Label Key).", variant: "destructive"});
+         if (xFieldType !== 'string' && xFieldType !== 'date') { // Allow date for labels too
+            toast({ title: "Type Error", description: "Pie charts require a categorical or date field for labels (Label Key).", variant: "destructive"});
             return;
         }
         series = [{ type: 'pie', angleKey: yAxisField, labelKey: xAxisField, calloutLabelKey: xAxisField, sectorLabelKey: yAxisField, legendItemKey: xAxisField }];
@@ -359,8 +369,8 @@ export default function Home() {
       title: { text: titleText },
       series: series,
       axes: axes.length > 0 ? axes : undefined,
-      container: chartContainerRef.current ?? undefined, // Ensure container is set for responsiveness
-      autoSize: true, // Ensure chart resizes with container
+      container: chartContainerRef.current ?? undefined, 
+      autoSize: true, 
     });
 
     toast({
@@ -399,6 +409,7 @@ export default function Home() {
                             title={csvFile?.name || "Select a CSV file"}
                           />
                       </div>
+                      {csvFile && <p className="text-xs text-muted-foreground mt-1 truncate" title={csvFile.name}>Selected: {csvFile.name}</p>}
                   </CardContent>
               </Card>
 
@@ -434,107 +445,121 @@ export default function Home() {
 
             {/* Right Column: Selected Fields Preview & Visualization */}
             <div className="flex flex-col space-y-6 md:overflow-y-auto">
-              <Card className="p-4 rounded-md bg-muted/50">
-                <CardHeader className="p-0 pb-2">
-                  <CardTitle className="text-md font-semibold">Selected Fields Preview</CardTitle>
-                  <CardDescription className="text-xs">Top 10 rows of selected data.</CardDescription>
-                </CardHeader>
-                <CardContent className="max-h-[250px] overflow-y-auto p-0 pt-2">
-                  {selectedFields.length > 0 && jsonData.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          {selectedFields.map((header) => (
-                            <TableHead key={header} className="text-xs h-8 px-2">{header}</TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {jsonData.slice(0, 10).map((row, index) => (
-                          <TableRow key={index}>
-                            {selectedFields.map((header) => (
-                              <TableCell key={header} className="text-xs py-1 px-2">{String(row[header])}</TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <p className="text-sm text-muted-foreground p-2">Select fields or upload data to see a preview.</p>
-                  )}
-                </CardContent>
+              <Card className="rounded-md bg-muted/50">
+                <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
+                  <AccordionItem value="preview-accordion-item" className="border-none">
+                    <AccordionTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md data-[state=open]:border-b data-[state=open]:bg-background/80 data-[state=closed]:rounded-b-md">
+                      <div className="text-left">
+                        <h3 className="text-md font-semibold">Selected Fields Preview</h3>
+                        <p className="text-xs text-muted-foreground">Top 10 rows of selected data.</p>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-4 pt-2">
+                      <div className="max-h-[250px] overflow-y-auto">
+                        {selectedFields.length > 0 && jsonData.length > 0 ? (
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                {selectedFields.map((header) => (
+                                  <TableHead key={header} className="text-xs h-8 px-2">{header}</TableHead>
+                                ))}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {jsonData.slice(0, 10).map((row, index) => (
+                                <TableRow key={index}>
+                                  {selectedFields.map((header) => (
+                                    <TableCell key={header} className="text-xs py-1 px-2">{String(row[header])}</TableCell>
+                                  ))}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <p className="text-sm text-muted-foreground p-2">Select fields or upload data to see a preview.</p>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </Card>
 
-              <Card className="p-4 rounded-md bg-muted/50 flex flex-col flex-grow">
-                <CardHeader className="p-0 pb-2">
-                  <CardTitle className="text-md font-semibold">Visualization Controls & Output</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 pt-2 space-y-4 flex flex-col flex-grow">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                    <div className="space-y-1">
-                      <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
-                      <Select value={chartType} onValueChange={(value) => { setChartType(value); setChartOptions(null); }} name="chartType" disabled={selectedFields.length === 0}>
-                        <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
-                          <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
-                          <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
-                          <SelectItem value="pie" className="text-xs">Pie Chart</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
-                      <div
-                        id="xAxisContainer" 
-                        draggable={!!xAxisField && selectedFields.length > 0}
-                        onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
-                        onDrop={() => handleDrop('x')}
-                        onDragOver={handleDragOver}
-                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-not-allowed opacity-50'}`}
-                      >
-                        <span className="truncate" title={xAxisField || undefined}>{xAxisField || 'Drag/Select Field'}</span>
-                        {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+              <Card className="rounded-md bg-muted/50 flex flex-col flex-grow">
+                <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
+                  <AccordionItem value="viz-accordion-item" className="border-none flex flex-col flex-grow">
+                    <AccordionTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md data-[state=open]:border-b data-[state=open]:bg-background/80 data-[state=closed]:rounded-b-md">
+                      <div className="text-left">
+                        <h3 className="text-md font-semibold">Visualization Controls & Output</h3>
                       </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
-                      <div
-                        id="yAxisContainer"
-                        draggable={!!yAxisField && selectedFields.length > 0}
-                        onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
-                        onDrop={() => handleDrop('y')}
-                        onDragOver={handleDragOver}
-                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-not-allowed opacity-50'}`}
-                      >
-                         <span className="truncate" title={yAxisField || undefined}>{yAxisField || 'Drag/Select Field'}</span>
-                        {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+                    </AccordionTrigger>
+                    <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                        <div className="space-y-1">
+                          <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
+                          <Select value={chartType} onValueChange={(value) => { setChartType(value); setChartOptions(null); }} name="chartType" disabled={selectedFields.length === 0}>
+                            <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
+                              <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
+                              <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
+                              <SelectItem value="pie" className="text-xs">Pie Chart</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
+                          <div
+                            id="xAxisContainer" 
+                            draggable={!!xAxisField && selectedFields.length > 0}
+                            onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
+                            onDrop={() => handleDrop('x')}
+                            onDragOver={handleDragOver}
+                            className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-not-allowed opacity-50'}`}
+                          >
+                            <span className="truncate" title={xAxisField || undefined}>{xAxisField || 'Drag/Select Field'}</span>
+                            {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
+                          <div
+                            id="yAxisContainer"
+                            draggable={!!yAxisField && selectedFields.length > 0}
+                            onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
+                            onDrop={() => handleDrop('y')}
+                            onDragOver={handleDragOver}
+                            className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-not-allowed opacity-50'}`}
+                          >
+                            <span className="truncate" title={yAxisField || undefined}>{yAxisField || 'Drag/Select Field'}</span>
+                            {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <Button 
-                      onClick={visualizeData} 
-                      disabled={!xAxisField || !yAxisField || selectedFields.length === 0 || jsonData.length === 0}
-                      className="w-full sm:w-auto h-9 text-xs"
-                  >
-                      Visualize
-                  </Button>
-                  
-                  <div ref={chartContainerRef} style={{ minHeight: '300px', flexGrow: 1 }} className="ag-theme-quartz w-full h-full">
-                    {chartOptions && (
-                       <AgChartsReact options={chartOptions} />
-                    )}
-                     {!chartOptions && selectedFields.length > 0 && jsonData.length > 0 && (xAxisField || yAxisField) && (
-                        <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Click "Visualize" to render the chart.</p>
-                    )}
-                     {!chartOptions && selectedFields.length > 0 && jsonData.length > 0 && (!xAxisField || !yAxisField) && (
-                        <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Ensure X and Y axes are assigned fields for visualization.</p>
-                    )}
-                    {!chartOptions && (selectedFields.length === 0 || jsonData.length === 0) && (
-                        <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Upload data, select fields, and assign axes to enable visualization.</p>
-                    )}
-                  </div>
-                </CardContent>
+                      <Button 
+                          onClick={visualizeData} 
+                          disabled={!xAxisField || !yAxisField || selectedFields.length === 0 || jsonData.length === 0}
+                          className="w-auto h-9 text-xs"
+                      >
+                          Visualize
+                      </Button>
+                      
+                      <div ref={chartContainerRef} style={{ minHeight: '300px', flexGrow: 1 }} className="ag-theme-quartz w-full h-full">
+                        {chartOptions && (
+                          <AgChartsReact options={chartOptions} />
+                        )}
+                        {!chartOptions && selectedFields.length > 0 && jsonData.length > 0 && (xAxisField || yAxisField) && (
+                            <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Click "Visualize" to render the chart.</p>
+                        )}
+                        {!chartOptions && selectedFields.length > 0 && jsonData.length > 0 && (!xAxisField && !yAxisField) && (
+                            <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Ensure X and Y axes are assigned fields for visualization.</p>
+                        )}
+                        {!chartOptions && (selectedFields.length === 0 || jsonData.length === 0) && (
+                            <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Upload data, select fields, and assign axes to enable visualization.</p>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </Card>
             </div>
           </div>
@@ -543,3 +568,4 @@ export default function Home() {
     </div>
   );
 }
+
