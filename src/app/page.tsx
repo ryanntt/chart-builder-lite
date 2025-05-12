@@ -1,29 +1,32 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
-import type { AgChartOptions, AgCartesianAxisOptions } from 'ag-charts-community';
+import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, PieChartIcon } from "lucide-react"; // Removed BarChartHorizontal, Dot
+import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, PieChartIcon, Download, Moon, Sun } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useTheme } from "next-themes";
+import { ThemeToggleButton } from "@/components/theme-toggle-button";
 
 
 const AppHeader = () => (
   <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="container mx-auto flex h-16 items-center space-x-4 px-4 sm:justify-between sm:space-x-0">
+    <div className="container mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
         <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
         <h1 className="text-xl font-bold text-primary">CSV Atlas Uploader & Visualizer</h1>
       </div>
-      {/* Future nav items can go here */}
+      <ThemeToggleButton />
     </div>
   </header>
 );
@@ -39,10 +42,12 @@ export default function Home() {
   const [chartType, setChartType] = useState<string>('bar');
   const [xAxisField, setXAxisField] = useState<string | null>(null);
   const [yAxisField, setYAxisField] = useState<string | null>(null);
-  const [chartRenderKey, setChartRenderKey] = useState(0); // Key for re-rendering chart
+  const [chartRenderKey, setChartRenderKey] = useState(0);
   const [draggedItem, setDraggedItem] = useState<{ field: string; origin: 'x' | 'y' } | null>(null);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const chartApiRef = useRef<AgChart | null>(null);
+  const { resolvedTheme } = useTheme();
 
   const getFieldTypeIcon = (type: string) => {
     switch (type) {
@@ -192,7 +197,6 @@ export default function Home() {
         setXAxisField(null);
         setYAxisField(null);
     }
-    // No setChartOptions(null) here to keep chart visible during field reselection
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFields, jsonData, headerTypes]); 
 
@@ -323,10 +327,10 @@ export default function Home() {
         ];
         break;
       case 'horizontal-bar':
-        series = [{ type: 'bar', direction:'horizontal',  xKey: xAxisField, yKey: yAxisField, xName: xAxisField, yName: yAxisField }]; // Corrected: yName is label for values (xKey here), xName for categories (yKey here)
+        series = [{ type: 'bar', direction:'horizontal',  xKey: xAxisField, yKey: yAxisField, xName: xAxisField, yName: yAxisField }];
         axes = [
-            { type: 'number', position: 'bottom', title: { text: xAxisField } }, // Numeric axis
-            { type: (yFieldType === 'string' || yFieldType === 'date') ? 'category' : 'number', position: 'left', title: { text: yAxisField } }, // Category axis
+            { type: 'number', position: 'bottom', title: { text: xAxisField } },
+            { type: (yFieldType === 'string' || yFieldType === 'date') ? 'category' : 'number', position: 'left', title: { text: yAxisField } },
         ];
         titleText = `${xAxisField} by ${yAxisField}`; 
         break;
@@ -364,7 +368,7 @@ export default function Home() {
       series: series,
       axes: axes.length > 0 ? axes : undefined,
       autoSize: true, 
-      // theme: 'ag-default-dark' // Optional: if you want a dark theme
+      theme: resolvedTheme === 'dark' ? 'ag-default-dark' : 'ag-default',
     };
     setChartOptions(newChartOptions);
     setChartRenderKey(prevKey => prevKey + 1); 
@@ -374,6 +378,44 @@ export default function Home() {
       description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.`,
     });
   };
+
+  const sanitizeFilename = (name: string | undefined): string => {
+    if (!name) return 'chart.png';
+    return name.replace(/[^a-z0-9_.-]+/gi, '_').replace(/_+/g, '_').toLowerCase() + '.png';
+  };
+
+  const handleDownloadChart = () => {
+    if (chartApiRef.current) {
+      const filename = sanitizeFilename(chartOptions?.title?.text);
+      chartApiRef.current.downloadChart({ fileName: filename, fileFormat: 'image/png' });
+      toast({
+        title: "Chart Downloading",
+        description: `Downloading ${filename}...`,
+      });
+    } else {
+      toast({
+        title: "Download Failed",
+        description: "Chart is not ready.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (chartOptions && chartApiRef.current) {
+      const newTheme = resolvedTheme === 'dark' ? 'ag-default-dark' : 'ag-default';
+      if (chartOptions.theme !== newTheme) {
+        setChartOptions(prevOptions => {
+          if (!prevOptions) return null;
+          return {
+            ...prevOptions,
+            theme: newTheme,
+          };
+        });
+        setChartRenderKey(prevKey => prevKey + 1);
+      }
+    }
+  }, [resolvedTheme, chartOptions]);
   
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -381,7 +423,6 @@ export default function Home() {
       <main className="flex-grow container mx-auto p-4">
         <div className="grid grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)] gap-6 h-full">
           
-          {/* Left Column: Data Source + Fields */}
           <div className="flex flex-col space-y-6">
             <Card>
               <CardHeader className="p-4">
@@ -430,7 +471,6 @@ export default function Home() {
             </Card>
           </div>
 
-          {/* Right Column: Selected Fields Preview & Visualization */}
           <div className="flex flex-col space-y-6">
             <Card>
               <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
@@ -475,7 +515,21 @@ export default function Home() {
               <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
                 <AccordionItem value="viz-accordion-item" className="border-none flex flex-col flex-grow">
                   <AccordionTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
-                    Visualization
+                    <span className="flex-1">Visualization</span>
+                     <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 mr-1 rounded-md hover:bg-muted/50 p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadChart();
+                        }}
+                        disabled={!chartOptions || !chartApiRef.current}
+                        aria-label="Download chart"
+                        title="Download chart as PNG"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
                   </AccordionTrigger>
                   <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
@@ -530,7 +584,11 @@ export default function Home() {
                     
                     <div ref={chartContainerRef} className="ag-theme-quartz w-full flex-grow min-h-[300px]" style={{ height: '400px' }}>
                       {chartOptions && (
-                        <AgChartsReact options={chartOptions} key={chartRenderKey} />
+                        <AgChartsReact 
+                          options={chartOptions} 
+                          key={chartRenderKey} 
+                          onChartReady={(chart) => { chartApiRef.current = chart; }}
+                        />
                       )}
                       {!chartOptions && (
                         <div className="flex flex-col items-center justify-center h-full text-center">
