@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -544,7 +545,7 @@ export default function Home() {
                           Visualize
                       </Button>
                       
-                      <div ref={chartContainerRef} style={{ minHeight: '300px', flexGrow: 1 }} className="ag-theme-quartz w-full">
+                      <div ref={chartContainerRef} style={{ height: '400px' }} className="ag-theme-quartz w-full">
                         {chartOptions && (
                           <AgChartsReact options={chartOptions} key={chartRenderKey} />
                         )}
