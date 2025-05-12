@@ -12,7 +12,7 @@ import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, Upload, FileText, Type, Hash, CalendarDays, ToggleLeft } from "lucide-react";
+import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 
 
@@ -195,8 +195,7 @@ export default function Home() {
   const handleDrop = (target: 'x' | 'y') => {
     if (draggedItem) {
       const sourceField = draggedItem.field;
-      const sourceOrigin = draggedItem.origin;
-
+      
       const currentX = xAxisField;
       const currentY = yAxisField;
 
@@ -375,183 +374,172 @@ export default function Home() {
       <AppHeader />
       <main className="flex-grow container mx-auto p-4">
         <Card className="w-full h-full flex flex-col shadow-xl rounded-lg overflow-hidden">
-          {jsonData.length === 0 ? (
-             <div className="flex flex-col items-center justify-center h-full p-6 space-y-4">
-                <div className="flex flex-col space-y-2 items-center">
-                  <Label htmlFor="csv-upload-initial" className="text-lg font-medium">Upload CSV File</Label>
-                  <CardDescription>Get started by uploading your CSV data.</CardDescription>
-                  <div className="flex gap-2 pt-4">
-                    <Input 
-                      id="csv-upload-initial" 
-                      type="file" 
-                      accept=".csv" 
-                      onChange={handleFileChange} 
-                      className="max-w-xs text-sm"
-                      title={csvFile?.name || "Select a CSV file"}
-                    />
-                  </div>
-                </div>
-             </div>
-          ) : (
-            <div className="flex-grow grid grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)] gap-6 p-6 overflow-auto">
-              {/* Left Column: Upload + Data Fields */}
-              <div className="flex flex-col space-y-6 md:overflow-y-auto">
-                <Card className="p-4 rounded-md bg-muted/50">
-                    <CardHeader className="p-0 pb-2">
-                        <CardTitle className="text-md font-semibold">Upload New CSV</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <div className="flex gap-2 w-full">
-                            <Input 
-                              id="csv-upload-main" 
-                              type="file" 
-                              accept=".csv" 
-                              onChange={handleFileChange} 
-                              className="flex-grow text-sm"
-                              title={csvFile?.name || "Select a new CSV file"}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="p-4 rounded-md bg-muted/50 flex flex-col flex-grow" style={{ width: '300px' }}>
+          <div className="flex-grow grid grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)] gap-6 p-6 overflow-auto">
+            {/* Left Column: Upload + Data Fields */}
+            <div className="flex flex-col space-y-6 md:overflow-y-auto">
+              <Card className="p-4 rounded-md bg-muted/50">
                   <CardHeader className="p-0 pb-2">
-                    <CardTitle className="text-md font-semibold">Data Fields</CardTitle>
-                    <CardDescription className="text-xs">Select fields for preview and visualization.</CardDescription>
+                      <CardTitle className="text-md font-semibold">
+                        {csvFile ? "Upload New CSV" : "Upload CSV File"}
+                      </CardTitle>
+                      {!csvFile && (
+                        <CardDescription className="text-xs pt-1">
+                          Get started by uploading your CSV data.
+                        </CardDescription>
+                      )}
                   </CardHeader>
-                  <CardContent className="flex-grow overflow-y-auto p-0 pt-2 space-y-1">
-                    {tableHeaders.map((header) => (
-                      <div key={header} className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-background transition-colors">
-                        <Checkbox
-                          id={`checkbox-${header}`}
-                          checked={selectedFields.includes(header)}
-                          onCheckedChange={() => handleFieldSelect(header)}
-                          aria-label={`Select field ${header}`}
-                        />
-                        {getFieldTypeIcon(headerTypes[header])}
-                        <Label
-                          htmlFor={`checkbox-${header}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer"
-                          title={header}
-                        >
-                          {header}
-                        </Label>
+                  <CardContent className="p-0">
+                      <div className={`flex gap-2 w-full ${!csvFile ? 'mt-2' : ''}`}>
+                          <Input 
+                            id="csv-upload-main" 
+                            type="file" 
+                            accept=".csv" 
+                            onChange={handleFileChange} 
+                            className="flex-grow text-sm"
+                            title={csvFile?.name || "Select a CSV file"}
+                          />
                       </div>
-                    ))}
                   </CardContent>
-                </Card>
-              </div>
+              </Card>
 
-              {/* Right Column: Selected Fields Preview & Visualization */}
-              <div className="flex flex-col space-y-6 md:overflow-y-auto">
-                <Card className="p-4 rounded-md bg-muted/50">
-                  <CardHeader className="p-0 pb-2">
-                    <CardTitle className="text-md font-semibold">Selected Fields Preview</CardTitle>
-                    <CardDescription className="text-xs">Top 10 rows of selected data.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="max-h-[250px] overflow-y-auto p-0 pt-2">
-                    {selectedFields.length > 0 ? (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
+              <Card className="p-4 rounded-md bg-muted/50 flex flex-col flex-grow" style={{ width: '300px' }}>
+                <CardHeader className="p-0 pb-2">
+                  <CardTitle className="text-md font-semibold">Data Fields</CardTitle>
+                  <CardDescription className="text-xs">Select fields for preview and visualization.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow overflow-y-auto p-0 pt-2 space-y-1">
+                  {tableHeaders.length > 0 ? tableHeaders.map((header) => (
+                    <div key={header} className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-background transition-colors">
+                      <Checkbox
+                        id={`checkbox-${header}`}
+                        checked={selectedFields.includes(header)}
+                        onCheckedChange={() => handleFieldSelect(header)}
+                        aria-label={`Select field ${header}`}
+                      />
+                      {getFieldTypeIcon(headerTypes[header])}
+                      <Label
+                        htmlFor={`checkbox-${header}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer"
+                        title={header}
+                      >
+                        {header}
+                      </Label>
+                    </div>
+                  )) : (
+                    <p className="text-sm text-muted-foreground p-2">Upload a CSV to see data fields.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column: Selected Fields Preview & Visualization */}
+            <div className="flex flex-col space-y-6 md:overflow-y-auto">
+              <Card className="p-4 rounded-md bg-muted/50">
+                <CardHeader className="p-0 pb-2">
+                  <CardTitle className="text-md font-semibold">Selected Fields Preview</CardTitle>
+                  <CardDescription className="text-xs">Top 10 rows of selected data.</CardDescription>
+                </CardHeader>
+                <CardContent className="max-h-[250px] overflow-y-auto p-0 pt-2">
+                  {selectedFields.length > 0 && jsonData.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          {selectedFields.map((header) => (
+                            <TableHead key={header} className="text-xs h-8 px-2">{header}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {jsonData.slice(0, 10).map((row, index) => (
+                          <TableRow key={index}>
                             {selectedFields.map((header) => (
-                              <TableHead key={header} className="text-xs h-8 px-2">{header}</TableHead>
+                              <TableCell key={header} className="text-xs py-1 px-2">{String(row[header])}</TableCell>
                             ))}
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {jsonData.slice(0, 10).map((row, index) => (
-                            <TableRow key={index}>
-                              {selectedFields.map((header) => (
-                                <TableCell key={header} className="text-xs py-1 px-2">{String(row[header])}</TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    ) : (
-                      <p className="text-sm text-muted-foreground p-2">Select fields to see a preview.</p>
-                    )}
-                  </CardContent>
-                </Card>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <p className="text-sm text-muted-foreground p-2">Select fields or upload data to see a preview.</p>
+                  )}
+                </CardContent>
+              </Card>
 
-                <Card className="p-4 rounded-md bg-muted/50 flex flex-col flex-grow">
-                  <CardHeader className="p-0 pb-2">
-                    <CardTitle className="text-md font-semibold">Visualization Controls & Output</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 pt-2 space-y-4 flex flex-col flex-grow">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                      <div className="space-y-1">
-                        <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
-                        <Select value={chartType} onValueChange={(value) => { setChartType(value); setChartOptions(null); }} name="chartType">
-                          <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
-                            <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
-                            <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
-                            <SelectItem value="pie" className="text-xs">Pie Chart</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
-                        <div
-                          id="xAxisContainer" // Changed id to avoid conflict with input if any
-                          draggable={!!xAxisField}
-                          onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
-                          onDrop={() => handleDrop('x')}
-                          onDragOver={handleDragOver}
-                          className="flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background cursor-grab text-xs"
-                        >
-                          <span className="truncate" title={xAxisField || undefined}>{xAxisField || 'Drag/Select Field'}</span>
-                          {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
-                        <div
-                          id="yAxisContainer" // Changed id to avoid conflict
-                          draggable={!!yAxisField}
-                          onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
-                          onDrop={() => handleDrop('y')}
-                          onDragOver={handleDragOver}
-                          className="flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background cursor-grab text-xs"
-                        >
-                           <span className="truncate" title={yAxisField || undefined}>{yAxisField || 'Drag/Select Field'}</span>
-                          {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
-                        </div>
+              <Card className="p-4 rounded-md bg-muted/50 flex flex-col flex-grow">
+                <CardHeader className="p-0 pb-2">
+                  <CardTitle className="text-md font-semibold">Visualization Controls & Output</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 pt-2 space-y-4 flex flex-col flex-grow">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                    <div className="space-y-1">
+                      <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
+                      <Select value={chartType} onValueChange={(value) => { setChartType(value); setChartOptions(null); }} name="chartType" disabled={selectedFields.length === 0}>
+                        <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
+                          <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
+                          <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
+                          <SelectItem value="pie" className="text-xs">Pie Chart</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
+                      <div
+                        id="xAxisContainer" 
+                        draggable={!!xAxisField && selectedFields.length > 0}
+                        onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
+                        onDrop={() => handleDrop('x')}
+                        onDragOver={handleDragOver}
+                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-not-allowed opacity-50'}`}
+                      >
+                        <span className="truncate" title={xAxisField || undefined}>{xAxisField || 'Drag/Select Field'}</span>
+                        {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
                       </div>
                     </div>
-                    <Button 
-                        onClick={visualizeData} 
-                        disabled={!xAxisField || !yAxisField || selectedFields.length === 0}
-                        className="w-full sm:w-auto h-9 text-xs"
-                    >
-                        Visualize
-                    </Button>
-                    
-                    <div ref={chartContainerRef} style={{ minHeight: '300px', flexGrow: 1 }} className="ag-theme-quartz w-full h-full">
-                      {chartOptions && (
-                         <AgChartsReact options={chartOptions} />
-                      )}
-                       {!chartOptions && selectedFields.length > 0 && (xAxisField || yAxisField) && (
-                          <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Click "Visualize" to render the chart.</p>
-                      )}
-                       {!chartOptions && (!xAxisField || !yAxisField) && selectedFields.length > 0 && (
-                          <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Ensure X and Y axes are assigned fields for visualization.</p>
-                      )}
-                      {!chartOptions && selectedFields.length === 0 && (
-                          <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Select fields and assign axes to enable visualization.</p>
-                      )}
+                    <div className="space-y-1">
+                      <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
+                      <div
+                        id="yAxisContainer"
+                        draggable={!!yAxisField && selectedFields.length > 0}
+                        onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
+                        onDrop={() => handleDrop('y')}
+                        onDragOver={handleDragOver}
+                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-not-allowed opacity-50'}`}
+                      >
+                         <span className="truncate" title={yAxisField || undefined}>{yAxisField || 'Drag/Select Field'}</span>
+                        {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                  <Button 
+                      onClick={visualizeData} 
+                      disabled={!xAxisField || !yAxisField || selectedFields.length === 0 || jsonData.length === 0}
+                      className="w-full sm:w-auto h-9 text-xs"
+                  >
+                      Visualize
+                  </Button>
+                  
+                  <div ref={chartContainerRef} style={{ minHeight: '300px', flexGrow: 1 }} className="ag-theme-quartz w-full h-full">
+                    {chartOptions && (
+                       <AgChartsReact options={chartOptions} />
+                    )}
+                     {!chartOptions && selectedFields.length > 0 && jsonData.length > 0 && (xAxisField || yAxisField) && (
+                        <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Click "Visualize" to render the chart.</p>
+                    )}
+                     {!chartOptions && selectedFields.length > 0 && jsonData.length > 0 && (!xAxisField || !yAxisField) && (
+                        <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Ensure X and Y axes are assigned fields for visualization.</p>
+                    )}
+                    {!chartOptions && (selectedFields.length === 0 || jsonData.length === 0) && (
+                        <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Upload data, select fields, and assign axes to enable visualization.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          )}
+          </div>
         </Card>
       </main>
     </div>
   );
 }
-
