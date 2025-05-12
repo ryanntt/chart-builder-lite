@@ -2,7 +2,11 @@
 import type {Metadata} from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS (includes default light/dark themes)
+// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS (includes default light/dark themes)
+// The above import is commented out because it consistently causes a "Module not found" error.
+// This indicates that the build process cannot locate this CSS file.
+// AG Charts may not be styled correctly until this is resolved.
+// Please ensure 'ag-charts-community' is correctly installed and the path to its CSS is valid.
 import { Toaster } from "@/components/ui/toaster"; // Ensure Toaster is here for global access
 import { ThemeProvider } from "@/components/theme-provider";
 
