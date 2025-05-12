@@ -109,7 +109,6 @@ export default function Home() {
         : [...prev, field];
       return newSelection;
     });
-     // Do not reset chart options here to allow users to adjust selections and re-visualize
   };
 
   const visualizeData = () => {
@@ -131,6 +130,7 @@ export default function Home() {
       return;
     }
     
+    // Prepare data with only selected fields
     let chartDataForProcessing = jsonData.map(row => {
         const dataPoint: any = {};
         selectedFields.forEach(field => {
@@ -151,24 +151,27 @@ export default function Home() {
 
     const series: any[] = [];
     let xKey = '';
-    let finalChartData = chartDataForProcessing;
+    let finalChartData = chartDataForProcessing; // Start with data containing only selected fields
 
     if (selectedFields.length > 0) {
-        xKey = selectedFields[0];
-        // Check if the xKey field is string and needs filtering
+        xKey = selectedFields[0]; // First selected field is the X-axis
+        // Check if the xKey field is string type (based on the first row of original jsonData)
+        // and needs filtering for top 20 unique values.
         if (jsonData.length > 0 && typeof jsonData[0]?.[xKey] === 'string') {
+            // Count frequencies from the original jsonData to get accurate counts before any potential filtering
             const valueCounts = jsonData.reduce((acc, row) => {
-                const value = String(row[xKey]);
+                const value = String(row[xKey]); // Ensure it's a string for consistent counting
                 acc[value] = (acc[value] || 0) + 1;
                 return acc;
             }, {} as Record<string, number>);
 
             const sortedUniqueValues = Object.entries(valueCounts)
-                .sort(([, countA], [, countB]) => countB - countA)
+                .sort(([, countA], [, countB]) => countB - countA) // Sort by frequency descending
                 .map(([value]) => value);
 
             if (sortedUniqueValues.length > 20) {
                 const top20Values = new Set(sortedUniqueValues.slice(0, 20));
+                // Filter `finalChartData` (which is `chartDataForProcessing` at this point)
                 finalChartData = chartDataForProcessing.filter(row => top20Values.has(String(row[xKey])));
                 toast({
                     title: "Data Filtered for X-axis",
@@ -180,21 +183,25 @@ export default function Home() {
 
 
     // Handle single categorical field case (distribution chart)
+    // Check type from jsonData to reflect original data type, use finalChartData for plotting
     if (selectedFields.length === 1 && typeof jsonData[0]?.[xKey] === 'string') {
+        // Calculate counts from the (potentially filtered) finalChartData
         const counts = finalChartData.reduce((acc, curr) => {
-            const val = String(curr[xKey]);
+            const val = String(curr[xKey]); // Ensure string for keys
             acc[val] = (acc[val] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
+        
+        // Transform counts into array of objects for AG Charts
         const countData = Object.entries(counts).map(([key, value]) => ({ [xKey]: key, 'Count': value }));
         
         setChartOptions({
             data: countData,
             title: { text: `Distribution of ${xKey}` },
-            series: [{ type: 'bar', xKey: xKey, yKey: 'Count', yName: 'Count' }],
+            series: [{ type: 'bar', xKey: xKey, yKey: 'Count', yName: 'Frequency' }],
             axes: [
               { type: 'category', position: 'bottom', title: { text: xKey } },
-              { type: 'number', position: 'left', title: { text: 'Count' } }
+              { type: 'number', position: 'left', title: { text: 'Frequency' } }
             ]
         });
         toast({
@@ -204,14 +211,18 @@ export default function Home() {
         return;
     }
     
-    // Handle multiple fields or single numeric field
+    // Handle multiple fields or a single numeric field
     selectedFields.forEach((field, index) => {
-        if (index === 0 && typeof jsonData[0]?.[field] === 'string') return; // xKey already handled
+        // If xKey is string, it's handled as category X-axis. Don't add it as a Y-series.
+        if (index === 0 && typeof jsonData[0]?.[field] === 'string') return;
 
+        // Check if the field is numeric in the (potentially filtered) finalChartData
         const isNumeric = finalChartData.some(d => typeof d[field] === 'number');
         if (isNumeric) {
+            // If xKey itself is numeric (index === 0), it can be both x and y for a single numeric field plot.
+            // Or it's a Y-series if xKey is categorical or a different numeric field.
             series.push({ type: 'bar', xKey: xKey, yKey: field, yName: field });
-        } else if (index > 0) { // Only warn for potential y-axis fields
+        } else if (index > 0) { // Only warn for non-numeric fields intended as Y-axes
             console.warn(`Field "${field}" is not numeric and will be skipped for y-axis.`);
             toast({
                 title: "Field Skipped",
@@ -224,19 +235,39 @@ export default function Home() {
     if (series.length === 0) {
         toast({
             title: "Visualization Error",
-            description: "No suitable numeric fields found for the y-axis, or the selected X-axis is not categorical.",
+            description: "No suitable numeric fields found for the y-axis, or the selected X-axis is not categorical for the intended chart type.",
             variant: "destructive",
         });
-        setChartOptions(null); // Clear previous chart
+        setChartOptions(null); 
         return;
     }
+
+    let determinedXAxisType: 'category' | 'number' = 'category'; // Default
+    if (finalChartData.length > 0 && xKey && finalChartData[0].hasOwnProperty(xKey)) {
+        const firstValueType = typeof finalChartData[0][xKey];
+        if (firstValueType === 'number') {
+            if (finalChartData.every(d => typeof d[xKey] === 'number')) {
+                const uniqueNumericXValues = new Set(finalChartData.map(d => d[xKey])).size;
+                if (uniqueNumericXValues > 5 && (finalChartData.length / uniqueNumericXValues < 3 || uniqueNumericXValues > 20) ) { 
+                    determinedXAxisType = 'number';
+                } else {
+                    determinedXAxisType = 'category'; 
+                }
+            } else {
+                determinedXAxisType = 'category'; // Mixed types, safer with category
+            }
+        } else if (firstValueType === 'string') {
+            determinedXAxisType = 'category';
+        }
+    }
+
 
     setChartOptions({
       data: finalChartData,
       title: { text: `Data Visualization` },
       series: series,
       axes: [
-        { type: 'category', position: 'bottom', title: { text: xKey } },
+        { type: determinedXAxisType, position: 'bottom', title: { text: xKey } },
         { type: 'number', position: 'left', title: { text: 'Values' } }
       ]
     });
