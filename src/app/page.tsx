@@ -9,8 +9,8 @@ import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
+// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS - Removed as it's moved to layout.tsx
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
-// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS - This line was causing the error and is removed as it's in layout.tsx
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2, ChevronDown } from "lucide-react";
@@ -619,4 +619,3 @@ export default function Home() {
     </div>
   );
 }
-
