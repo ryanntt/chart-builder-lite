@@ -80,6 +80,7 @@ export default function Home() {
           description: "CSV file must contain a header row and at least one data row.",
           variant: "destructive",
         });
+        setCsvFile(null); // Clear invalid file
         return;
       }
       
@@ -110,9 +111,9 @@ export default function Home() {
         }
         const rowData: any = {};
         for (let j = 0; j < headers.length; j++) {
-          let value: string | number | boolean = currentLineValues[j];
+          let value: string | number | boolean | null = currentLineValues[j];
           if (types[headers[j]] === 'number') {
-            value = value === "" ? null : Number(value); // Handle empty strings for numbers as null
+            value = value === "" ? null : Number(value); 
           } else if (types[headers[j]] === 'boolean') {
             value = value.toLowerCase() === 'true';
           }
@@ -133,6 +134,8 @@ export default function Home() {
         description: "Failed to read or parse the CSV file.",
         variant: "destructive",
       });
+      setCsvFile(null); // Clear file on error
+      setJsonData([]); // Clear data on error
     }
   };
 
@@ -171,7 +174,7 @@ export default function Home() {
       
       if (!currentY) {
         const newY = selectedFields.find(f => headerTypes[f] === 'number' && f !== currentX) || 
-                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object');
+                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object'); // Avoid complex types like objects
         if (newY) {
           setYAxisField(newY);
         }
@@ -198,11 +201,21 @@ export default function Home() {
       const currentY = yAxisField;
 
       if (target === 'x') {
-        setXAxisField(sourceField);
-        if (sourceOrigin === 'y' && sourceField !== currentX) setYAxisField(currentX);
+        // If dropping on X, and it's currently Y, swap
+        if (sourceField === currentY) {
+          setXAxisField(sourceField);
+          setYAxisField(currentX);
+        } else {
+          setXAxisField(sourceField);
+        }
       } else { // target === 'y'
-        setYAxisField(sourceField);
-        if (sourceOrigin === 'x' && sourceField !== currentY) setXAxisField(currentY);
+        // If dropping on Y, and it's currently X, swap
+        if (sourceField === currentX) {
+          setYAxisField(sourceField);
+          setXAxisField(currentY);
+        } else {
+          setYAxisField(sourceField);
+        }
       }
       setChartOptions(null); 
       setDraggedItem(null);
@@ -245,15 +258,16 @@ export default function Home() {
     let titleText = `${yAxisField} by ${xAxisField}`;
 
     // Filter for top 20 unique string values on X-axis for bar/horizontal-bar charts if X is string
-    if ((chartType === 'bar' || chartType === 'horizontal-bar') && xFieldType === 'string') {
+    if ((chartType === 'bar' || (chartType === 'horizontal-bar' && xFieldType === 'string') ) && xFieldType === 'string') {
         const valueCounts = chartData.reduce((acc, row) => {
             const value = String(row[xAxisField]);
-            acc[value] = (acc[value] || 0) + Number(row[yAxisField] || 1); // Sum yAxisField or count occurrences
+             // Sum yAxisField if it's a number, otherwise count occurrences
+            acc[value] = (acc[value] || 0) + (yFieldType === 'number' && typeof row[yAxisField] === 'number' ? Number(row[yAxisField]) : 1);
             return acc;
         }, {} as Record<string, number>);
 
         const sortedUniqueValues = Object.entries(valueCounts)
-            .sort(([, valA], [, valB]) => valB - valA) // Sort by aggregated value or count
+            .sort(([, valA], [, valB]) => valB - valA) 
             .map(([value]) => value);
 
         if (sortedUniqueValues.length > 20) {
@@ -261,7 +275,27 @@ export default function Home() {
             chartData = chartData.filter(row => top20Values.has(String(row[xAxisField])));
             toast({
                 title: "Data Filtered",
-                description: `X-axis field "${xAxisField}" displaying top 20 values by frequency/sum.`,
+                description: `X-axis field "${xAxisField}" displaying top 20 unique values by their aggregated Y-axis values or frequency.`,
+            });
+        }
+    }  else if (chartType === 'horizontal-bar' && yFieldType === 'string') { // For horizontal bar, Y is category
+        const valueCounts = chartData.reduce((acc, row) => {
+            const value = String(row[yAxisField]);
+             // Sum xAxisField if it's a number, otherwise count occurrences
+            acc[value] = (acc[value] || 0) + (xFieldType === 'number' && typeof row[xAxisField] === 'number' ? Number(row[xAxisField]) : 1);
+            return acc;
+        }, {} as Record<string, number>);
+
+        const sortedUniqueValues = Object.entries(valueCounts)
+            .sort(([, valA], [, valB]) => valB - valA)
+            .map(([value]) => value);
+        
+        if (sortedUniqueValues.length > 20) {
+            const top20Values = new Set(sortedUniqueValues.slice(0, 20));
+            chartData = chartData.filter(row => top20Values.has(String(row[yAxisField])));
+             toast({
+                title: "Data Filtered",
+                description: `Y-axis field "${yAxisField}" displaying top 20 unique values by their aggregated X-axis values or frequency.`,
             });
         }
     }
@@ -285,25 +319,13 @@ export default function Home() {
         ];
         break;
       case 'horizontal-bar':
-        // For horizontal bar, yKey is category (string), xKey is numeric value (value on axis)
-        if (xFieldType === 'string' && yFieldType === 'number') {
-            series = [{ type: 'bar', xKey: xAxisField, yKey: yAxisField, xName: xAxisField, yName: yAxisField }]; // xKey=category, yKey=value
-            axes = [
-              { type: 'category', position: 'left', title: { text: xAxisField } },
-              { type: 'number', position: 'bottom', title: { text: yAxisField } },
-            ];
-            titleText = `${yAxisField} by ${xAxisField}`;
-        } else if (yFieldType === 'string' && xFieldType === 'number') {
-             series = [{ type: 'bar', xKey: yAxisField, yKey: xAxisField, xName: yAxisField, yName: xAxisField }]; // xKey=category, yKey=value
-            axes = [
-                { type: 'category', position: 'left', title: { text: yAxisField } },
-                { type: 'number', position: 'bottom', title: { text: xAxisField } },
-            ];
-             titleText = `${xAxisField} by ${yAxisField}`;
-        } else {
-            toast({ title: "Type Error", description: "Horizontal bar charts typically use a string field for categories (X-axis) and a numeric field for values (Y-axis). Please check your selections.", variant: "destructive"});
-            return;
-        }
+        // AG Charts: For horizontal bar, yKey is category, xKey is value.
+        series = [{ type: 'bar', xKey: yAxisField, yKey: xAxisField, xName: yAxisField, yName: xAxisField }]; 
+        axes = [
+            { type: yFieldType === 'string' ? 'category' : 'number', position: 'left', title: { text: yAxisField } }, // Category axis on the left
+            { type: 'number', position: 'bottom', title: { text: xAxisField } }, // Numeric axis on the bottom
+        ];
+        titleText = `${xAxisField} by ${yAxisField}`; // Title reflects what is being plotted
         break;
       case 'scatter':
         if (xFieldType !== 'number' || yFieldType !== 'number') {
@@ -318,11 +340,11 @@ export default function Home() {
         break;
       case 'pie':
         if (yFieldType !== 'number') {
-            toast({ title: "Type Error", description: "Pie charts require a numeric field for values.", variant: "destructive"});
+            toast({ title: "Type Error", description: "Pie charts require a numeric field for values (Angle Key).", variant: "destructive"});
             return;
         }
          if (xFieldType !== 'string') {
-            toast({ title: "Type Error", description: "Pie charts require a categorical field for labels.", variant: "destructive"});
+            toast({ title: "Type Error", description: "Pie charts require a categorical field for labels (Label Key).", variant: "destructive"});
             return;
         }
         series = [{ type: 'pie', angleKey: yAxisField, labelKey: xAxisField, calloutLabelKey: xAxisField, sectorLabelKey: yAxisField, legendItemKey: xAxisField }];
@@ -338,7 +360,8 @@ export default function Home() {
       title: { text: titleText },
       series: series,
       axes: axes.length > 0 ? axes : undefined,
-      container: chartContainerRef.current ?? undefined,
+      container: chartContainerRef.current ?? undefined, // Ensure container is set for responsiveness
+      autoSize: true, // Ensure chart resizes with container
     });
 
     toast({
@@ -358,8 +381,14 @@ export default function Home() {
                   <Label htmlFor="csv-upload-initial" className="text-lg font-medium">Upload CSV File</Label>
                   <CardDescription>Get started by uploading your CSV data.</CardDescription>
                   <div className="flex gap-2 pt-4">
-                    <Input id="csv-upload-initial" type="file" accept=".csv" onChange={handleFileChange} className="max-w-xs text-sm"/>
-                    {/* Button removed as per previous instructions, if needed can be re-added */}
+                    <Input 
+                      id="csv-upload-initial" 
+                      type="file" 
+                      accept=".csv" 
+                      onChange={handleFileChange} 
+                      className="max-w-xs text-sm"
+                      title={csvFile?.name || "Select a CSV file"}
+                    />
                   </div>
                 </div>
              </div>
@@ -373,8 +402,14 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="p-0">
                         <div className="flex gap-2 w-full">
-                            <Input id="csv-upload-main" type="file" accept=".csv" onChange={handleFileChange} className="flex-grow text-sm"/>
-                             {/* Button removed as per previous instructions, if needed can be re-added */}
+                            <Input 
+                              id="csv-upload-main" 
+                              type="file" 
+                              accept=".csv" 
+                              onChange={handleFileChange} 
+                              className="flex-grow text-sm"
+                              title={csvFile?.name || "Select a new CSV file"}
+                            />
                         </div>
                     </CardContent>
                 </Card>
@@ -461,28 +496,28 @@ export default function Home() {
                       <div className="space-y-1">
                         <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
                         <div
-                          id="xAxis"
+                          id="xAxisContainer" // Changed id to avoid conflict with input if any
                           draggable={!!xAxisField}
                           onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
                           onDrop={() => handleDrop('x')}
                           onDragOver={handleDragOver}
                           className="flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background cursor-grab text-xs"
                         >
-                          <span className="truncate" title={xAxisField || undefined}>{xAxisField || 'Drag/Select'}</span>
+                          <span className="truncate" title={xAxisField || undefined}>{xAxisField || 'Drag/Select Field'}</span>
                           {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
                         </div>
                       </div>
                       <div className="space-y-1">
                         <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
                         <div
-                          id="yAxis"
+                          id="yAxisContainer" // Changed id to avoid conflict
                           draggable={!!yAxisField}
                           onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
                           onDrop={() => handleDrop('y')}
                           onDragOver={handleDragOver}
                           className="flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background cursor-grab text-xs"
                         >
-                           <span className="truncate" title={yAxisField || undefined}>{yAxisField || 'Drag/Select'}</span>
+                           <span className="truncate" title={yAxisField || undefined}>{yAxisField || 'Drag/Select Field'}</span>
                           {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
                         </div>
                       </div>
