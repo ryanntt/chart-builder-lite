@@ -2,7 +2,7 @@
 import type {Metadata} from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS (includes default light/dark themes)
+// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS (includes default light/dark themes)
 import { Toaster } from "@/components/ui/toaster"; // Ensure Toaster is here for global access
 import { ThemeProvider } from "@/components/theme-provider";
 

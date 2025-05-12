@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
-// AG Charts CSS is imported in layout.tsx via globals.css or directly
+// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS - This line was causing the error and is removed as it's in layout.tsx
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2, ChevronDown } from "lucide-react";
@@ -239,13 +239,12 @@ export default function Home() {
 
   const visualizeData = () => {
     if (!xAxisField || !yAxisField) {
-      // Don't clear chartOptions here, keep the old one until new one is ready or invalid
       setIsChartLoading(false);
       return;
     }
 
     if (jsonData.length === 0) {
-      setChartOptions(null); // Clear if no data
+      setChartOptions(null); 
       setIsChartLoading(false);
       return;
     }
@@ -309,7 +308,7 @@ export default function Home() {
           description: "No data remains for the selected fields after filtering. Please check your selections or data.",
           variant: "destructive",
         });
-        setChartOptions(null); // Clear if no data after filtering
+        setChartOptions(null); 
         setIsChartLoading(false);
         return;
     }
@@ -383,11 +382,9 @@ export default function Home() {
       setIsChartLoading(true);
       const timer = setTimeout(() => {
         visualizeData();
-      }, 300); // Debounce visualization
+      }, 300); 
       return () => clearTimeout(timer);
     } else {
-      // If config is invalid, don't clear chartOptions immediately to keep showing the old chart
-      // Only clear chart if explicitly needed (e.g. no data, no fields selected)
       if (jsonData.length === 0 || selectedFields.length === 0) {
         setChartOptions(null);
       }
@@ -475,10 +472,10 @@ export default function Home() {
           <div className="flex flex-col space-y-6">
             <Card>
               <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
-                <AccordionItem value="preview-accordion-item" className="border-b-0"> {/* Adjusted border */}
+                <AccordionItem value="preview-accordion-item" className="border-b-0"> 
                    <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold group data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
                        Data Preview
-                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2" />
+                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
                   </AccordionPrimitiveTrigger>
                   <AccordionContent className="p-4 pt-2">
                     <div className="max-h-[250px] overflow-y-auto">
@@ -515,11 +512,11 @@ export default function Home() {
 
             <Card className="flex flex-col flex-grow">
                <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
-                <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow group"> {/* Adjusted border */}
-                  <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group-data-[state=open]:border-b group-data-[state=open]:bg-muted/30 group-data-[state=closed]:rounded-b-md">
-                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-medium transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow"> 
+                  <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
+                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180">
                        Visualization
-                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2" />
+                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
                     </AccordionPrimitiveTrigger>
                      <Button
                         variant="ghost"
@@ -622,3 +619,4 @@ export default function Home() {
     </div>
   );
 }
+
