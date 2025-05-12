@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -543,7 +542,7 @@ export default function Home() {
                           Visualize
                       </Button>
                       
-                      <div ref={chartContainerRef} style={{ minHeight: '300px', flexGrow: 1 }} className="ag-theme-quartz w-full h-full">
+                      <div ref={chartContainerRef} style={{ minHeight: '300px', flexGrow: 1 }} className="ag-theme-quartz w-full">
                         {chartOptions && (
                           <AgChartsReact options={chartOptions} />
                         )}
@@ -568,4 +567,3 @@ export default function Home() {
     </div>
   );
 }
-
