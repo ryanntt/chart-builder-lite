@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -12,9 +11,10 @@ import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2 } from "lucide-react";
+import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2, ChevronDown } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { useTheme } from "next-themes";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 
@@ -190,7 +190,7 @@ export default function Home() {
       
       if (!currentY) {
         const newY = selectedFields.find(f => headerTypes[f] === 'number' && f !== currentX) || 
-                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object');
+                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object'); // Ensure y-axis doesn't pick object type
         if (newY) {
           setYAxisField(newY);
         }
@@ -238,22 +238,14 @@ export default function Home() {
 
   const visualizeData = () => {
     if (!xAxisField || !yAxisField) {
-      toast({
-        title: "Missing Fields",
-        description: "Please ensure both X and Y axes have fields selected.",
-        variant: "destructive",
-      });
+      // Don't toast here, as this runs automatically. UX will show "Assign fields"
       setChartOptions(null);
       setIsChartLoading(false);
       return;
     }
 
     if (jsonData.length === 0) {
-      toast({
-        title: "No Data",
-        description: "No data to visualize.",
-        variant: "destructive",
-      });
+      // Don't toast, UX will show "Upload data"
       setChartOptions(null);
       setIsChartLoading(false);
       return;
@@ -379,24 +371,30 @@ export default function Home() {
     setChartRenderKey(prevKey => prevKey + 1); 
     setIsChartLoading(false);
 
-    toast({
-      title: "Visualization Rendered!",
-      description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.`,
-    });
+    if(xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) { // Only toast if visualization was likely intended
+      toast({
+        title: "Visualization Updated!",
+        description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.`,
+      });
+    }
   };
 
   useEffect(() => {
     if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) {
       setIsChartLoading(true);
-      visualizeData();
+      // Debounce or delay visualization slightly to avoid rapid updates during selection
+      const timer = setTimeout(() => {
+        visualizeData();
+      }, 300); // 300ms delay
+      return () => clearTimeout(timer);
     } else {
       if (chartOptions) { 
-        setChartOptions(null);
+        setChartOptions(null); // Clear chart if conditions aren't met
       }
       setIsChartLoading(false); 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, resolvedTheme]);
+  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, resolvedTheme, headerTypes]); // Added headerTypes
 
   const sanitizeFilename = (name: string | undefined): string => {
     if (!name) return 'chart.png';
@@ -478,9 +476,13 @@ export default function Home() {
             <Card>
               <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
                 <AccordionItem value="preview-accordion-item" className="border-none">
-                  <AccordionTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
-                    Data Preview
-                  </AccordionTrigger>
+                   <AccordionPrimitive.Header className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold group-data-[state=open]:border-b group-data-[state=open]:bg-muted/30 group-data-[state=closed]:rounded-b-md">
+                    <AccordionPrimitive.Trigger className="flex flex-1 items-center py-0 font-medium transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                       Data Preview
+                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2" />
+                    </AccordionPrimitive.Trigger>
+                    {/* No extra button here for preview */}
+                  </AccordionPrimitive.Header>
                   <AccordionContent className="p-4 pt-2">
                     <div className="max-h-[250px] overflow-y-auto">
                       {selectedFields.length > 0 && jsonData.length > 0 ? (
@@ -516,24 +518,24 @@ export default function Home() {
 
             <Card className="flex flex-col flex-grow">
               <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
-                <AccordionItem value="viz-accordion-item" className="border-none flex flex-col flex-grow">
-                  <AccordionTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
-                    <span className="flex-1">Visualization</span>
+                <AccordionItem value="viz-accordion-item" className="border-none flex flex-col flex-grow group">
+                  <AccordionPrimitive.Header className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group-data-[state=open]:border-b group-data-[state=open]:bg-muted/30 group-data-[state=closed]:rounded-b-md">
+                    <AccordionPrimitive.Trigger className="flex flex-1 items-center py-0 font-medium transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                       Visualization
+                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2" />
+                    </AccordionPrimitive.Trigger>
                      <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 mr-1 rounded-md hover:bg-muted/50 p-1"
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent accordion toggle
-                          handleDownloadChart();
-                        }}
+                        className="h-7 w-7 ml-2 rounded-md hover:bg-muted/50 p-1"
+                        onClick={handleDownloadChart}
                         disabled={!chartOptions || !chartApiRef.current}
                         aria-label="Download chart"
                         title="Download chart as PNG"
                       >
                         <Download className="h-4 w-4" />
                       </Button>
-                  </AccordionTrigger>
+                  </AccordionPrimitive.Header>
                   <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                       <div className="space-y-1">
