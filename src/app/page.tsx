@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
-// AG Charts CSS is now imported in layout.tsx
+// AG Charts CSS is imported in layout.tsx via globals.css or directly
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2, ChevronDown } from "lucide-react";
@@ -517,7 +517,7 @@ export default function Home() {
                <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
                 <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow group"> {/* Adjusted border */}
                   <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group-data-[state=open]:border-b group-data-[state=open]:bg-muted/30 group-data-[state=closed]:rounded-b-md">
-                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-medium transition-all hover:no-underline [&[data-state=open]&gt;svg]:rotate-180">
+                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-medium transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180">
                        Visualization
                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2" />
                     </AccordionPrimitiveTrigger>
