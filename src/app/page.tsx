@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -12,7 +11,7 @@ import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, PieChartIcon, Download, Moon, Sun } from "lucide-react";
+import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useTheme } from "next-themes";
@@ -188,7 +187,7 @@ export default function Home() {
       
       if (!currentY) {
         const newY = selectedFields.find(f => headerTypes[f] === 'number' && f !== currentX) || 
-                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object');
+                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object'); // Prevent object types if any
         if (newY) {
           setYAxisField(newY);
         }
@@ -517,6 +516,7 @@ export default function Home() {
                   <AccordionTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
                     <span className="flex-1">Visualization</span>
                      <Button
+                        asChild
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 mr-1 rounded-md hover:bg-muted/50 p-1"
@@ -528,7 +528,9 @@ export default function Home() {
                         aria-label="Download chart"
                         title="Download chart as PNG"
                       >
-                        <Download className="h-4 w-4" />
+                        <span>
+                          <Download className="h-4 w-4" />
+                        </span>
                       </Button>
                   </AccordionTrigger>
                   <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
