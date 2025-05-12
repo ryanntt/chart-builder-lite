@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -11,7 +12,7 @@ import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun } from "lucide-react";
+import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2 } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useTheme } from "next-themes";
@@ -43,6 +44,7 @@ export default function Home() {
   const [yAxisField, setYAxisField] = useState<string | null>(null);
   const [chartRenderKey, setChartRenderKey] = useState(0);
   const [draggedItem, setDraggedItem] = useState<{ field: string; origin: 'x' | 'y' } | null>(null);
+  const [isChartLoading, setIsChartLoading] = useState(false);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartApiRef = useRef<AgChart | null>(null);
@@ -75,6 +77,7 @@ export default function Home() {
     setChartOptions(null);
     setXAxisField(null);
     setYAxisField(null);
+    setIsChartLoading(false);
 
     try {
       const text = await file.text();
@@ -148,7 +151,8 @@ export default function Home() {
         variant: "destructive",
       });
       setCsvFile(null); 
-      setJsonData([]); 
+      setJsonData([]);
+      setIsChartLoading(false); 
     }
   };
 
@@ -181,13 +185,12 @@ export default function Home() {
                        (selectedFields[0] !== currentY ? selectedFields[0] : null);
         if (newX) {
           setXAxisField(newX);
-          currentX = newX;
         }
       }
       
       if (!currentY) {
         const newY = selectedFields.find(f => headerTypes[f] === 'number' && f !== currentX) || 
-                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object'); // Prevent object types if any
+                     selectedFields.find(f => f !== currentX && headerTypes[f] !== 'object');
         if (newY) {
           setYAxisField(newY);
         }
@@ -241,6 +244,7 @@ export default function Home() {
         variant: "destructive",
       });
       setChartOptions(null);
+      setIsChartLoading(false);
       return;
     }
 
@@ -251,6 +255,7 @@ export default function Home() {
         variant: "destructive",
       });
       setChartOptions(null);
+      setIsChartLoading(false);
       return;
     }
 
@@ -314,6 +319,7 @@ export default function Home() {
           variant: "destructive",
         });
         setChartOptions(null);
+        setIsChartLoading(false);
         return;
     }
 
@@ -336,7 +342,7 @@ export default function Home() {
       case 'scatter':
         if ((xFieldType !== 'number' && xFieldType !== 'date') || (yFieldType !== 'number' && yFieldType !== 'date')) {
             toast({ title: "Type Error", description: "Scatter plots require numeric or date X and Y axes.", variant: "destructive"});
-            setChartOptions(null); return;
+            setChartOptions(null); setIsChartLoading(false); return;
         }
         series = [{ type: 'scatter', xKey: xAxisField, yKey: yAxisField, xName: xAxisField, yName: yAxisField }];
         axes = [
@@ -347,18 +353,18 @@ export default function Home() {
       case 'pie':
         if (yFieldType !== 'number') {
             toast({ title: "Type Error", description: "Pie charts require a numeric field for values (Angle Key).", variant: "destructive"});
-            setChartOptions(null); return;
+            setChartOptions(null); setIsChartLoading(false); return;
         }
          if (xFieldType !== 'string' && xFieldType !== 'date') { 
             toast({ title: "Type Error", description: "Pie charts require a categorical or date field for labels (Label Key).", variant: "destructive"});
-            setChartOptions(null); return;
+            setChartOptions(null); setIsChartLoading(false); return;
         }
         series = [{ type: 'pie', angleKey: yAxisField, labelKey: xAxisField, calloutLabelKey: xAxisField, sectorLabelKey: yAxisField, legendItemKey: xAxisField }];
         axes = []; 
         break;
       default:
         toast({ title: "Unknown Chart Type", description: "Selected chart type is not supported.", variant: "destructive" });
-        setChartOptions(null); return;
+        setChartOptions(null); setIsChartLoading(false); return;
     }
 
     const newChartOptions: AgChartOptions = {
@@ -371,12 +377,26 @@ export default function Home() {
     };
     setChartOptions(newChartOptions);
     setChartRenderKey(prevKey => prevKey + 1); 
+    setIsChartLoading(false);
 
     toast({
       title: "Visualization Rendered!",
       description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.`,
     });
   };
+
+  useEffect(() => {
+    if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) {
+      setIsChartLoading(true);
+      visualizeData();
+    } else {
+      if (chartOptions) { 
+        setChartOptions(null);
+      }
+      setIsChartLoading(false); 
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, resolvedTheme]);
 
   const sanitizeFilename = (name: string | undefined): string => {
     if (!name) return 'chart.png';
@@ -399,22 +419,6 @@ export default function Home() {
       });
     }
   };
-
-  useEffect(() => {
-    if (chartOptions && chartApiRef.current) {
-      const newTheme = resolvedTheme === 'dark' ? 'ag-default-dark' : 'ag-default';
-      if (chartOptions.theme !== newTheme) {
-        setChartOptions(prevOptions => {
-          if (!prevOptions) return null;
-          return {
-            ...prevOptions,
-            theme: newTheme,
-          };
-        });
-        setChartRenderKey(prevKey => prevKey + 1);
-      }
-    }
-  }, [resolvedTheme, chartOptions]);
   
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -516,28 +520,25 @@ export default function Home() {
                   <AccordionTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
                     <span className="flex-1">Visualization</span>
                      <Button
-                        asChild
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 mr-1 rounded-md hover:bg-muted/50 p-1"
                         onClick={(e) => {
-                          e.stopPropagation();
+                          e.stopPropagation(); // Prevent accordion toggle
                           handleDownloadChart();
                         }}
                         disabled={!chartOptions || !chartApiRef.current}
                         aria-label="Download chart"
                         title="Download chart as PNG"
                       >
-                        <span>
-                          <Download className="h-4 w-4" />
-                        </span>
+                        <Download className="h-4 w-4" />
                       </Button>
                   </AccordionTrigger>
                   <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                       <div className="space-y-1">
                         <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
-                        <Select value={chartType} onValueChange={(value) => { setChartType(value); setChartOptions(null); }} name="chartType" disabled={selectedFields.length === 0}>
+                        <Select value={chartType} onValueChange={(value) => { setChartType(value); }} name="chartType" disabled={selectedFields.length === 0}>
                           <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
@@ -558,7 +559,7 @@ export default function Home() {
                           className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                         >
                           <span className="truncate" title={xAxisField || "Select field for X-Axis"}>{xAxisField || 'Select Field'}</span>
-                          {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+                          {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); }}><XIcon className="w-3 h-3" /></Button>}
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -572,46 +573,45 @@ export default function Home() {
                           className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                         >
                           <span className="truncate" title={yAxisField || "Select field for Y-Axis"}>{yAxisField || 'Select Field'}</span>
-                          {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+                          {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); }}><XIcon className="w-3 h-3" /></Button>}
                         </div>
                       </div>
                     </div>
-                    <Button 
-                        onClick={visualizeData} 
-                        disabled={!xAxisField || !yAxisField || selectedFields.length === 0 || jsonData.length === 0}
-                        className="w-auto h-9 text-xs self-start"
-                    >
-                        Visualize
-                    </Button>
-                    
-                    <div ref={chartContainerRef} className="ag-theme-quartz w-full flex-grow min-h-[300px]" style={{ height: '400px' }}>
-                      {chartOptions && (
-                        <AgChartsReact 
-                          options={chartOptions} 
-                          key={chartRenderKey} 
-                          onChartReady={(chart) => { chartApiRef.current = chart; }}
-                        />
-                      )}
-                      {!chartOptions && (
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                          {(selectedFields.length === 0 || jsonData.length === 0) ? (
-                            <>
-                              <FileText className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="document data" />
-                              <p className="text-sm text-muted-foreground">Upload data and select fields to visualize.</p>
-                            </>
-                          ) : (!xAxisField || !yAxisField) ? (
-                            <>
-                              <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="chart axes" />
-                              <p className="text-sm text-muted-foreground">Assign fields to X and Y axes.</p>
-                            </>
-                          ) : (
-                             <>
-                              <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="analytics chart" />
-                              <p className="text-sm text-muted-foreground">Click "Visualize" to render the chart.</p>
-                            </>
-                          )}
+                                        
+                    <div ref={chartContainerRef} className="ag-theme-quartz w-full flex-grow min-h-[300px] relative" style={{ height: '400px' }}>
+                      {isChartLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10 rounded-md">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                       )}
+                      <div className={isChartLoading && chartOptions ? 'blur-sm' : ''}>
+                        {chartOptions ? (
+                          <AgChartsReact 
+                            options={chartOptions} 
+                            key={chartRenderKey} 
+                            onChartReady={(chart) => { chartApiRef.current = chart; }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-center">
+                            {(selectedFields.length === 0 || jsonData.length === 0) ? (
+                              <>
+                                <FileText className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="document data" />
+                                <p className="text-sm text-muted-foreground">Upload data and select fields to visualize.</p>
+                              </>
+                            ) : (!xAxisField || !yAxisField) ? (
+                              <>
+                                <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="chart axes" />
+                                <p className="text-sm text-muted-foreground">Assign fields to X and Y axes.</p>
+                              </>
+                            ) : (
+                               <>
+                                <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="analytics chart" />
+                                <p className="text-sm text-muted-foreground">Chart will render automatically.</p>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
