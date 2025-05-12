@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -9,12 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
+// AG Charts CSS is now imported in layout.tsx
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2, ChevronDown } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
-import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion";
-import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { useTheme } from "next-themes";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 
@@ -238,15 +239,13 @@ export default function Home() {
 
   const visualizeData = () => {
     if (!xAxisField || !yAxisField) {
-      // Don't toast here, as this runs automatically. UX will show "Assign fields"
-      setChartOptions(null);
+      // Don't clear chartOptions here, keep the old one until new one is ready or invalid
       setIsChartLoading(false);
       return;
     }
 
     if (jsonData.length === 0) {
-      // Don't toast, UX will show "Upload data"
-      setChartOptions(null);
+      setChartOptions(null); // Clear if no data
       setIsChartLoading(false);
       return;
     }
@@ -310,7 +309,7 @@ export default function Home() {
           description: "No data remains for the selected fields after filtering. Please check your selections or data.",
           variant: "destructive",
         });
-        setChartOptions(null);
+        setChartOptions(null); // Clear if no data after filtering
         setIsChartLoading(false);
         return;
     }
@@ -371,7 +370,7 @@ export default function Home() {
     setChartRenderKey(prevKey => prevKey + 1); 
     setIsChartLoading(false);
 
-    if(xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) { // Only toast if visualization was likely intended
+    if(xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) { 
       toast({
         title: "Visualization Updated!",
         description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.`,
@@ -382,19 +381,20 @@ export default function Home() {
   useEffect(() => {
     if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) {
       setIsChartLoading(true);
-      // Debounce or delay visualization slightly to avoid rapid updates during selection
       const timer = setTimeout(() => {
         visualizeData();
-      }, 300); // 300ms delay
+      }, 300); // Debounce visualization
       return () => clearTimeout(timer);
     } else {
-      if (chartOptions) { 
-        setChartOptions(null); // Clear chart if conditions aren't met
+      // If config is invalid, don't clear chartOptions immediately to keep showing the old chart
+      // Only clear chart if explicitly needed (e.g. no data, no fields selected)
+      if (jsonData.length === 0 || selectedFields.length === 0) {
+        setChartOptions(null);
       }
       setIsChartLoading(false); 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, resolvedTheme, headerTypes]); // Added headerTypes
+  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, resolvedTheme, headerTypes]);
 
   const sanitizeFilename = (name: string | undefined): string => {
     if (!name) return 'chart.png';
@@ -475,14 +475,11 @@ export default function Home() {
           <div className="flex flex-col space-y-6">
             <Card>
               <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
-                <AccordionItem value="preview-accordion-item" className="border-none">
-                   <AccordionPrimitive.Header className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold group-data-[state=open]:border-b group-data-[state=open]:bg-muted/30 group-data-[state=closed]:rounded-b-md">
-                    <AccordionPrimitive.Trigger className="flex flex-1 items-center py-0 font-medium transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                <AccordionItem value="preview-accordion-item" className="border-b-0"> {/* Adjusted border */}
+                   <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold group data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
                        Data Preview
                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2" />
-                    </AccordionPrimitive.Trigger>
-                    {/* No extra button here for preview */}
-                  </AccordionPrimitive.Header>
+                  </AccordionPrimitiveTrigger>
                   <AccordionContent className="p-4 pt-2">
                     <div className="max-h-[250px] overflow-y-auto">
                       {selectedFields.length > 0 && jsonData.length > 0 ? (
@@ -517,13 +514,13 @@ export default function Home() {
             </Card>
 
             <Card className="flex flex-col flex-grow">
-              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
-                <AccordionItem value="viz-accordion-item" className="border-none flex flex-col flex-grow group">
-                  <AccordionPrimitive.Header className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group-data-[state=open]:border-b group-data-[state=open]:bg-muted/30 group-data-[state=closed]:rounded-b-md">
-                    <AccordionPrimitive.Trigger className="flex flex-1 items-center py-0 font-medium transition-all hover:no-underline [&[data-state=open]>svg]:rotate-180">
+               <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
+                <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow group"> {/* Adjusted border */}
+                  <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group-data-[state=open]:border-b group-data-[state=open]:bg-muted/30 group-data-[state=closed]:rounded-b-md">
+                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-medium transition-all hover:no-underline [&[data-state=open]&gt;svg]:rotate-180">
                        Visualization
                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2" />
-                    </AccordionPrimitive.Trigger>
+                    </AccordionPrimitiveTrigger>
                      <Button
                         variant="ghost"
                         size="icon"
@@ -535,7 +532,7 @@ export default function Home() {
                       >
                         <Download className="h-4 w-4" />
                       </Button>
-                  </AccordionPrimitive.Header>
+                  </div>
                   <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                       <div className="space-y-1">
@@ -580,13 +577,13 @@ export default function Home() {
                       </div>
                     </div>
                                         
-                    <div ref={chartContainerRef} className="ag-theme-quartz w-full flex-grow min-h-[300px] relative" style={{ height: '400px' }}>
+                    <div ref={chartContainerRef} className="w-full relative" style={{ height: '400px' }}>
                       {isChartLoading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10 rounded-md">
                           <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
                       )}
-                      <div className={isChartLoading && chartOptions ? 'blur-sm' : ''}>
+                      <div className={`${isChartLoading && chartOptions ? 'blur-sm' : ''} h-full w-full`}>
                         {chartOptions ? (
                           <AgChartsReact 
                             options={chartOptions} 
