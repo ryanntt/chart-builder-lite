@@ -1,3 +1,5 @@
+@import '~ag-charts-community/styles/ag-charts-default.css'; /* Core AG Charts CSS (includes default light/dark themes) */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
