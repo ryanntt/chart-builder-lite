@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ export default function Home() {
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [chartOptions, setChartOptions] = useState<AgChartOptions | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -30,10 +31,9 @@ export default function Home() {
     setSelectedFields([]);
     setChartOptions(null);
 
-
     try {
       const text = await file.text();
-      const lines = text.split("\n").filter(line => line.trim() !== ''); // Remove empty lines
+      const lines = text.split("\n").filter(line => line.trim() !== '');
       if (lines.length < 2) {
         toast({
           title: "Invalid CSV",
@@ -59,33 +59,22 @@ export default function Home() {
         }
 
         const rowData: any = {};
-        let isValidRow = true;
         for (let j = 0; j < headers.length; j++) {
-          let value: string | number = currentLineValues[j];
-          // Attempt to convert to number if it looks like one, otherwise keep as string
+          let value: string | number | boolean = currentLineValues[j];
           if (value !== "" && !isNaN(Number(value))) {
             value = Number(value);
-          } else if (value === "") { // Handle empty strings as null or a specific placeholder if needed
-            value = ""; // Or handle as per visualization needs e.g., null
+          } else if (value.toLowerCase() === 'true' || value.toLowerCase() === 'false') {
+            value = value.toLowerCase() === 'true';
+          } else if (value === "") {
+            value = ""; 
           }
           rowData[headers[j]] = value;
-
-          // Basic validation: check for undefined, null, or truly empty strings if they are not allowed
-           if (value === undefined || value === null ) { // Removed value === '' for flexibility
-             // isValidRow = false; // Decide if empty strings make a row invalid
-           }
         }
-        
-        if (isValidRow) {
-          parsedData.push(rowData);
-        } else {
-          console.warn('Invalid data in row, skipping:', rowData);
-          invalidDataRows.push({lineNumber: i + 1, data: rowData, reason: "Contains invalid/empty critical fields"});
-        }
+        parsedData.push(rowData);
       }
       
       if (invalidDataRows.length > 0) {
-        console.log("The following rows were considered invalid or incomplete and skipped:", invalidDataRows);
+        console.warn("The following rows were considered invalid or incomplete and skipped:", invalidDataRows);
       }
 
       setJsonData(parsedData);
@@ -103,7 +92,6 @@ export default function Home() {
         });
       }
 
-
     } catch (error) {
       console.error("Error parsing CSV:", error);
       toast({
@@ -116,13 +104,12 @@ export default function Home() {
 
   const handleFieldSelect = (field: string) => {
     setSelectedFields(prev => {
-      if (prev.includes(field)) {
-        return prev.filter(f => f !== field);
-      } else {
-        return [...prev, field];
-      }
+      const newSelection = prev.includes(field)
+        ? prev.filter(f => f !== field)
+        : [...prev, field];
+      return newSelection;
     });
-    setChartOptions(null); // Reset chart when selection changes
+     // Do not reset chart options here to allow users to adjust selections and re-visualize
   };
 
   const visualizeData = () => {
@@ -144,7 +131,7 @@ export default function Home() {
       return;
     }
     
-    const chartData = jsonData.map(row => {
+    let chartDataForProcessing = jsonData.map(row => {
         const dataPoint: any = {};
         selectedFields.forEach(field => {
             dataPoint[field] = row[field];
@@ -152,7 +139,8 @@ export default function Home() {
         return dataPoint;
     });
 
-    if (chartData.length === 0) {
+
+    if (chartDataForProcessing.length === 0) {
       toast({
         title: "No Data for Selected Fields",
         description: "The selected fields do not have corresponding data to visualize.",
@@ -163,76 +151,93 @@ export default function Home() {
 
     const series: any[] = [];
     let xKey = '';
+    let finalChartData = chartDataForProcessing;
 
-    // Determine xKey (categorical) and yKeys (numerical)
-    // For simplicity, let's assume the first selected field is categorical (xKey)
-    // and subsequent fields are numerical (yKeys).
-    // More sophisticated type detection would be needed for robust behavior.
     if (selectedFields.length > 0) {
         xKey = selectedFields[0];
-    }
-
-    selectedFields.slice(1).forEach(field => {
-        // Crude check if data in this field is numeric for at least one row
-        const isNumeric = chartData.some(d => typeof d[field] === 'number');
-        if (isNumeric) {
-            series.push({ type: 'bar', xKey: xKey, yKey: field, yName: field });
-        } else if (selectedFields.length === 1 && typeof chartData[0][field] === 'string') {
-            // Special case for single categorical field: count occurrences
-            const counts = chartData.reduce((acc, curr) => {
-                acc[curr[field]] = (acc[curr[field]] || 0) + 1;
+        // Check if the xKey field is string and needs filtering
+        if (jsonData.length > 0 && typeof jsonData[0]?.[xKey] === 'string') {
+            const valueCounts = jsonData.reduce((acc, row) => {
+                const value = String(row[xKey]);
+                acc[value] = (acc[value] || 0) + 1;
                 return acc;
             }, {} as Record<string, number>);
-            const countData = Object.entries(counts).map(([key, value]) => ({ [field]: key, 'Count': value }));
-            
-            setChartOptions({
-                data: countData,
-                title: { text: `Distribution of ${field}` },
-                series: [{ type: 'bar', xKey: field, yKey: 'Count', yName: 'Count' }],
-            });
+
+            const sortedUniqueValues = Object.entries(valueCounts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .map(([value]) => value);
+
+            if (sortedUniqueValues.length > 20) {
+                const top20Values = new Set(sortedUniqueValues.slice(0, 20));
+                finalChartData = chartDataForProcessing.filter(row => top20Values.has(String(row[xKey])));
+                toast({
+                    title: "Data Filtered for X-axis",
+                    description: `Field "${xKey}" has ${sortedUniqueValues.length} unique values. Displaying top 20 by frequency.`,
+                });
+            }
+        }
+    }
+
+
+    // Handle single categorical field case (distribution chart)
+    if (selectedFields.length === 1 && typeof jsonData[0]?.[xKey] === 'string') {
+        const counts = finalChartData.reduce((acc, curr) => {
+            const val = String(curr[xKey]);
+            acc[val] = (acc[val] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        const countData = Object.entries(counts).map(([key, value]) => ({ [xKey]: key, 'Count': value }));
+        
+        setChartOptions({
+            data: countData,
+            title: { text: `Distribution of ${xKey}` },
+            series: [{ type: 'bar', xKey: xKey, yKey: 'Count', yName: 'Count' }],
+            axes: [
+              { type: 'category', position: 'bottom', title: { text: xKey } },
+              { type: 'number', position: 'left', title: { text: 'Count' } }
+            ]
+        });
+        toast({
+            title: "Visualization Rendered!",
+            description: `Distribution chart for ${xKey} has been successfully rendered.`,
+        });
+        return;
+    }
+    
+    // Handle multiple fields or single numeric field
+    selectedFields.forEach((field, index) => {
+        if (index === 0 && typeof jsonData[0]?.[field] === 'string') return; // xKey already handled
+
+        const isNumeric = finalChartData.some(d => typeof d[field] === 'number');
+        if (isNumeric) {
+            series.push({ type: 'bar', xKey: xKey, yKey: field, yName: field });
+        } else if (index > 0) { // Only warn for potential y-axis fields
+            console.warn(`Field "${field}" is not numeric and will be skipped for y-axis.`);
             toast({
-                title: "Visualization Rendered!",
-                description: `Distribution chart for ${field} has been successfully rendered.`,
+                title: "Field Skipped",
+                description: `Field "${field}" is not numeric and was skipped for the y-axis.`,
+                variant: "default"
             });
-            return; // Exit early for this special case
-        } else {
-            console.warn(`Field "${field}" is not numeric and will be skipped for y-axis or not suitable for current chart type.`);
         }
     });
     
-    if (selectedFields.length > 1 && series.length === 0) {
+    if (series.length === 0) {
         toast({
             title: "Visualization Error",
-            description: "No numeric fields selected for the y-axis or suitable data for a bar/column chart.",
+            description: "No suitable numeric fields found for the y-axis, or the selected X-axis is not categorical.",
             variant: "destructive",
         });
+        setChartOptions(null); // Clear previous chart
         return;
     }
-    if (selectedFields.length === 1 && series.length === 0 && typeof chartData[0]?.[xKey] !== 'string' ) {
-         toast({
-            title: "Visualization Error",
-            description: "Please select a categorical field to see its distribution or multiple fields for a comparison chart.",
-            variant: "destructive",
-        });
-        return;
-    }
-
 
     setChartOptions({
-      data: chartData,
+      data: finalChartData,
       title: { text: `Data Visualization` },
       series: series,
       axes: [
-        {
-          type: 'category',
-          position: 'bottom',
-          title: { text: xKey }
-        },
-        {
-          type: 'number',
-          position: 'left',
-          title: { text: 'Values' }
-        }
+        { type: 'category', position: 'bottom', title: { text: xKey } },
+        { type: 'number', position: 'left', title: { text: 'Values' } }
       ]
     });
 
@@ -245,7 +250,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-start min-h-screen py-2 bg-secondary">
       <Toaster />
-      <Card className="w-full space-y-4 p-4 rounded-lg shadow-md">
+      <Card className="w-full max-w-full space-y-4 p-4 rounded-lg shadow-md">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-center">CSV Data Visualizer</CardTitle>
         </CardHeader>
@@ -288,7 +293,7 @@ export default function Home() {
                   <CardHeader>
                     <CardTitle className="text-md font-semibold">Selected Fields Preview (Top 10 rows)</CardTitle>
                   </CardHeader>
-                  <CardContent className="max-h-[250px] overflow-y-auto"> {/* Adjusted height */}
+                  <CardContent className="max-h-[250px] overflow-y-auto">
                     {selectedFields.length > 0 ? (
                       <Table>
                         <TableHeader>
@@ -314,19 +319,22 @@ export default function Home() {
                   </CardContent>
                 </Card>
 
-                <Card className="p-4 rounded-md bg-muted">
+                <Card className="p-4 rounded-md bg-muted flex-grow">
                   <CardHeader>
                     <CardTitle className="text-md font-semibold">Visualization</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Button onClick={visualizeData} disabled={selectedFields.length === 0}>Visualize</Button>
                     {chartOptions && (
-                       <div style={{ height: '400px', marginTop: '1rem' }} className="ag-theme-quartz">
+                       <div ref={chartContainerRef} style={{ height: '400px', marginTop: '1rem' }} className="ag-theme-quartz">
                          <AgChartsReact options={chartOptions} />
                        </div>
                     )}
                     {!chartOptions && selectedFields.length > 0 && (
                         <p className="text-sm text-muted-foreground mt-2">Click "Visualize" to render the chart with selected fields.</p>
+                    )}
+                     {!chartOptions && selectedFields.length === 0 && (
+                        <p className="text-sm text-muted-foreground mt-2">Select fields and click "Visualize" to render a chart.</p>
                     )}
                   </CardContent>
                 </Card>
