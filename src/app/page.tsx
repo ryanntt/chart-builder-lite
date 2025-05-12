@@ -39,6 +39,7 @@ export default function Home() {
   const [chartType, setChartType] = useState<string>('bar');
   const [xAxisField, setXAxisField] = useState<string | null>(null);
   const [yAxisField, setYAxisField] = useState<string | null>(null);
+  const [chartRenderKey, setChartRenderKey] = useState(0); // Key for re-rendering chart
   const [draggedItem, setDraggedItem] = useState<{ field: string; origin: 'x' | 'y' } | null>(null);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -166,12 +167,12 @@ export default function Home() {
       if (currentX && !selectedFields.includes(currentX)) {
         currentX = null;
         setXAxisField(null);
-        setChartOptions(null); 
+        if (chartOptions !== null) setChartOptions(null); 
       }
       if (currentY && !selectedFields.includes(currentY)) {
         currentY = null;
         setYAxisField(null);
-        setChartOptions(null);
+        if (chartOptions !== null) setChartOptions(null);
       }
       
       // Prioritize string/date for X-axis, then number, then first selected
@@ -196,10 +197,10 @@ export default function Home() {
     } else if (selectedFields.length === 0) {
         setXAxisField(null);
         setYAxisField(null);
-        setChartOptions(null);
+        if (chartOptions !== null) setChartOptions(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData, headerTypes]); // Removed xAxisField, yAxisField to avoid loops, handled internally
+  }, [selectedFields, jsonData, headerTypes]); 
 
 
   const handleDragStart = (field: string, origin: 'x' | 'y') => {
@@ -228,7 +229,7 @@ export default function Home() {
           setYAxisField(sourceField);
         }
       }
-      setChartOptions(null); 
+      if (chartOptions !== null) setChartOptions(null); 
       setDraggedItem(null);
     }
   };
@@ -315,7 +316,7 @@ export default function Home() {
           description: "No data remains for the selected fields after filtering. Please check your selections or data.",
           variant: "destructive",
         });
-        setChartOptions(null);
+        if (chartOptions !== null) setChartOptions(null);
         return;
     }
 
@@ -363,14 +364,15 @@ export default function Home() {
         return;
     }
 
-    setChartOptions({
+    const newChartOptions: AgChartOptions = {
       data: chartData,
       title: { text: titleText },
       series: series,
       axes: axes.length > 0 ? axes : undefined,
-      container: chartContainerRef.current ?? undefined, 
       autoSize: true, 
-    });
+    };
+    setChartOptions(newChartOptions);
+    setChartRenderKey(prevKey => prevKey + 1); // Force re-render of AgChartsReact
 
     toast({
       title: "Visualization Rendered!",
@@ -495,7 +497,7 @@ export default function Home() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                         <div className="space-y-1">
                           <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
-                          <Select value={chartType} onValueChange={(value) => { setChartType(value); setChartOptions(null); }} name="chartType" disabled={selectedFields.length === 0}>
+                          <Select value={chartType} onValueChange={(value) => { setChartType(value); if (chartOptions !== null) setChartOptions(null); }} name="chartType" disabled={selectedFields.length === 0}>
                             <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
@@ -516,7 +518,7 @@ export default function Home() {
                             className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-not-allowed opacity-50'}`}
                           >
                             <span className="truncate" title={xAxisField || undefined}>{xAxisField || 'Drag/Select Field'}</span>
-                            {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+                            {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); if (chartOptions !== null) setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
                           </div>
                         </div>
                         <div className="space-y-1">
@@ -530,7 +532,7 @@ export default function Home() {
                             className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 ? 'cursor-grab' : 'cursor-not-allowed opacity-50'}`}
                           >
                             <span className="truncate" title={yAxisField || undefined}>{yAxisField || 'Drag/Select Field'}</span>
-                            {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
+                            {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); if (chartOptions !== null) setChartOptions(null); }}><XIcon className="w-3 h-3" /></Button>}
                           </div>
                         </div>
                       </div>
@@ -544,7 +546,7 @@ export default function Home() {
                       
                       <div ref={chartContainerRef} style={{ minHeight: '300px', flexGrow: 1 }} className="ag-theme-quartz w-full">
                         {chartOptions && (
-                          <AgChartsReact options={chartOptions} />
+                          <AgChartsReact options={chartOptions} key={chartRenderKey} />
                         )}
                         {!chartOptions && selectedFields.length > 0 && jsonData.length > 0 && (xAxisField || yAxisField) && (
                             <p className="text-sm text-muted-foreground mt-2 text-center pt-10">Click "Visualize" to render the chart.</p>
