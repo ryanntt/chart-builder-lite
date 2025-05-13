@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,8 +39,8 @@ const AppHeader = () => (
   <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
     <div className="container mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
-        <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
-        <h1 className="text-xl font-bold text-primary">CSV Atlas Uploader & Visualizer</h1>
+        {/* <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" /> */}
+        <h1 className="text-xl font-semibold text-foreground">Chart Builder Lite</h1>
       </div>
       <ThemeToggleButton />
     </div>
@@ -135,7 +134,7 @@ export default function Home() {
         parsedData.push(rowData);
       }
       setJsonData(parsedData);
-      setSelectedFields([]); // Reset selected fields
+      setSelectedFields([]); 
       setXAxisField(null);
       setYAxisField(null);
       setChartOptions(null);
@@ -169,7 +168,7 @@ export default function Home() {
         ? prev.filter(f => f !== field)
         : [...prev, field];
 
-      if (!newSelection.includes(field)) { // If field was deselected
+      if (!newSelection.includes(field)) { 
         if (xAxisField === field) setXAxisField(null);
         if (yAxisField === field) setYAxisField(null);
       }
@@ -191,14 +190,12 @@ export default function Home() {
             setYAxisField(null);
         }
         
-        // Auto-assign X-axis if not set, prioritizing string/date, then number
         if (!currentX && (currentY || (!currentX && !currentY))) {
             const potentialX = 
                 selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) ||
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
                 selectedFields.find(f => f !== currentY);
             if (potentialX) {
-                // Ensure potentialX is not already assigned to Y
                 if (potentialX !== currentY) {
                     setXAxisField(potentialX);
                     currentX = potentialX; 
@@ -206,24 +203,20 @@ export default function Home() {
             }
         }
         
-        // Auto-assign Y-axis if not set, prioritizing number
-        if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) { // ensure X is set or was just set
+        if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) { 
             const potentialY = 
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || xAxisField)) || 
-                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object'); // Avoid object types for Y
+                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object');
              if (potentialY) {
-                // Ensure potentialY is not already assigned to X
                 if (potentialY !== (currentX || xAxisField)) {
                     setYAxisField(potentialY);
                 }
             }
         }
     } else if (selectedFields.length === 0) {
-        // Clear axes if no fields are selected
         setXAxisField(null);
         setYAxisField(null);
     }
-  // Removed xAxisField and yAxisField from dependencies to prevent loop when they are auto-set
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFields, jsonData, headerTypes]);
 
@@ -245,25 +238,22 @@ export default function Home() {
         const currentX = xAxisField;
         const currentY = yAxisField;
 
-        if (target === 'x') { // Dropping onto X-axis
-            if (sourceField === currentY) { // Field was Y, now X: Swap
+        if (target === 'x') { 
+            if (sourceField === currentY) { 
                 setXAxisField(sourceField);
                 setYAxisField(currentX); 
-            } else if (sourceField !== currentX) { // Field is new to X (and not Y)
+            } else if (sourceField !== currentX) { 
                 setXAxisField(sourceField);
-                // If this field was previously Y, Y becomes null (handled by logic below)
             }
-        } else { // Dropping onto Y-axis
-            if (sourceField === currentX) { // Field was X, now Y: Swap
+        } else { 
+            if (sourceField === currentX) { 
                 setYAxisField(sourceField);
                 setXAxisField(currentY);
-            } else if (sourceField !== currentY) { // Field is new to Y (and not X)
+            } else if (sourceField !== currentY) { 
                 setYAxisField(sourceField);
-                // If this field was previously X, X becomes null (handled by logic below)
             }
         }
         
-        // If a field is assigned to one axis, remove it from the other if it was there
         if (target === 'x' && sourceField === yAxisField && sourceField !== currentX) {
              setYAxisField(null);
         } else if (target === 'y' && sourceField === xAxisField && sourceField !== currentY) {
@@ -281,7 +271,7 @@ export default function Home() {
   const visualizeData = () => {
     if (!xAxisField || !yAxisField || jsonData.length === 0) {
       setIsChartLoading(false);
-      setChartOptions(null); // Clear previous chart if any
+      setChartOptions(null); 
       return;
     }
 
@@ -297,7 +287,6 @@ export default function Home() {
     let axes: AgCartesianAxisOptions[] = [];
     let titleText = `${yAxisField} by ${xAxisField}`;
 
-    // Filter top 20 for categorical X-axis in bar chart
     if ( (chartType === 'bar' && (xFieldType === 'string' || xFieldType === 'date') ) ) {
         const valueCounts = chartData.reduce((acc, row) => {
             const value = String(row[xAxisField]);
@@ -501,211 +490,207 @@ export default function Home() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       <AppHeader />
-      <main className="flex-grow container mx-auto p-4">
-        <div className="grid grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)] gap-6 h-full">
-          
-          <div className="flex flex-col space-y-6">
-            <Card>
-              <CardHeader className="p-4">
-                <CardTitle className="text-md font-semibold">Data Source</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <Input 
-                  id="csv-upload-main" 
-                  type="file" 
-                  accept=".csv" 
-                  onChange={handleFileChange} 
-                  className="w-full text-sm"
-                  title={csvFile?.name || "Select a CSV file"}
-                />
-                {csvFile && <p className="text-xs text-muted-foreground mt-1 truncate" title={csvFile.name}>Selected: {csvFile.name}</p>}
-                {!csvFile && <p className="text-xs text-muted-foreground mt-1">Upload your CSV file to get started.</p>}
-              </CardContent>
-            </Card>
-
-            <Card className="flex flex-col flex-grow">
-              <CardHeader className="p-4">
-                <CardTitle className="text-md font-semibold">Fields</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0 flex-grow overflow-y-auto space-y-1">
-                {tableHeaders.length > 0 ? tableHeaders.map((header) => (
-                  <div 
-                    key={header} 
-                    className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-muted/50 transition-colors"
-                    draggable={selectedFields.includes(header)}
-                    onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))}
-                  >
-                    <Checkbox
-                      id={`checkbox-${header}`}
-                      checked={selectedFields.includes(header)}
-                      onCheckedChange={() => handleFieldSelect(header)}
-                      aria-label={`Select field ${header}`}
-                    />
-                    {getFieldTypeIcon(headerTypes[header])}
-                    <Label
-                      htmlFor={`checkbox-${header}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer flex-grow"
-                      title={header}
-                    >
-                      {header}
-                    </Label>
-                  </div>
-                )) : (
-                  <p className="text-sm text-muted-foreground p-2">Upload a CSV to see data fields.</p>
-                )}
-              </CardContent>
-            </Card>
+      <main className="flex-grow flex h-[calc(100vh-4rem)]"> {/* Adjusted for header height */}
+        {/* Left Column */}
+        <div className="w-[300px] flex-shrink-0 border-r border-border bg-card flex flex-col">
+          {/* Data Source Section */}
+          <div className="p-4 border-b border-border">
+            <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
+            <Input 
+              id="csv-upload-main" 
+              type="file" 
+              accept=".csv" 
+              onChange={handleFileChange} 
+              className="w-full text-sm"
+              title={csvFile?.name || "Select a CSV file"}
+            />
+            {csvFile && <p className="text-xs text-muted-foreground mt-1 truncate" title={csvFile.name}>Selected: {csvFile.name}</p>}
+            {!csvFile && <p className="text-xs text-muted-foreground mt-1">Upload your CSV file.</p>}
           </div>
+          {/* Fields Section */}
+          <div className="p-4 flex-grow flex flex-col overflow-y-auto">
+            <h2 className="text-sm font-semibold mb-2 text-foreground">Fields</h2>
+            <div className="space-y-1">
+              {tableHeaders.length > 0 ? tableHeaders.map((header) => (
+                <div 
+                  key={header} 
+                  className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-muted/50 transition-colors"
+                  draggable={selectedFields.includes(header)}
+                  onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))}
+                >
+                  <Checkbox
+                    id={`checkbox-${header}`}
+                    checked={selectedFields.includes(header)}
+                    onCheckedChange={() => handleFieldSelect(header)}
+                    aria-label={`Select field ${header}`}
+                  />
+                  {getFieldTypeIcon(headerTypes[header])}
+                  <Label
+                    htmlFor={`checkbox-${header}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer flex-grow"
+                    title={header}
+                  >
+                    {header}
+                  </Label>
+                </div>
+              )) : (
+                <p className="text-sm text-muted-foreground p-2">Upload a CSV to see data fields.</p>
+              )}
+            </div>
+          </div>
+        </div>
 
-          <div className="flex flex-col space-y-6">
-            <Card>
-              <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
-                <AccordionItem value="preview-accordion-item" className="border-b-0"> 
-                   <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline rounded-t-md font-semibold group data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
-                       Data Preview
-                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
-                  </AccordionPrimitiveTrigger>
-                  <AccordionContent className="p-4 pt-2">
-                    <div className="max-h-[250px] overflow-y-auto">
-                      {selectedFields.length > 0 && jsonData.length > 0 ? (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
+        {/* Right Column */}
+        <div className="flex-grow flex flex-col overflow-hidden">
+          {/* Data Preview Section */}
+          <div className="border-b border-border">
+            <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
+              <AccordionItem value="preview-accordion-item" className="border-b-0"> 
+                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group">
+                     Data Preview
+                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
+                </AccordionPrimitiveTrigger>
+                <AccordionContent className="p-4 pt-0">
+                  <div className="max-h-[250px] overflow-y-auto">
+                    {selectedFields.length > 0 && jsonData.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            {selectedFields.map((header) => (
+                              <TableHead key={header} className="text-xs h-8 px-2">{header}</TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {jsonData.slice(0, 10).map((row, index) => (
+                            <TableRow key={index}>
                               {selectedFields.map((header) => (
-                                <TableHead key={header} className="text-xs h-8 px-2">{header}</TableHead>
+                                <TableCell key={header} className="text-xs py-1 px-2">{String(row[header])}</TableCell>
                               ))}
                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {jsonData.slice(0, 10).map((row, index) => (
-                              <TableRow key={index}>
-                                {selectedFields.map((header) => (
-                                  <TableCell key={header} className="text-xs py-1 px-2">{String(row[header])}</TableCell>
-                                ))}
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-[150px] text-center">
-                           <FileText className="w-10 h-10 text-muted-foreground mb-2" data-ai-hint="document icon" />
-                          <p className="text-sm text-muted-foreground">Select fields or upload data to see a preview.</p>
-                        </div>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </Card>
-
-            <Card className="flex flex-col flex-grow">
-               <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
-                <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                  <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
-                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold transition-all hover:no-underline group [&[data-state=open]>svg]:rotate-180">
-                       Visualization
-                       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
-                    </AccordionPrimitiveTrigger>
-                     <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 ml-2 rounded-md hover:bg-muted/50 p-1"
-                        onClick={handleDownloadChart}
-                        disabled={!chartOptions || !isChartApiReady}
-                        aria-label="Download chart"
-                        title="Download chart as PNG"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-[150px] text-center">
+                         <FileText className="w-10 h-10 text-muted-foreground mb-2" data-ai-hint="document icon" />
+                        <p className="text-sm text-muted-foreground">Select fields or upload data to see a preview.</p>
+                      </div>
+                    )}
                   </div>
-                  <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                      <div className="space-y-1">
-                        <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
-                        <Select value={chartType} onValueChange={(value) => { setChartType(value); }} name="chartType" disabled={selectedFields.length === 0}>
-                          <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
-                            <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
-                            <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
-                            <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
-                        <div
-                          id="xAxisContainer" 
-                          draggable={!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField)}
-                          onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
-                          onDrop={() => handleDrop('x')}
-                          onDragOver={handleDragOver}
-                          className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
-                        >
-                          <span className="truncate" title={xAxisField || "Select field for X-Axis"}>{xAxisField || 'Select Field'}</span>
-                          {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
-                        <div
-                          id="yAxisContainer"
-                          draggable={!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField)}
-                          onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
-                          onDrop={() => handleDrop('y')}
-                          onDragOver={handleDragOver}
-                          className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
-                        >
-                          <span className="truncate" title={yAxisField || "Select field for Y-Axis"}>{yAxisField || 'Select Field'}</span>
-                          {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
-                        </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+
+          {/* Visualization Section */}
+          <div className="flex-grow flex flex-col">
+             <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
+              <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
+                <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group">
+                  <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group [&[data-state=open]>svg]:rotate-180">
+                     Visualization
+                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
+                  </AccordionPrimitiveTrigger>
+                   <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 ml-2 rounded-md hover:bg-muted/50 p-1"
+                      onClick={handleDownloadChart}
+                      disabled={!chartOptions || !isChartApiReady}
+                      aria-label="Download chart"
+                      title="Download chart as PNG"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                </div>
+                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                    <div className="space-y-1">
+                      <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
+                      <Select value={chartType} onValueChange={(value) => { setChartType(value); }} name="chartType" disabled={selectedFields.length === 0}>
+                        <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
+                          <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
+                          <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
+                          <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
+                      <div
+                        id="xAxisContainer" 
+                        draggable={!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField)}
+                        onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
+                        onDrop={() => handleDrop('x')}
+                        onDragOver={handleDragOver}
+                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                      >
+                        <span className="truncate" title={xAxisField || "Select field for X-Axis"}>{xAxisField || 'Select Field'}</span>
+                        {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
                       </div>
                     </div>
-                                        
-                    <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper" style={{ height: '400px' }}>
-                      {isChartLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10 rounded-md">
-                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <div className="space-y-1">
+                      <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
+                      <div
+                        id="yAxisContainer"
+                        draggable={!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField)}
+                        onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
+                        onDrop={() => handleDrop('y')}
+                        onDragOver={handleDragOver}
+                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                      >
+                        <span className="truncate" title={yAxisField || "Select field for Y-Axis"}>{yAxisField || 'Select Field'}</span>
+                        {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
+                      </div>
+                    </div>
+                  </div>
+                                      
+                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow" style={{ minHeight: '400px' }}> {/* Ensure flex-grow and minHeight */}
+                    {isChartLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10 rounded-md">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    )}
+                    <div className={`${isChartLoading && chartOptions ? 'blur-sm' : ''} h-full w-full`}>
+                      {chartOptions ? (
+                        <AgChartsReact 
+                          options={chartOptions} 
+                          key={chartRenderKey} 
+                          onChartReady={(chart) => { 
+                            chartApiRef.current = chart;
+                            setIsChartApiReady(true);
+                          }}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-center">
+                          {(selectedFields.length === 0 || jsonData.length === 0) ? (
+                            <>
+                              <FileText className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="document data" />
+                              <p className="text-sm text-muted-foreground">Upload data and select fields to visualize.</p>
+                            </>
+                          ) : (!xAxisField || !yAxisField) ? (
+                            <>
+                              <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="chart axes" />
+                              <p className="text-sm text-muted-foreground">Assign fields to X and Y axes.</p>
+                            </>
+                          ) : ( 
+                             <>
+                              <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="analytics chart" />
+                              <p className="text-sm text-muted-foreground">Chart will render here.</p>
+                            </>
+                          )}
                         </div>
                       )}
-                      <div className={`${isChartLoading && chartOptions ? 'blur-sm' : ''} h-full w-full`}>
-                        {chartOptions ? (
-                          <AgChartsReact 
-                            options={chartOptions} 
-                            key={chartRenderKey} 
-                            onChartReady={(chart) => { 
-                              chartApiRef.current = chart;
-                              setIsChartApiReady(true);
-                            }}
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center h-full text-center">
-                            {(selectedFields.length === 0 || jsonData.length === 0) ? (
-                              <>
-                                <FileText className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="document data" />
-                                <p className="text-sm text-muted-foreground">Upload data and select fields to visualize.</p>
-                              </>
-                            ) : (!xAxisField || !yAxisField) ? (
-                              <>
-                                <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="chart axes" />
-                                <p className="text-sm text-muted-foreground">Assign fields to X and Y axes.</p>
-                              </>
-                            ) : ( 
-                               <>
-                                <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="analytics chart" />
-                                <p className="text-sm text-muted-foreground">Chart will render automatically.</p>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </Card>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </main>
