@@ -39,7 +39,7 @@ const AppHeader = () => (
   <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
     <div className="container mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
-        {/* <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" /> */}
+        <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
         <h1 className="text-xl font-semibold text-foreground">Chart Builder Lite</h1>
       </div>
       <ThemeToggleButton />
@@ -196,9 +196,12 @@ export default function Home() {
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
                 selectedFields.find(f => f !== currentY);
             if (potentialX) {
-                if (potentialX !== currentY) {
+                if (potentialX !== currentY) { // Ensure X and Y are not the same unless it's the only field
                     setXAxisField(potentialX);
                     currentX = potentialX; 
+                } else if (selectedFields.length === 1) { // Allow same field if only one is selected
+                    setXAxisField(potentialX);
+                    currentX = potentialX;
                 }
             }
         }
@@ -206,9 +209,11 @@ export default function Home() {
         if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) { 
             const potentialY = 
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || xAxisField)) || 
-                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object');
+                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object'); // Avoid complex objects for Y
              if (potentialY) {
-                if (potentialY !== (currentX || xAxisField)) {
+                if (potentialY !== (currentX || xAxisField)) { // Ensure X and Y are not the same unless it's the only field
+                    setYAxisField(potentialY);
+                } else if (selectedFields.length === 1) { // Allow same field if only one is selected
                     setYAxisField(potentialY);
                 }
             }
@@ -218,7 +223,7 @@ export default function Home() {
         setYAxisField(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData, headerTypes]);
+  }, [selectedFields, jsonData, headerTypes]); // Removed xAxisField, yAxisField from deps to avoid loops with their setters
 
 
   const handleDragStart = (field: string, origin: 'x' | 'y') => {
@@ -239,25 +244,31 @@ export default function Home() {
         const currentY = yAxisField;
 
         if (target === 'x') { 
-            if (sourceField === currentY) { 
+            if (sourceField === currentY) { // If dragging Y to X
                 setXAxisField(sourceField);
-                setYAxisField(currentX); 
-            } else if (sourceField !== currentX) { 
+                setYAxisField(currentX); // Swap X to Y
+            } else if (sourceField !== currentX) { // If dragging a new field to X
                 setXAxisField(sourceField);
+                // If this field was previously Y, Y becomes null or current X if X changes
+                if (currentX && yAxisField === sourceField) setYAxisField(null); 
             }
-        } else { 
-            if (sourceField === currentX) { 
+        } else { // Target is 'y'
+            if (sourceField === currentX) { // If dragging X to Y
                 setYAxisField(sourceField);
-                setXAxisField(currentY);
-            } else if (sourceField !== currentY) { 
+                setXAxisField(currentY); // Swap Y to X
+            } else if (sourceField !== currentY) { // If dragging a new field to Y
                 setYAxisField(sourceField);
+                // If this field was previously X, X becomes null or current Y if Y changes
+                 if (currentY && xAxisField === sourceField) setXAxisField(null);
             }
         }
         
-        if (target === 'x' && sourceField === yAxisField && sourceField !== currentX) {
-             setYAxisField(null);
-        } else if (target === 'y' && sourceField === xAxisField && sourceField !== currentY) {
-             setXAxisField(null);
+        // If one axis becomes the same as the other (and not due to a swap of identical fields initially)
+        // and they are not the only selected field, clear the source if it wasn't part of a swap.
+        if (target === 'x' && xAxisField === yAxisField && selectedFields.length > 1 && sourceField !== currentY) {
+             setYAxisField(currentX); // Try to restore old Y
+        } else if (target === 'y' && yAxisField === xAxisField && selectedFields.length > 1 && sourceField !== currentX) {
+             setXAxisField(currentY); // Try to restore old X
         }
         
         setDraggedItem(null);
@@ -404,7 +415,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) {
+    if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0 && selectedFields.includes(xAxisField) && selectedFields.includes(yAxisField)) {
       setIsChartLoading(true);
       setIsChartApiReady(false); 
       const timer = setTimeout(() => {
@@ -492,7 +503,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-4rem)]"> {/* Adjusted for header height */}
+      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t"> {/* Adjusted for header height and added border */}
         {/* Left Column */}
         <div className="w-[300px] flex-shrink-0 border-r border-border bg-card flex flex-col">
           {/* Data Source Section */}
@@ -543,7 +554,7 @@ export default function Home() {
         </div>
 
         {/* Right Column */}
-        <div className="flex-grow flex flex-col overflow-hidden">
+        <div className="flex-grow flex flex-col overflow-hidden bg-card"> {/* Added bg-card for white background in light theme */}
           {/* Data Preview Section */}
           <div className="border-b border-border">
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
@@ -586,10 +597,10 @@ export default function Home() {
           </div>
 
           {/* Visualization Section */}
-          <div className="flex-grow flex flex-col">
+          <div className="flex-grow flex flex-col border-b-0"> {/* Removed border-b to make it edge-to-edge with bottom if it's the last item */}
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
-              <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group">
+              <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow"> {/* Ensure item itself can grow */}
+                <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b"> {/* Added border-b here */}
                   <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group [&[data-state=open]>svg]:rotate-180">
                      Visualization
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
@@ -606,7 +617,7 @@ export default function Home() {
                       <Download className="h-4 w-4" />
                     </Button>
                 </div>
-                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
+                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow"> {/* Ensure content can grow */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <div className="space-y-1">
                       <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
