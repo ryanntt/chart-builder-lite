@@ -209,12 +209,20 @@ export default function Home() {
 
 
   const handleDragStart = (field: string, origin: 'x' | 'y') => {
+    if (!selectedFields.includes(field)) return; // Only allow dragging of selected fields
     setDraggedItem({ field, origin });
   };
 
   const handleDrop = (target: 'x' | 'y') => {
     if (draggedItem) {
         const sourceField = draggedItem.field;
+        
+        // Ensure dragged field is actually selected
+        if (!selectedFields.includes(sourceField)) {
+            setDraggedItem(null);
+            return;
+        }
+
         const currentX = xAxisField;
         const currentY = yAxisField;
 
@@ -223,7 +231,7 @@ export default function Home() {
                 setXAxisField(sourceField);
                 setYAxisField(currentX); // Old X becomes new Y (swap)
             } else if (sourceField !== currentX) { // Field dragged from list to X, or different field already on X
-                 if (yAxisField === sourceField) setYAxisField(null); // Clear Y if it's the same as new X
+                if (yAxisField === sourceField) setYAxisField(null); // Clear Y if it's the same as new X
                 setXAxisField(sourceField);
             }
         } else { // Target is 'y'
@@ -246,8 +254,6 @@ export default function Home() {
   const visualizeData = () => {
     if (!xAxisField || !yAxisField) {
       setIsChartLoading(false);
-      // Do not clear chartOptions if axes are temporarily unselected, allow previous chart to show
-      // setChartOptions(null); 
       return;
     }
 
@@ -394,20 +400,12 @@ export default function Home() {
       return () => clearTimeout(timer);
     } else {
       if (jsonData.length === 0 || selectedFields.length === 0) {
-         setChartOptions(null); // Clear chart if no data or no fields selected
-      } else if (!xAxisField || !yAxisField) {
-        // Don't clear chart options here if one axis is temporarily null during selection
-        // Only clear if data itself is gone or no fields are selected.
-      }
-       if (jsonData.length > 0 && selectedFields.length > 0 && (!xAxisField || !yAxisField)) {
-        // If data and fields are present, but axes are not, don't clear chart, show placeholder
-      } else {
-         // setChartOptions(null); // Keep chart if only axes are missing temporarily
+         setChartOptions(null); 
       }
       setIsChartLoading(false); 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartType, xAxisField, yAxisField, jsonData.length, selectedFields.length, resolvedTheme, headerTypes]); // Watch counts for jsonData and selectedFields
+  }, [chartType, xAxisField, yAxisField, jsonData.length, selectedFields.length, resolvedTheme, headerTypes]); 
 
 
   const sanitizeFilename = (name: string | undefined): string => {
@@ -416,17 +414,33 @@ export default function Home() {
   };
 
   const handleDownloadChart = () => {
-    if (chartApiRef.current) {
+    if (chartApiRef.current && chartApiRef.current.canvasElement) {
+      const canvas = chartApiRef.current.canvasElement;
       const filename = sanitizeFilename(chartOptions?.title?.text);
-      chartApiRef.current.downloadChart({ fileName: filename, fileFormat: 'image/png' });
-      toast({
-        title: "Chart Downloading",
-        description: `Downloading ${filename}...`,
-      });
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = filename;
+        document.body.appendChild(link); // Required for Firefox for the click to work.
+        link.click();
+        document.body.removeChild(link); // Clean up the link element.
+        toast({
+          title: "Chart Downloading",
+          description: `Downloading ${filename}...`,
+        });
+      } catch (error) {
+        console.error("Error generating chart image:", error);
+        toast({
+          title: "Download Failed",
+          description: "Could not generate chart image.",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Download Failed",
-        description: "Chart is not ready.",
+        description: "Chart is not ready or canvas not found.",
         variant: "destructive",
       });
     }
@@ -435,7 +449,7 @@ export default function Home() {
   const handleXAxisClear = () => {
     const fieldToDeselect = xAxisField;
     setXAxisField(null);
-    if (fieldToDeselect && !yAxisField) { // Only deselect if not used by Y axis
+    if (fieldToDeselect && (!yAxisField || yAxisField !== fieldToDeselect)) { 
         setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
     }
   };
@@ -443,7 +457,7 @@ export default function Home() {
   const handleYAxisClear = () => {
     const fieldToDeselect = yAxisField;
     setYAxisField(null);
-    if (fieldToDeselect && !xAxisField) { // Only deselect if not used by X axis
+    if (fieldToDeselect && (!xAxisField || xAxisField !== fieldToDeselect)) { 
          setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
     }
   };
@@ -480,7 +494,12 @@ export default function Home() {
               </CardHeader>
               <CardContent className="p-4 pt-0 flex-grow overflow-y-auto space-y-1">
                 {tableHeaders.length > 0 ? tableHeaders.map((header) => (
-                  <div key={header} className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-muted/50 transition-colors">
+                  <div 
+                    key={header} 
+                    className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-muted/50 transition-colors"
+                    draggable={selectedFields.includes(header)}
+                    onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))} // Default origin to x if not on axis
+                  >
                     <Checkbox
                       id={`checkbox-${header}`}
                       checked={selectedFields.includes(header)}
@@ -490,7 +509,7 @@ export default function Home() {
                     {getFieldTypeIcon(headerTypes[header])}
                     <Label
                       htmlFor={`checkbox-${header}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer flex-grow"
                       title={header}
                     >
                       {header}
@@ -547,7 +566,7 @@ export default function Home() {
             <Card className="flex flex-col flex-grow">
                <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
                 <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow"> 
-                  <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
+                  <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
                     <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold transition-all hover:no-underline group [&[data-state=open]>svg]:rotate-180">
                        Visualization
                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
@@ -557,7 +576,7 @@ export default function Home() {
                         size="icon"
                         className="h-7 w-7 ml-2 rounded-md hover:bg-muted/50 p-1"
                         onClick={handleDownloadChart}
-                        disabled={!chartOptions || !chartApiRef.current}
+                        disabled={!chartOptions || !chartApiRef.current?.canvasElement}
                         aria-label="Download chart"
                         title="Download chart as PNG"
                       >
