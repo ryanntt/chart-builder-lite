@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -65,6 +64,35 @@ export default function Home() {
   const [draggedItem, setDraggedItem] = useState<{ field: string; origin: 'x' | 'y' } | null>(null);
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [isChartApiReady, setIsChartApiReady] = useState(false);
+  const [chartDimensions, setChartDimensions] = useState<{ width: number; height: number } | null>(null);
+
+
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (container) {
+      const resizeObserver = new ResizeObserver(entries => {
+        if (entries[0]) {
+          const { width, height } = entries[0].contentRect;
+          if (width > 0 && height > 0) {
+            if (!chartDimensions || Math.abs(chartDimensions.width - width) > 0.5 || Math.abs(chartDimensions.height - height) > 0.5) {
+              setChartDimensions({ width, height });
+            }
+          }
+        }
+      });
+      resizeObserver.observe(container);
+
+      // Initial measurement
+      const { width, height } = container.getBoundingClientRect();
+       if (width > 0 && height > 0) {
+         if (!chartDimensions || Math.abs(chartDimensions.width - width) > 0.5 || Math.abs(chartDimensions.height - height) > 0.5) {
+           setChartDimensions({ width, height });
+         }
+       }
+      return () => resizeObserver.unobserve(container);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartContainerRef.current]); // Only re-run if the ref itself changes (highly unlikely)
 
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +100,7 @@ export default function Home() {
     if (!file) return;
     setCsvFile(file);
     setIsChartLoading(true);
-    setIsChartApiReady(false); // Reset chart readiness
+    setIsChartApiReady(false); 
 
     try {
       const text = await file.text();
@@ -196,10 +224,10 @@ export default function Home() {
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
                 selectedFields.find(f => f !== currentY);
             if (potentialX) {
-                if (potentialX !== currentY) { // Ensure X and Y are not the same unless it's the only field
+                if (potentialX !== currentY) { 
                     setXAxisField(potentialX);
                     currentX = potentialX; 
-                } else if (selectedFields.length === 1) { // Allow same field if only one is selected
+                } else if (selectedFields.length === 1) { 
                     setXAxisField(potentialX);
                     currentX = potentialX;
                 }
@@ -209,11 +237,11 @@ export default function Home() {
         if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) { 
             const potentialY = 
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || xAxisField)) || 
-                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object'); // Avoid complex objects for Y
+                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object'); 
              if (potentialY) {
-                if (potentialY !== (currentX || xAxisField)) { // Ensure X and Y are not the same unless it's the only field
+                if (potentialY !== (currentX || xAxisField)) { 
                     setYAxisField(potentialY);
-                } else if (selectedFields.length === 1) { // Allow same field if only one is selected
+                } else if (selectedFields.length === 1) { 
                     setYAxisField(potentialY);
                 }
             }
@@ -223,7 +251,7 @@ export default function Home() {
         setYAxisField(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData, headerTypes]); // Removed xAxisField, yAxisField from deps to avoid loops with their setters
+  }, [selectedFields, jsonData, headerTypes]);
 
 
   const handleDragStart = (field: string, origin: 'x' | 'y') => {
@@ -244,31 +272,27 @@ export default function Home() {
         const currentY = yAxisField;
 
         if (target === 'x') { 
-            if (sourceField === currentY) { // If dragging Y to X
+            if (sourceField === currentY) { 
                 setXAxisField(sourceField);
-                setYAxisField(currentX); // Swap X to Y
-            } else if (sourceField !== currentX) { // If dragging a new field to X
+                setYAxisField(currentX); 
+            } else if (sourceField !== currentX) { 
                 setXAxisField(sourceField);
-                // If this field was previously Y, Y becomes null or current X if X changes
                 if (currentX && yAxisField === sourceField) setYAxisField(null); 
             }
-        } else { // Target is 'y'
-            if (sourceField === currentX) { // If dragging X to Y
+        } else { 
+            if (sourceField === currentX) { 
                 setYAxisField(sourceField);
-                setXAxisField(currentY); // Swap Y to X
-            } else if (sourceField !== currentY) { // If dragging a new field to Y
+                setXAxisField(currentY); 
+            } else if (sourceField !== currentY) { 
                 setYAxisField(sourceField);
-                // If this field was previously X, X becomes null or current Y if Y changes
                  if (currentY && xAxisField === sourceField) setXAxisField(null);
             }
         }
         
-        // If one axis becomes the same as the other (and not due to a swap of identical fields initially)
-        // and they are not the only selected field, clear the source if it wasn't part of a swap.
         if (target === 'x' && xAxisField === yAxisField && selectedFields.length > 1 && sourceField !== currentY) {
-             setYAxisField(currentX); // Try to restore old Y
+             setYAxisField(currentX); 
         } else if (target === 'y' && yAxisField === xAxisField && selectedFields.length > 1 && sourceField !== currentX) {
-             setXAxisField(currentY); // Try to restore old X
+             setXAxisField(currentY); 
         }
         
         setDraggedItem(null);
@@ -280,7 +304,7 @@ export default function Home() {
   };
 
   const visualizeData = () => {
-    if (!xAxisField || !yAxisField || jsonData.length === 0) {
+    if (!xAxisField || !yAxisField || jsonData.length === 0 || !chartDimensions) {
       setIsChartLoading(false);
       setChartOptions(null); 
       return;
@@ -399,8 +423,10 @@ export default function Home() {
       title: { text: titleText },
       series: series,
       axes: axes.length > 0 ? axes : undefined,
-      autoSize: true, 
       theme: resolvedTheme === 'dark' ? 'ag-default-dark' : 'ag-theme-alpine',
+      width: chartDimensions.width,
+      height: chartDimensions.height,
+      autoSize: false, // Explicitly disable autoSize as we are providing dimensions
     };
     setChartOptions(newChartOptions);
     setChartRenderKey(prevKey => prevKey + 1); 
@@ -415,7 +441,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0 && selectedFields.includes(xAxisField) && selectedFields.includes(yAxisField)) {
+    if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0 && selectedFields.includes(xAxisField) && selectedFields.includes(yAxisField) && chartDimensions) {
       setIsChartLoading(true);
       setIsChartApiReady(false); 
       const timer = setTimeout(() => {
@@ -427,7 +453,7 @@ export default function Home() {
       setIsChartLoading(false); 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartType, xAxisField, yAxisField, jsonData.length, selectedFields.length, resolvedTheme, headerTypes]); 
+  }, [chartType, xAxisField, yAxisField, jsonData.length, selectedFields.length, resolvedTheme, headerTypes, chartDimensions]); 
 
   useEffect(() => {
     if (!chartOptions) {
@@ -478,7 +504,6 @@ export default function Home() {
          toast({
             title: "Download Failed",
             description: "Chart container not found.",
-            variant: "destructive",
         });
     }
 };
@@ -503,10 +528,8 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t"> {/* Adjusted for header height and added border */}
-        {/* Left Column */}
+      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t">
         <div className="w-[300px] flex-shrink-0 border-r border-border bg-card flex flex-col">
-          {/* Data Source Section */}
           <div className="p-4 border-b border-border">
             <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
             <Input 
@@ -520,7 +543,6 @@ export default function Home() {
             {csvFile && <p className="text-xs text-muted-foreground mt-1 truncate" title={csvFile.name}>Selected: {csvFile.name}</p>}
             {!csvFile && <p className="text-xs text-muted-foreground mt-1">Upload your CSV file.</p>}
           </div>
-          {/* Fields Section */}
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
             <h2 className="text-sm font-semibold mb-2 text-foreground">Fields</h2>
             <div className="space-y-1">
@@ -553,9 +575,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right Column */}
-        <div className="flex-grow flex flex-col overflow-hidden bg-card"> {/* Added bg-card for white background in light theme */}
-          {/* Data Preview Section */}
+        <div className="flex-grow flex flex-col overflow-hidden bg-white">
           <div className="border-b border-border">
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0"> 
@@ -596,11 +616,10 @@ export default function Home() {
             </Accordion>
           </div>
 
-          {/* Visualization Section */}
-          <div className="flex-grow flex flex-col border-b-0"> {/* Removed border-b to make it edge-to-edge with bottom if it's the last item */}
+          <div className="flex-grow flex flex-col border-b-0">
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
-              <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow"> {/* Ensure item itself can grow */}
-                <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b"> {/* Added border-b here */}
+              <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
+                <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b">
                   <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group [&[data-state=open]>svg]:rotate-180">
                      Visualization
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
@@ -617,7 +636,7 @@ export default function Home() {
                       <Download className="h-4 w-4" />
                     </Button>
                 </div>
-                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow"> {/* Ensure content can grow */}
+                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <div className="space-y-1">
                       <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
@@ -661,14 +680,14 @@ export default function Home() {
                     </div>
                   </div>
                                       
-                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow" style={{ minHeight: '400px' }}> {/* Ensure flex-grow and minHeight */}
+                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-[400px] bg-white">
                     {isChartLoading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10 rounded-md">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
                     )}
                     <div className={`${isChartLoading && chartOptions ? 'blur-sm' : ''} h-full w-full`}>
-                      {chartOptions ? (
+                      {(chartOptions && chartDimensions && chartDimensions.width > 0 && chartDimensions.height > 0) ? (
                         <AgChartsReact 
                           options={chartOptions} 
                           key={chartRenderKey} 
@@ -692,7 +711,7 @@ export default function Home() {
                           ) : ( 
                              <>
                               <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="analytics chart" />
-                              <p className="text-sm text-muted-foreground">Chart will render here.</p>
+                              <p className="text-sm text-muted-foreground">Chart will render here. Ensure container has dimensions.</p>
                             </>
                           )}
                         </div>
@@ -708,4 +727,3 @@ export default function Home() {
     </div>
   );
 }
-
