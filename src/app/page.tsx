@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
@@ -448,7 +449,7 @@ export default function Home() {
         description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.`,
       });
     }
-  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, headerTypes, toast]);
+  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, headerTypes]); // Removed toast from dependencies as it's from a hook
 
   useEffect(() => {
     if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0 && selectedFields.includes(xAxisField) && selectedFields.includes(yAxisField) && chartDimensions) {
@@ -513,6 +514,7 @@ export default function Home() {
          toast({
             title: "Download Failed",
             description: "Chart container not found.",
+             variant: "destructive",
         });
     }
 };
@@ -689,7 +691,7 @@ export default function Home() {
                     </div>
                   </div>
                                       
-                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-[400px] bg-background border rounded-md">
+                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-background border rounded-md">
                     {isChartLoading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10 rounded-md">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -736,3 +738,4 @@ export default function Home() {
     </div>
   );
 }
+
