@@ -9,9 +9,6 @@ import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
-// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS - Moved to layout.tsx
-// import 'ag-charts-community/styles/ag-theme-alpine.css'; // Alpine theme - Moved to layout.tsx
-// import 'ag-charts-community/styles/ag-theme-alpine-dark.css'; // Alpine dark theme - Moved to layout.tsx
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -65,12 +62,15 @@ export default function Home() {
   const [chartRenderKey, setChartRenderKey] = useState(0);
   const [draggedItem, setDraggedItem] = useState<{ field: string; origin: 'x' | 'y' } | null>(null);
   const [isChartLoading, setIsChartLoading] = useState(false);
+  const [isChartApiReady, setIsChartApiReady] = useState(false);
+
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setCsvFile(file);
     setIsChartLoading(true);
+    setIsChartApiReady(false); // Reset chart readiness
 
     try {
       const text = await file.text();
@@ -132,6 +132,10 @@ export default function Home() {
         parsedData.push(rowData);
       }
       setJsonData(parsedData);
+      setSelectedFields([]); // Reset selected fields
+      setXAxisField(null);
+      setYAxisField(null);
+      setChartOptions(null);
       toast({
         title: "CSV file parsed!",
         description: `${parsedData.length} data rows ready for preview.`,
@@ -146,6 +150,12 @@ export default function Home() {
       });
       setCsvFile(null); 
       setJsonData([]);
+      setTableHeaders([]);
+      setHeaderTypes({});
+      setSelectedFields([]);
+      setXAxisField(null);
+      setYAxisField(null);
+      setChartOptions(null);
       setIsChartLoading(false); 
     }
   };
@@ -156,7 +166,6 @@ export default function Home() {
         ? prev.filter(f => f !== field)
         : [...prev, field];
 
-      // If a field is deselected, remove it from X or Y axis
       if (!newSelection.includes(field)) {
         if (xAxisField === field) setXAxisField(null);
         if (yAxisField === field) setYAxisField(null);
@@ -170,7 +179,6 @@ export default function Home() {
         let currentX = xAxisField;
         let currentY = yAxisField;
 
-        // Deselect if not in selectedFields anymore
         if (currentX && !selectedFields.includes(currentX)) {
             currentX = null;
             setXAxisField(null);
@@ -180,23 +188,21 @@ export default function Home() {
             setYAxisField(null);
         }
         
-        // Auto-select X if empty and Y is set, or if both are empty
         if (!currentX && (currentY || (!currentX && !currentY))) {
             const potentialX = 
                 selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) ||
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
-                selectedFields.find(f => f !== currentY); // any field not used by Y
+                selectedFields.find(f => f !== currentY);
             if (potentialX) {
                 setXAxisField(potentialX);
                 currentX = potentialX; 
             }
         }
         
-        // Auto-select Y if empty and X is set, or if both are empty and X was just set
-        if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) { // Ensure xAxisField is checked if currentX just updated
+        if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) {
             const potentialY = 
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || xAxisField)) || 
-                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object'); // any field not used by X
+                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object');
             if (potentialY) {
                 setYAxisField(potentialY);
             }
@@ -209,7 +215,7 @@ export default function Home() {
 
 
   const handleDragStart = (field: string, origin: 'x' | 'y') => {
-    if (!selectedFields.includes(field)) return; // Only allow dragging of selected fields
+    if (!selectedFields.includes(field)) return; 
     setDraggedItem({ field, origin });
   };
 
@@ -217,7 +223,6 @@ export default function Home() {
     if (draggedItem) {
         const sourceField = draggedItem.field;
         
-        // Ensure dragged field is actually selected
         if (!selectedFields.includes(sourceField)) {
             setDraggedItem(null);
             return;
@@ -227,19 +232,19 @@ export default function Home() {
         const currentY = yAxisField;
 
         if (target === 'x') {
-            if (sourceField === currentY) { // Field dragged from Y to X
+            if (sourceField === currentY) { 
                 setXAxisField(sourceField);
-                setYAxisField(currentX); // Old X becomes new Y (swap)
-            } else if (sourceField !== currentX) { // Field dragged from list to X, or different field already on X
-                if (yAxisField === sourceField) setYAxisField(null); // Clear Y if it's the same as new X
+                setYAxisField(currentX); 
+            } else if (sourceField !== currentX) { 
+                if (yAxisField === sourceField) setYAxisField(null); 
                 setXAxisField(sourceField);
             }
-        } else { // Target is 'y'
-            if (sourceField === currentX) { // Field dragged from X to Y
+        } else { 
+            if (sourceField === currentX) { 
                 setYAxisField(sourceField);
-                setXAxisField(currentY); // Old Y becomes new X (swap)
-            } else if (sourceField !== currentY) { // Field dragged from list to Y, or different field already on Y
-                if (xAxisField === sourceField) setXAxisField(null); // Clear X if it's the same as new Y
+                setXAxisField(currentY); 
+            } else if (sourceField !== currentY) { 
+                if (xAxisField === sourceField) setXAxisField(null); 
                 setYAxisField(sourceField);
             }
         }
@@ -252,14 +257,9 @@ export default function Home() {
   };
 
   const visualizeData = () => {
-    if (!xAxisField || !yAxisField) {
+    if (!xAxisField || !yAxisField || jsonData.length === 0) {
       setIsChartLoading(false);
-      return;
-    }
-
-    if (jsonData.length === 0) {
-      setChartOptions(null); 
-      setIsChartLoading(false);
+      setChartOptions(null); // Clear previous chart if any
       return;
     }
 
@@ -275,7 +275,6 @@ export default function Home() {
     let axes: AgCartesianAxisOptions[] = [];
     let titleText = `${yAxisField} by ${xAxisField}`;
 
-    
     if ( (chartType === 'bar' && (xFieldType === 'string' || xFieldType === 'date') ) ) {
         const valueCounts = chartData.reduce((acc, row) => {
             const value = String(row[xAxisField]);
@@ -394,18 +393,26 @@ export default function Home() {
   useEffect(() => {
     if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) {
       setIsChartLoading(true);
+      setIsChartApiReady(false); // Reset API readiness before visualization
       const timer = setTimeout(() => {
         visualizeData();
       }, 300); 
       return () => clearTimeout(timer);
     } else {
-      if (jsonData.length === 0 || selectedFields.length === 0) {
-         setChartOptions(null); 
-      }
+      // If conditions for chart are not met, clear options and reset API readiness
+      setChartOptions(null);
+      // isChartApiReady will be set to false by the effect below if chartOptions is null
       setIsChartLoading(false); 
     }
+  // visualizeData is intentionally not in deps to avoid re-triggering; it's called manually.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartType, xAxisField, yAxisField, jsonData.length, selectedFields.length, resolvedTheme, headerTypes]); 
+
+  useEffect(() => {
+    if (!chartOptions) {
+      setIsChartApiReady(false);
+    }
+  }, [chartOptions]);
 
 
   const sanitizeFilename = (name: string | undefined): string => {
@@ -414,7 +421,7 @@ export default function Home() {
   };
 
   const handleDownloadChart = () => {
-    if (chartApiRef.current && chartApiRef.current.canvasElement) {
+    if (chartApiRef.current && chartApiRef.current.canvasElement && isChartApiReady) {
       const canvas = chartApiRef.current.canvasElement;
       const filename = sanitizeFilename(chartOptions?.title?.text);
       try {
@@ -422,9 +429,9 @@ export default function Home() {
         const link = document.createElement('a');
         link.href = dataUrl;
         link.download = filename;
-        document.body.appendChild(link); // Required for Firefox for the click to work.
+        document.body.appendChild(link); 
         link.click();
-        document.body.removeChild(link); // Clean up the link element.
+        document.body.removeChild(link); 
         toast({
           title: "Chart Downloading",
           description: `Downloading ${filename}...`,
@@ -498,7 +505,7 @@ export default function Home() {
                     key={header} 
                     className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-muted/50 transition-colors"
                     draggable={selectedFields.includes(header)}
-                    onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))} // Default origin to x if not on axis
+                    onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))}
                   >
                     <Checkbox
                       id={`checkbox-${header}`}
@@ -576,7 +583,7 @@ export default function Home() {
                         size="icon"
                         className="h-7 w-7 ml-2 rounded-md hover:bg-muted/50 p-1"
                         onClick={handleDownloadChart}
-                        disabled={!chartOptions || !chartApiRef.current?.canvasElement}
+                        disabled={!chartOptions || !isChartApiReady}
                         aria-label="Download chart"
                         title="Download chart as PNG"
                       >
@@ -638,7 +645,10 @@ export default function Home() {
                           <AgChartsReact 
                             options={chartOptions} 
                             key={chartRenderKey} 
-                            onChartReady={(chart) => { chartApiRef.current = chart; }}
+                            onChartReady={(chart) => { 
+                              chartApiRef.current = chart;
+                              setIsChartApiReady(true);
+                            }}
                           />
                         ) : (
                           <div className="flex flex-col items-center justify-center h-full text-center">
@@ -672,3 +682,4 @@ export default function Home() {
     </div>
   );
 }
+
