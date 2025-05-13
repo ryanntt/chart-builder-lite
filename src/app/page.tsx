@@ -10,6 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
 // import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS - Moved to layout.tsx
+// import 'ag-charts-community/styles/ag-theme-alpine.css'; // Alpine theme - Moved to layout.tsx
+// import 'ag-charts-community/styles/ag-theme-alpine-dark.css'; // Alpine dark theme - Moved to layout.tsx
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -244,7 +246,8 @@ export default function Home() {
   const visualizeData = () => {
     if (!xAxisField || !yAxisField) {
       setIsChartLoading(false);
-      setChartOptions(null); // Clear chart if axes are not set
+      // Do not clear chartOptions if axes are temporarily unselected, allow previous chart to show
+      // setChartOptions(null); 
       return;
     }
 
@@ -368,7 +371,7 @@ export default function Home() {
       series: series,
       axes: axes.length > 0 ? axes : undefined,
       autoSize: true, 
-      theme: resolvedTheme === 'dark' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine',
+      theme: resolvedTheme === 'dark' ? 'ag-default-dark' : 'ag-theme-alpine',
     };
     setChartOptions(newChartOptions);
     setChartRenderKey(prevKey => prevKey + 1); 
@@ -391,7 +394,7 @@ export default function Home() {
       return () => clearTimeout(timer);
     } else {
       if (jsonData.length === 0 || selectedFields.length === 0) {
-        // setChartOptions(null); // Keep existing chart if axes are temporarily unset but data/fields exist
+         setChartOptions(null); // Clear chart if no data or no fields selected
       } else if (!xAxisField || !yAxisField) {
         // Don't clear chart options here if one axis is temporarily null during selection
         // Only clear if data itself is gone or no fields are selected.
@@ -399,7 +402,7 @@ export default function Home() {
        if (jsonData.length > 0 && selectedFields.length > 0 && (!xAxisField || !yAxisField)) {
         // If data and fields are present, but axes are not, don't clear chart, show placeholder
       } else {
-         setChartOptions(null); // Clear chart if no data or no fields selected
+         // setChartOptions(null); // Keep chart if only axes are missing temporarily
       }
       setIsChartLoading(false); 
     }
@@ -429,6 +432,23 @@ export default function Home() {
     }
   };
   
+  const handleXAxisClear = () => {
+    const fieldToDeselect = xAxisField;
+    setXAxisField(null);
+    if (fieldToDeselect && !yAxisField) { // Only deselect if not used by Y axis
+        setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
+    }
+  };
+
+  const handleYAxisClear = () => {
+    const fieldToDeselect = yAxisField;
+    setYAxisField(null);
+    if (fieldToDeselect && !xAxisField) { // Only deselect if not used by X axis
+         setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
+    }
+  };
+
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
@@ -527,8 +547,8 @@ export default function Home() {
             <Card className="flex flex-col flex-grow">
                <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
                 <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow"> 
-                  <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold group data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
-                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold transition-all hover:no-underline [&[data-state=open]&gt;svg]:rotate-180">
+                  <div className="flex w-full items-center justify-between p-4 rounded-t-md font-semibold data-[state=open]:border-b data-[state=open]:bg-muted/30 data-[state=closed]:rounded-b-md">
+                    <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold transition-all hover:no-underline group [&[data-state=open]>svg]:rotate-180">
                        Visualization
                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
                     </AccordionPrimitiveTrigger>
@@ -569,7 +589,7 @@ export default function Home() {
                           className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                         >
                           <span className="truncate" title={xAxisField || "Select field for X-Axis"}>{xAxisField || 'Select Field'}</span>
-                          {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setXAxisField(null); }}><XIcon className="w-3 h-3" /></Button>}
+                          {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -583,7 +603,7 @@ export default function Home() {
                           className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-background text-xs ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                         >
                           <span className="truncate" title={yAxisField || "Select field for Y-Axis"}>{yAxisField || 'Select Field'}</span>
-                          {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setYAxisField(null); }}><XIcon className="w-3 h-3" /></Button>}
+                          {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
                         </div>
                       </div>
                     </div>
@@ -633,4 +653,3 @@ export default function Home() {
     </div>
   );
 }
-
