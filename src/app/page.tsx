@@ -19,6 +19,7 @@ import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { useTheme } from "next-themes";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
+import Papa from 'papaparse';
 
 const getFieldTypeIcon = (type: string) => {
   switch (type) {
@@ -69,6 +70,7 @@ export default function Home() {
 
   const [internalChartOptions, setInternalChartOptions] = useState<Omit<AgChartOptions, 'width' | 'height' | 'theme'> | null>(null);
   const [chartRenderKey, setChartRenderKey] = useState(0);
+  const [rowCount, setRowCount] = useState<number | null>(null);
 
   const chartOptionsToRender = useMemo(() => {
     if (!internalChartOptions || !chartDimensions) return null;
@@ -108,99 +110,117 @@ export default function Home() {
   }, [chartContainerRef.current]); 
 
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setCsvFile(file);
     setIsChartLoading(true);
-    setIsChartApiReady(false); 
+    setIsChartApiReady(false);
+    setRowCount(null);
 
-    try {
-      const text = await file.text();
-      const lines = text.split("\n").filter(line => line.trim() !== '');
-      if (lines.length < 2) {
-        toast({
-          title: "Invalid CSV",
-          description: "CSV file must contain a header row and at least one data row.",
-          variant: "destructive",
-        });
-        setCsvFile(null); 
-        setIsChartLoading(false);
-        return;
-      }
-      
-      const headers = lines[0].split(",").map((header: string) => header.trim());
-      setTableHeaders(headers);
+    Papa.parse(file, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const headers = results.meta.fields;
+        if (!headers || headers.length === 0) {
+          toast({
+            title: "Invalid CSV",
+            description: "CSV file must contain a header row.",
+            variant: "destructive",
+          });
+          setCsvFile(null);
+          setIsChartLoading(false);
+          return;
+        }
+        setTableHeaders(headers);
 
-      const parsedData: any[] = [];
-      const sampleRowForTypeDetection = lines[1]?.split(",").map(value => value.trim()) || [];
-      const types: Record<string, string> = {};
+        const parsedData = results.data as any[];
+        if (parsedData.length === 0) {
+           toast({
+            title: "Empty CSV",
+            description: "CSV file does not contain any data rows.",
+            variant: "destructive",
+          });
+          setCsvFile(null); 
+          setIsChartLoading(false);
+          return;
+        }
+        setRowCount(parsedData.length);
 
-      headers.forEach((header, index) => {
-        const sampleValue = sampleRowForTypeDetection[index];
-        if (sampleValue !== "" && !isNaN(Number(sampleValue))) {
-          types[header] = 'number';
-        } else if (sampleValue?.toLowerCase() === 'true' || sampleValue?.toLowerCase() === 'false') {
-          types[header] = 'boolean';
-        } else if (sampleValue && (/\d{4}-\d{2}-\d{2}/.test(sampleValue) || /\d{1,2}\/\d{1,2}\/\d{4}/.test(sampleValue))) {
-          if (!isNaN(new Date(sampleValue).getTime())) {
-            types[header] = 'date';
+        const types: Record<string, string> = {};
+        headers.forEach(header => {
+          const sampleValue = parsedData[0][header];
+          if (typeof sampleValue === 'number') {
+            types[header] = 'number';
+          } else if (typeof sampleValue === 'boolean') {
+            types[header] = 'boolean';
+          } else if (sampleValue instanceof Date || (typeof sampleValue === 'string' && !isNaN(new Date(sampleValue).getTime()))) {
+             // Check if it's a Date object or if string can be parsed into a valid Date
+            if (sampleValue instanceof Date || (typeof sampleValue === 'string' && /\d{4}-\d{2}-\d{2}/.test(sampleValue) || /\d{1,2}\/\d{1,2}\/\d{4}/.test(sampleValue))) {
+                 if (!isNaN(new Date(sampleValue).getTime())) {
+                    types[header] = 'date';
+                 } else {
+                    types[header] = 'string';
+                 }
+            } else {
+               types[header] = 'string';
+            }
           } else {
             types[header] = 'string';
           }
-        } else {
-          types[header] = 'string'; 
-        }
-      });
-      setHeaderTypes(types);
-
-      for (let i = 1; i < lines.length; i++) {
-        const currentLineValues = lines[i].split(",").map(value => value.trim());
-        if (currentLineValues.length !== headers.length) {
-          console.warn(`Skipping line ${i + 1} due to inconsistent number of columns.`);
-          continue;
-        }
-        const rowData: any = {};
-        for (let j = 0; j < headers.length; j++) {
-          let value: string | number | boolean | Date | null = currentLineValues[j];
-          if (types[headers[j]] === 'number') {
-            value = value === "" ? null : Number(value); 
-          } else if (types[headers[j]] === 'boolean') {
-            value = value.toLowerCase() === 'true';
-          } else if (types[headers[j]] === 'date') {
-            value = value === "" ? null : new Date(value);
+        });
+        setHeaderTypes(types);
+        
+        // Transform data for AG Charts (e.g., ensure dates are Date objects if identified)
+        const transformedData = parsedData.map(row => {
+          const newRow: any = {};
+          for (const header of headers) {
+            let value = row[header];
+            if (types[header] === 'date' && typeof value === 'string' && value !== null && value !== "") {
+              const dateValue = new Date(value);
+              newRow[header] = isNaN(dateValue.getTime()) ? value : dateValue; // if parsing fails, keep original string
+            } else if (types[header] === 'number' && (value === "" || value === null) ) {
+              newRow[header] = null; // Handle empty strings for numbers as null
+            }
+            else {
+              newRow[header] = value;
+            }
           }
-          rowData[headers[j]] = value;
-        }
-        parsedData.push(rowData);
+          return newRow;
+        });
+
+        setJsonData(transformedData);
+        setSelectedFields([]);
+        setXAxisField(null);
+        setYAxisField(null);
+        setInternalChartOptions(null);
+        toast({
+          title: "CSV file parsed!",
+          description: `${transformedData.length} data rows ready.`,
+        });
+        setIsChartLoading(false);
+      },
+      error: (error: any) => {
+        console.error("Error parsing CSV with PapaParse:", error);
+        toast({
+          title: "Error parsing CSV",
+          description: error.message || "Failed to read or parse the CSV file.",
+          variant: "destructive",
+        });
+        setCsvFile(null);
+        setJsonData([]);
+        setTableHeaders([]);
+        setHeaderTypes({});
+        setSelectedFields([]);
+        setXAxisField(null);
+        setYAxisField(null);
+        setInternalChartOptions(null);
+        setIsChartLoading(false);
+        setRowCount(null);
       }
-      setJsonData(parsedData);
-      setSelectedFields([]); 
-      setXAxisField(null);
-      setYAxisField(null);
-      setInternalChartOptions(null);
-      toast({
-        title: "CSV file parsed!",
-        description: `${parsedData.length} data rows ready for preview.`,
-      });
-      setIsChartLoading(false);
-    } catch (error) {
-      console.error("Error parsing CSV:", error);
-      toast({
-        title: "Error parsing CSV",
-        description: "Failed to read or parse the CSV file.",
-        variant: "destructive",
-      });
-      setCsvFile(null); 
-      setJsonData([]);
-      setTableHeaders([]);
-      setHeaderTypes({});
-      setSelectedFields([]);
-      setXAxisField(null);
-      setYAxisField(null);
-      setInternalChartOptions(null);
-      setIsChartLoading(false); 
-    }
+    });
   };
 
   const handleFieldSelect = (field: string) => {
@@ -221,6 +241,14 @@ export default function Home() {
     if (jsonData.length > 0 && selectedFields.length > 0) {
         let currentX = xAxisField;
         let currentY = yAxisField;
+
+        // Rule: One field can only be mapped to one chart configuration input.
+        if (currentX && currentY && currentX === currentY) {
+            // If by some chance they became same, prioritize X and clear Y
+             setYAxisField(null);
+             currentY = null;
+        }
+
 
         if (currentX && !selectedFields.includes(currentX)) {
             currentX = null;
@@ -285,29 +313,46 @@ export default function Home() {
         const currentY = yAxisField;
 
         if (target === 'x') { 
-            if (sourceField === currentY) { 
+            if (sourceField === currentY) { // Swapping X and Y
                 setXAxisField(sourceField);
                 setYAxisField(currentX); 
-            } else if (sourceField !== currentX) { 
+            } else if (sourceField !== currentX) { // New field to X
                 setXAxisField(sourceField);
-                if (currentX && yAxisField === sourceField) setYAxisField(null); 
+                // If the new X was previously Y, Y should be cleared or reassigned
+                // This logic handles the "one field to one input" rule implicitly by new assignment
             }
-        } else { 
-            if (sourceField === currentX) { 
+        } else { // Target is 'y'
+            if (sourceField === currentX) { // Swapping Y and X
                 setYAxisField(sourceField);
                 setXAxisField(currentY); 
-            } else if (sourceField !== currentY) { 
+            } else if (sourceField !== currentY) { // New field to Y
                 setYAxisField(sourceField);
-                 if (currentY && xAxisField === sourceField) setXAxisField(null);
+                 // If the new Y was previously X, X should be cleared or reassigned
             }
         }
         
-        if (target === 'x' && xAxisField === yAxisField && selectedFields.length > 1 && sourceField !== currentY) {
-             setYAxisField(currentX); 
-        } else if (target === 'y' && yAxisField === xAxisField && selectedFields.length > 1 && sourceField !== currentX) {
-             setXAxisField(currentY); 
+        // Ensure X and Y are not the same after a drop, if they become same, clear one
+        if (target === 'x' && sourceField === yAxisField && selectedFields.length > 1) { // If X becomes same as Y
+             // setYAxisField(currentX); // This was the old X
+        } else if (target === 'y' && sourceField === xAxisField && selectedFields.length > 1) { // If Y becomes same as X
+             // setXAxisField(currentY); // This was the old Y
         }
         
+        // If after drop X and Y are the same, make one null
+        // This can happen if a field is dropped onto the axis it already occupies or if it's the only selected field
+        if (xAxisField === yAxisField && xAxisField !== null) {
+            if (target === 'x' && draggedItem.origin === 'y') { // If Y was dragged to X and they were different
+                 setYAxisField(currentX); // Old X becomes new Y
+            } else if (target === 'y' && draggedItem.origin === 'x') { // If X was dragged to Y and they were different
+                 setXAxisField(currentY); // Old Y becomes new X
+            } else if (target === 'x') {
+                 setYAxisField(null); // If dropped on X and became same as Y, clear Y
+            } else {
+                 setXAxisField(null); // If dropped on Y and became same as X, clear X
+            }
+        }
+
+
         setDraggedItem(null);
     }
 };
@@ -449,7 +494,7 @@ export default function Home() {
         description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.`,
       });
     }
-  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, headerTypes]); // Removed toast from dependencies as it's from a hook
+  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, headerTypes]); 
 
   useEffect(() => {
     if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0 && selectedFields.includes(xAxisField) && selectedFields.includes(yAxisField) && chartDimensions) {
@@ -551,7 +596,12 @@ export default function Home() {
               className="w-full text-sm"
               title={csvFile?.name || "Select a CSV file"}
             />
-            {csvFile && <p className="text-xs text-muted-foreground mt-1 truncate" title={csvFile.name}>Selected: {csvFile.name}</p>}
+            {csvFile && (
+              <p className="text-xs text-muted-foreground mt-1 truncate" title={csvFile.name}>
+                Selected: {csvFile.name}
+                {rowCount !== null && ` (${rowCount} rows)`}
+              </p>
+            )}
             {!csvFile && <p className="text-xs text-muted-foreground mt-1">Upload your CSV file.</p>}
           </div>
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
