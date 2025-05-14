@@ -12,13 +12,21 @@ import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, Database, ListTree, FileText, CircleAlert } from 'lucide-react';
+import { Loader2, UploadCloud, Database, ListTree, CircleAlert, ChevronLeft } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataSourceModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onDataSourceConnected: (data: any[], headers: string[], fileName: string, rowCount: number) => void;
 }
+
+const SkeletonListItem = () => (
+  <div className="flex items-center space-x-2 p-2 mb-1 rounded-md bg-muted/30">
+    <Skeleton className="h-5 w-5 rounded-full" />
+    <Skeleton className="h-4 w-4/5 rounded" />
+  </div>
+);
 
 export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }: DataSourceModalProps) {
   const [activeTab, setActiveTab] = useState("upload");
@@ -31,7 +39,9 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
   const [collections, setCollections] = useState<string[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // General loading for actions like file processing or final data load
+  const [isFetchingDatabases, setIsFetchingDatabases] = useState(false);
+  const [isFetchingCollections, setIsFetchingCollections] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
 
@@ -84,7 +94,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     } else {
       toast({ title: "Invalid File Type", description: "Please drop a CSV file.", variant: "destructive" });
     }
-  }, [processAndConnectFile]);
+  }, [processAndConnectFile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -107,7 +117,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
       setError("Please enter a MongoDB connection string.");
       return;
     }
-    setIsLoading(true);
+    setIsFetchingDatabases(true);
     setError(null);
     setDatabases([]);
     setSelectedDatabase(null);
@@ -122,12 +132,12 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
       setError(result.error || "Failed to fetch databases.");
       toast({ title: "Error", description: result.error || "Failed to fetch databases.", variant: "destructive" });
     }
-    setIsLoading(false);
+    setIsFetchingDatabases(false);
   };
 
   const handleDatabaseSelect = async (dbName: string) => {
     setSelectedDatabase(dbName);
-    setIsLoading(true);
+    setIsFetchingCollections(true);
     setError(null);
     setCollections([]);
     setSelectedCollection(null);
@@ -140,7 +150,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
       setError(result.error || `Failed to fetch collections for ${dbName}.`);
       toast({ title: "Error", description: result.error || `Failed to fetch collections for ${dbName}.`, variant: "destructive" });
     }
-    setIsLoading(false);
+    setIsFetchingCollections(false);
   };
   
   const handleLoadCollectionData = async (collectionName: string) => {
@@ -148,8 +158,8 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
         setError("Database or connection string missing.");
         return;
     }
-    setSelectedCollection(collectionName);
-    setIsLoading(true);
+    setSelectedCollection(collectionName); // Visually mark as selected/loading
+    setIsLoading(true); // General loading for this final step
     setError(null);
 
     const result = await fetchCollectionData(connectionString, selectedDatabase, collectionName);
@@ -163,6 +173,14 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
         toast({ title: "Error", description: result.error || `Failed to load data from ${collectionName}.`, variant: "destructive" });
     }
     setIsLoading(false);
+    setSelectedCollection(null); // Reset visual selection after attempt
+  };
+
+  const handleBackToDatabases = () => {
+    setSelectedDatabase(null);
+    setCollections([]);
+    setSelectedCollection(null);
+    setError(null);
   };
 
 
@@ -192,9 +210,9 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 <p className={`mb-2 text-sm ${isDragging ? 'text-primary' : 'text-muted-foreground'}`}>
                   <span className="font-semibold">Click to browse</span> or drag and drop
                 </p>
-                <p className="text-xs text-muted-foreground">CSV files only (Max 10MB)</p>
+                <p className="text-xs text-muted-foreground">CSV files only</p>
                 <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {isLoading && activeTab === 'upload' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Browse File
                 </Button>
               </div>
@@ -212,65 +230,91 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 placeholder="mongodb+srv://<username>:<password>@<cluster-url>/..." 
                 value={connectionString}
                 onChange={(e) => setConnectionString(e.target.value)}
-                disabled={isLoading}
+                disabled={isFetchingDatabases || isFetchingCollections || isLoading}
               />
             </div>
-            <Button onClick={handleFetchDatabases} disabled={isLoading || !connectionString} className="w-full">
-              {isLoading && !databases.length ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
+            <Button onClick={handleFetchDatabases} disabled={isFetchingDatabases || isFetchingCollections || isLoading || !connectionString} className="w-full">
+              {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
               Fetch Databases
             </Button>
 
             {error && <p className="text-sm text-destructive flex items-center"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>}
-
-            {databases.length > 0 && !selectedDatabase && (
-              <div className="space-y-2">
-                <Label>Select a Database:</Label>
-                <ScrollArea className="h-40 w-full rounded-md border">
+            
+            <div className="min-h-[240px]"> {/* Container for lists to maintain height during transitions */}
+              {isFetchingDatabases && (
+                <ScrollArea className="h-[240px] w-full rounded-md border">
                   <div className="p-2">
-                    {databases.map(dbName => (
-                      <Button 
-                        key={dbName} 
-                        variant="ghost" 
-                        className="w-full justify-start mb-1"
-                        onClick={() => handleDatabaseSelect(dbName)}
-                        disabled={isLoading}
-                      >
-                        <Database className="mr-2 h-4 w-4 text-muted-foreground" />
-                        {dbName}
-                      </Button>
-                    ))}
+                    {[...Array(5)].map((_, i) => <SkeletonListItem key={i} />)}
                   </div>
                 </ScrollArea>
-              </div>
-            )}
+              )}
 
-            {selectedDatabase && collections.length > 0 && (
-              <div className="space-y-2">
-                <Label>Select a Collection from {selectedDatabase}:</Label>
-                 <ScrollArea className="h-40 w-full rounded-md border">
-                   <div className="p-2">
-                    {collections.map(colName => (
-                      <Button 
-                        key={colName} 
-                        variant="ghost" 
-                        className="w-full justify-start mb-1"
-                        onClick={() => handleLoadCollectionData(colName)}
-                        disabled={isLoading}
-                      >
-                        <ListTree className="mr-2 h-4 w-4 text-muted-foreground" />
-                        {colName}
-                         {isLoading && selectedCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
-                      </Button>
-                    ))}
-                   </div>
-                 </ScrollArea>
-              </div>
-            )}
-             {isLoading && (databases.length > 0 || collections.length > 0) && <p className="text-sm text-muted-foreground mt-2 text-center">Loading...</p>}
+              {!isFetchingDatabases && databases.length > 0 && !selectedDatabase && (
+                <div className="space-y-2">
+                  <Label>Select a Database:</Label>
+                  <ScrollArea className="h-[240px] w-full rounded-md border">
+                    <div className="p-2">
+                      {databases.map(dbName => (
+                        <Button 
+                          key={dbName} 
+                          variant="ghost" 
+                          className="w-full justify-start mb-1 hover:bg-muted/50"
+                          onClick={() => handleDatabaseSelect(dbName)}
+                          disabled={isFetchingCollections || isLoading}
+                        >
+                          <Database className="mr-2 h-4 w-4 text-muted-foreground" />
+                          {dbName}
+                        </Button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
+
+              {selectedDatabase && (
+                <>
+                  <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="mb-2">
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Back to Databases
+                  </Button>
+                  {isFetchingCollections && (
+                     <ScrollArea className="h-[200px] w-full rounded-md border"> {/* Adjusted height */}
+                        <div className="p-2">
+                        {[...Array(5)].map((_, i) => <SkeletonListItem key={i} />)}
+                        </div>
+                    </ScrollArea>
+                  )}
+                  {!isFetchingCollections && collections.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>Select a Collection from {selectedDatabase}:</Label>
+                      <ScrollArea className="h-[200px] w-full rounded-md border"> {/* Adjusted height */}
+                        <div className="p-2">
+                          {collections.map(colName => (
+                            <Button 
+                              key={colName} 
+                              variant="ghost" 
+                              className="w-full justify-start mb-1 hover:bg-muted/50"
+                              onClick={() => handleLoadCollectionData(colName)}
+                              disabled={isLoading && selectedCollection === colName}
+                            >
+                              <ListTree className="mr-2 h-4 w-4 text-muted-foreground" />
+                              {colName}
+                              {isLoading && selectedCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
+                            </Button>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  )}
+                  {!isFetchingCollections && collections.length === 0 && !error && (
+                     <p className="text-sm text-muted-foreground text-center py-4">No collections found in {selectedDatabase}.</p>
+                  )}
+                </>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
-        <DialogFooter className="p-6 pt-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
+        <DialogFooter className="p-6 pt-0 border-t">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections}>Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

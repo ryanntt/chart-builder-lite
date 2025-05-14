@@ -1,7 +1,7 @@
 
 'use server';
 
-import { MongoClient, ServerApiVersion, Collection } from 'mongodb';
+import { MongoClient, ServerApiVersion, Collection, ObjectId } from 'mongodb';
 import type { Document } from 'mongodb';
 
 interface AtlasActionResult<T> {
@@ -95,23 +95,25 @@ function flattenDocument(doc: Document, prefix: string = ''): Document {
   for (const key in doc) {
     if (Object.prototype.hasOwnProperty.call(doc, key)) {
       const newKey = prefix ? `${prefix}.${key}` : key;
-      if (typeof doc[key] === 'object' && doc[key] !== null && !Array.isArray(doc[key]) && !(doc[key] instanceof Date) && Object.keys(doc[key]).length > 0 ) {
-         // Check if it's a simple object (not ObjectId, Date, etc.)
-        if (doc[key]._bsontype && doc[key]._bsontype === 'ObjectID') {
-           flattened[newKey] = doc[key].toString(); // Convert ObjectId to string
-        } else {
-           Object.assign(flattened, flattenDocument(doc[key], newKey));
-        }
-      } else if (Array.isArray(doc[key])) {
-        flattened[newKey] = JSON.stringify(doc[key]); // Convert arrays to JSON strings
-      } else if (doc[key] instanceof Date) {
-        flattened[newKey] = doc[key].toISOString(); // Convert dates to ISO strings
-      }
-       else if (doc[key] !== null && typeof doc[key] === 'object' && doc[key]._bsontype === 'ObjectID') {
-        flattened[newKey] = doc[key].toString();
+      const value = doc[key];
+
+      if (value instanceof ObjectId) {
+        flattened[newKey] = value.toString();
+      } else if (value instanceof Date) {
+        flattened[newKey] = value.toISOString();
+      } else if (Array.isArray(value)) {
+        // For arrays, stringify them. Could also iterate and flatten if needed.
+        flattened[newKey] = JSON.stringify(value);
+      } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value) && Object.keys(value).length > 0) {
+        // If it's a non-empty nested object (and not null, not Buffer), recurse
+        Object.assign(flattened, flattenDocument(value, newKey));
+      } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value) && Object.keys(value).length === 0) {
+        // Handle empty objects e.g. by stringifying or specific representation
+        flattened[newKey] = '{}'; 
       }
       else {
-        flattened[newKey] = doc[key];
+        // For primitives, Buffers, or null
+        flattened[newKey] = Buffer.isBuffer(value) ? `[Buffer]` : value;
       }
     }
   }
@@ -185,3 +187,4 @@ export async function fetchCollectionData(
     }
   }
 }
+
