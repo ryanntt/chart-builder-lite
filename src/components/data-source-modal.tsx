@@ -22,7 +22,7 @@ interface DataSourceModalProps {
 }
 
 const SkeletonListItem = () => (
-  <div className="flex items-center space-x-2 p-2 mb-1 rounded-md bg-muted/30">
+  <div className="flex items-center space-x-2 p-2 mb-1 rounded-md bg-bg-color-secondary/30">
     <Skeleton className="h-5 w-5 rounded-full" />
     <Skeleton className="h-4 w-4/5 rounded" />
   </div>
@@ -186,21 +186,21 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0">
+      <DialogContent className="sm:max-w-[600px] p-0 bg-bg-color-primary">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle>Connect Data Source</DialogTitle>
           <DialogDescription>Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
-            <TabsTrigger value="upload" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Upload File</TabsTrigger>
-            <TabsTrigger value="atlas" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Connect to Atlas</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-bg-color-secondary">
+            <TabsTrigger value="upload" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-bg-color-primary">Upload File</TabsTrigger>
+            <TabsTrigger value="atlas" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-bg-color-primary">Connect to Atlas</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="p-6">
             <div
               className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/70 transition-colors
-                ${isDragging ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}
+                ${isDragging ? 'border-primary bg-bg-color-primary-focus/10' : 'border-border bg-bg-color-primary hover:bg-bg-color-primary-hover'}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -258,7 +258,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                         <Button 
                           key={dbName} 
                           variant="ghost" 
-                          className="w-full justify-start mb-1 hover:bg-muted/50"
+                          className="w-full justify-start mb-1 hover:bg-bg-color-primary-hover"
                           onClick={() => handleDatabaseSelect(dbName)}
                           disabled={isFetchingCollections || isLoading}
                         >
@@ -292,7 +292,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                             <Button 
                               key={colName} 
                               variant="ghost" 
-                              className="w-full justify-start mb-1 hover:bg-muted/50"
+                              className="w-full justify-start mb-1 hover:bg-bg-color-primary-hover"
                               onClick={() => handleLoadCollectionData(colName)}
                               disabled={isLoading && selectedCollection === colName}
                             >
@@ -313,7 +313,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
             </div>
           </TabsContent>
         </Tabs>
-        <DialogFooter className="p-6 pt-0 border-t">
+        <DialogFooter className="p-6 pt-0 border-t border-border">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections}>Cancel</Button>
         </DialogFooter>
       </DialogContent>

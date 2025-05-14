@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${ibmPlexSans.variable} font-sans antialiased bg-background text-foreground`}>
+      <body className={`${ibmPlexSans.variable} font-sans antialiased bg-bg-color-secondary text-foreground`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

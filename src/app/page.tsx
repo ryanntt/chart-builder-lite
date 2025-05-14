@@ -39,7 +39,7 @@ const getFieldTypeIcon = (type: string) => {
 };
 
 const AppHeader = () => (
-  <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+  <header className="sticky top-0 z-40 w-full border-b border-border bg-bg-color-primary/95 backdrop-blur supports-[backdrop-filter]:bg-bg-color-primary/60">
     <div className="container mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
         <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
@@ -525,10 +525,10 @@ export default function Home() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-muted/40 text-foreground">
+    <div className="flex flex-col min-h-screen bg-bg-color-secondary text-foreground">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t">
-        <div className="w-[300px] flex-shrink-0 border-r border-border bg-background flex flex-col">
+      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border">
+        <div className="w-[300px] flex-shrink-0 border-r border-border bg-bg-color-primary flex flex-col">
           <div className="p-4 border-b border-border">
             <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
              <Button onClick={() => setIsModalOpen(true)} className="w-full" variant="outline">
@@ -548,7 +548,7 @@ export default function Home() {
               {tableHeaders.length > 0 ? tableHeaders.map((header) => (
                 <div 
                   key={header} 
-                  className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-muted/50 transition-colors"
+                  className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-bg-color-primary-hover transition-colors"
                   draggable={selectedFields.includes(header)}
                   onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))}
                 >
@@ -574,7 +574,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex-grow flex flex-col overflow-hidden bg-background">
+        <div className="flex-grow flex flex-col overflow-hidden bg-bg-color-primary">
           <div className="border-b border-border">
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0"> 
@@ -583,13 +583,13 @@ export default function Home() {
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
                 </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
-                  <div className="max-h-[250px] overflow-y-auto border rounded-md">
+                  <div className="max-h-[250px] overflow-y-auto border rounded-md bg-bg-color-primary">
                     {selectedFields.length > 0 && jsonData.length > 0 ? (
                       <Table>
                         <TableHeader>
                           <TableRow>
                             {selectedFields.map((header) => (
-                              <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-card z-10">{header}</TableHead>
+                              <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-bg-color-primary z-10">{header}</TableHead>
                             ))}
                           </TableRow>
                         </TableHeader>
@@ -618,7 +618,7 @@ export default function Home() {
           <div className="flex-grow flex flex-col border-b-0">
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                 <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b data-[state=closed]:border-b-0">
+                 <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b data-[state=closed]:border-b-0 border-border">
                   <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group [&[data-state=open]>svg]:rotate-180">
                      Visualization
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
@@ -626,7 +626,7 @@ export default function Home() {
                    <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 ml-2 rounded-md hover:bg-muted/50 p-1"
+                      className="h-7 w-7 ml-2 rounded-md hover:bg-bg-color-primary-hover p-1"
                       onClick={handleDownloadChart}
                       disabled={!chartOptionsToRender || !isChartApiReady}
                       aria-label="Download chart"
@@ -635,7 +635,7 @@ export default function Home() {
                       <Download className="h-4 w-4" />
                     </Button>
                 </div>
-                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow">
+                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow bg-bg-color-primary">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <div className="space-y-1">
                       <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
@@ -657,7 +657,7 @@ export default function Home() {
                         onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
                         onDrop={() => handleDrop('x')}
                         onDragOver={handleDragOver}
-                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-muted/30 text-xs ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-bg-color-secondary text-xs ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                       >
                         <span className="truncate" title={xAxisField || "Select field for X-Axis"}>{xAxisField || 'Select Field'}</span>
                         {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
@@ -671,7 +671,7 @@ export default function Home() {
                         onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
                         onDrop={() => handleDrop('y')}
                         onDragOver={handleDragOver}
-                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-muted/30 text-xs ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-bg-color-secondary text-xs ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                       >
                         <span className="truncate" title={yAxisField || "Select field for Y-Axis"}>{yAxisField || 'Select Field'}</span>
                         {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
@@ -679,9 +679,9 @@ export default function Home() {
                     </div>
                   </div>
                                       
-                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-background border rounded-md">
+                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-bg-color-primary border rounded-md">
                     {isChartLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10 rounded-md">
+                      <div className="absolute inset-0 flex items-center justify-center bg-bg-color-primary/50 z-10 rounded-md">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
                     )}

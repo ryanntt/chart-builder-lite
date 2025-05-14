@@ -8,36 +8,60 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 94.9%; /* #F2F2F2 Light gray */
-    --foreground: 240 10% 3.9%; /* Default dark text */
+    /* Existing ShadCN/UI Theme Variables (adjust as needed or phase out) */
+    --background: 0 0% 100%; /* white - Will be overridden by --bg-color-secondary for body */
+    --foreground: 215 28% 17%; /* MDB Black equivalent for text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card: 0 0% 100%; /* white - Mapped to --bg-color-primary */
+    --card-foreground: 215 28% 17%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%; /* white - Mapped to --bg-color-primary */
+    --popover-foreground: 215 28% 17%;
 
-    --primary: 122 39% 49%; /* #47A248 MongoDB Green */
-    --primary-foreground: 0 0% 98%; /* Almost white for contrast on green */
+    --primary: 122 39% 49%; /* MongoDB Green */
+    --primary-foreground: 0 0% 98%; 
 
-    --secondary: 210 40% 96.1%; /* Lighter gray for less important elements */
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 220 16% 93%; /* Gray Light 3 - Mapped to --bg-color-secondary */
+    --secondary-foreground: 215 28% 17%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 220 16% 93%; /* Gray Light 3 */
+    --muted-foreground: 220 15% 27%; /* Gray Dark 3 */
 
-    --accent: 221 83% 53%; /* #4c8bf5 Blue for interactive elements */
-    --accent-foreground: 0 0% 98%; /* White text on blue accent */
+    --accent: 209 100% 95%; /* Blue Light 3 for interactive elements */
+    --accent-foreground: 226 65% 32%; /* Blue Dark 3 for text on accent */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 100% 91%; /* Red Light 3 */
+    --destructive-foreground: 0 71% 31%; /* Red Dark 3 */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: hsl(var(--border-color-secondary)); /* Updated to use semantic token */
+    --input: hsl(var(--border-color-primary)); /* Updated to use semantic token */
     --ring: 122 39% 49%; /* MongoDB Green for focus rings */
 
     --radius: 0.5rem;
 
+    /* Leafy Green Background Color Tokens - Light Mode */
+    --bg-color-primary: 0 0% 100%; /* White */
+    --bg-color-primary-hover: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
+    --bg-color-primary-focus: 209 100% 95%; /* Blue Light 3 (#E3F3FF) */
+    --bg-color-secondary: 220 16% 93%; /* Gray Light 3 (#E5E7EB) */
+    --bg-color-secondary-hover: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
+    --bg-color-secondary-focus: 209 100% 95%; /* Blue Light 3 (#E3F3FF) */
+    --bg-color-inverse: 200 100% 8.4%; /* MDB Black (#001E2B) */
+    --bg-color-inverse-hover: 220 15% 27%; /* Gray Dark 3 (#374151) */
+    --bg-color-inverse-focus: 207 98% 34%; /* Blue Dark 2 (#025CAD) */
+    --bg-color-disabled: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
+    --bg-color-info: 209 100% 95%; /* Blue Light 3 (#E3F3FF) */
+    --bg-color-warning: 50 100% 86%; /* Yellow Light 3 (#FFF2B9) */
+    --bg-color-success: 147 76% 81%; /* Green Light 3 (#AAF3CD) */
+    --bg-color-error: 0 100% 91%; /* Red Light 3 (#FFD2D2) */
+
+    /* Leafy Green Border Color Tokens - Light Mode */
+    --border-color-primary: 207 6% 71%; /* Gray Base (#A7AFB2) */
+    --border-color-secondary: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
+    --border-color-success: 147 100% 17%; /* Green Dark 1 (#00582C) */
+    --border-color-error: 3 95% 63%; /* Red Base (#F95249) */
+    --border-color-disabled: 210 17% 98%; /* Gray Light 1 (#F9FAFB) */
+    
     /* Semantic Spacing Variables */
     --spacing-1: 0.25rem;  /* 4px */
     --spacing-2: 0.5rem;   /* 8px */
@@ -69,59 +93,82 @@ body {
     --spacing-80: 20rem;   /* 320px */
     --spacing-96: 24rem;   /* 384px */
 
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 122 39% 49%; /* MongoDB Green for sidebar primary */
+    --sidebar-background: 0 0% 100%; /* Mapped to --bg-color-primary */
+    --sidebar-foreground: 215 28% 17%;
+    --sidebar-primary: 122 39% 49%; 
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 221 83% 53%; /* Blue for sidebar accent */
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 122 39% 49%; /* MongoDB Green for sidebar ring */
+    --sidebar-accent: 209 100% 95%; 
+    --sidebar-accent-foreground: 226 65% 32%;
+    --sidebar-border: 220 14% 65%;
+    --sidebar-ring: 122 39% 49%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    /* Existing ShadCN/UI Theme Variables - Dark Mode (adjust as needed or phase out) */
+    --background: 200 100% 8.4%; /* MDB Black - Will be overridden by --bg-color-secondary for body */
+    --foreground: 220 16% 93%; /* Gray Light 3 for text */
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 200 100% 8.4%; /* MDB Black - Mapped to --bg-color-primary */
+    --card-foreground: 220 16% 93%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 200 100% 8.4%; /* MDB Black - Mapped to --bg-color-primary */
+    --popover-foreground: 220 16% 93%;
 
-    --primary: 122 39% 49%; /* #47A248 MongoDB Green */
+    --primary: 122 39% 49%; /* MongoDB Green */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 220 15% 27%; /* Gray Dark 3 - Mapped to --bg-color-secondary */
+    --secondary-foreground: 220 16% 93%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 220 15% 27%; /* Gray Dark 3 */
+    --muted-foreground: 220 17% 96%; /* Gray Light 2 */
 
-    --accent: 221 83% 53%; /* #4c8bf5 Blue */
-    --accent-foreground: 0 0% 98%;
+    --accent: 203 99% 20%; /* Blue Dark 3 for interactive elements */
+    --accent-foreground: 0 0% 98%; /* White text on blue accent */
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 71% 31%; /* Red Dark 3 */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: hsl(var(--border-color-secondary)); /* Updated to use semantic token */
+    --input: hsl(var(--border-color-primary)); /* Updated to use semantic token */
     --ring: 122 39% 49%; /* MongoDB Green for focus rings */
     
+    /* Leafy Green Background Color Tokens - Dark Mode */
+    --bg-color-primary: 200 100% 8.4%; /* MDB Black (#001E2B) */
+    --bg-color-primary-hover: 217 14% 34%; /* Gray Dark 2 (#4B5563) */
+    --bg-color-primary-focus: 203 99% 20%; /* Blue Dark 3 (#014264) */
+    --bg-color-secondary: 215 28% 17%; /* Gray Dark 4 (#1F2937) */
+    --bg-color-secondary-hover: 217 14% 34%; /* Gray Dark 2 (#4B5563) */
+    --bg-color-secondary-focus: 203 99% 20%; /* Blue Dark 3 (#014264) */
+    --bg-color-inverse: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
+    --bg-color-inverse-hover: 220 16% 93%; /* Gray Light 3 (#E5E7EB) */
+    --bg-color-inverse-focus: 206 100% 84%; /* Blue Light 2 (#B0DEFF) */
+    --bg-color-disabled: 220 15% 27%; /* Gray Dark 3 (#374151) */
+    --bg-color-info: 203 99% 20%; /* Blue Dark 3 (#014264) */
+    --bg-color-warning: 48 100% 64%; /* Yellow Base (#FFDC49) - user table had Yellow Dark 3, Leafy Yellow Base chosen */
+    --bg-color-success: 147 100% 17%; /* Green Dark 3 (#015C30) */
+    --bg-color-error: 0 71% 31%; /* Red Dark 3 (#861616) */
+
+    /* Leafy Green Border Color Tokens - Dark Mode */
+    --border-color-primary: 207 6% 71%; /* Gray Base (#A7AFB2) - as per table, same as light */
+    --border-color-secondary: 217 14% 34%; /* Gray Dark 2 (#4B5563) */
+    --border-color-success: 147 100% 17%; /* Green Dark 1 (#00582C) - as per table, same as light */
+    --border-color-error: 3 100% 86%; /* Red Light 1 (#FFBBB8) */
+    --border-color-disabled: 217 14% 34%; /* Gray Dark 2 (#4B5563) */
+
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 0 0% 95.9%;
+    --sidebar-background: 200 100% 8.4%; /* Mapped to --bg-color-primary */
+    --sidebar-foreground: 220 16% 93%;
     --sidebar-primary: 122 39% 49%; 
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 221 83% 53%;
+    --sidebar-accent: 203 99% 20%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-border: 217 14% 34%;
     --sidebar-ring: 122 39% 49%;
   }
 }
@@ -131,7 +178,7 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-bg-color-secondary text-foreground; /* Updated body background */
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
