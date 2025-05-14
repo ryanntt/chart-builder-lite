@@ -14,15 +14,17 @@ import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2, ChevronDown } from "lucide-react";
+import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2, ChevronDown, DatabaseZap } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { useTheme } from "next-themes";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import Papa from 'papaparse';
+import { DataSourceModal } from '@/components/data-source-modal';
+
 
 const getFieldTypeIcon = (type: string) => {
-  switch (type) {
+  switch (type.toLowerCase()) {
     case 'string':
       return <Type className="h-4 w-4 text-muted-foreground" />;
     case 'number':
@@ -41,7 +43,7 @@ const AppHeader = () => (
     <div className="container mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
         <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
-        <h1 className="text-xl font-semibold text-foreground">Chart Builder Lite</h1>
+        <h1 className="text-xl font-semibold text-foreground">CSV Atlas Uploader</h1>
       </div>
       <ThemeToggleButton />
     </div>
@@ -49,7 +51,7 @@ const AppHeader = () => (
 );
 
 export default function Home() {
-  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [dataSourceName, setDataSourceName] = useState<string | null>(null);
   const [jsonData, setJsonData] = useState<any[]>([]);
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [headerTypes, setHeaderTypes] = useState<Record<string, string>>({});
@@ -71,6 +73,9 @@ export default function Home() {
   const [internalChartOptions, setInternalChartOptions] = useState<Omit<AgChartOptions, 'width' | 'height' | 'theme'> | null>(null);
   const [chartRenderKey, setChartRenderKey] = useState(0);
   const [rowCount, setRowCount] = useState<number | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   const chartOptionsToRender = useMemo(() => {
     if (!internalChartOptions || !chartDimensions) return null;
@@ -110,118 +115,70 @@ export default function Home() {
   }, [chartContainerRef.current]); 
 
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setCsvFile(file);
-    setIsChartLoading(true);
+  const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, numRows: number) => {
+    setDataSourceName(fileName);
+    setRowCount(numRows);
+    setIsChartLoading(true); // To reflect loading state while processing this new data
     setIsChartApiReady(false);
-    setRowCount(null);
 
-    Papa.parse(file, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const headers = results.meta.fields;
-        if (!headers || headers.length === 0) {
-          toast({
-            title: "Invalid CSV",
-            description: "CSV file must contain a header row.",
-            variant: "destructive",
-          });
-          setCsvFile(null);
-          setIsChartLoading(false);
-          return;
-        }
-        setTableHeaders(headers);
+    setTableHeaders(headers);
 
-        const parsedData = results.data as any[];
-        if (parsedData.length === 0) {
-           toast({
-            title: "Empty CSV",
-            description: "CSV file does not contain any data rows.",
-            variant: "destructive",
-          });
-          setCsvFile(null); 
-          setIsChartLoading(false);
-          return;
-        }
-        setRowCount(parsedData.length);
-
-        const types: Record<string, string> = {};
-        headers.forEach(header => {
-          const sampleValue = parsedData[0][header];
-          if (typeof sampleValue === 'number') {
-            types[header] = 'number';
-          } else if (typeof sampleValue === 'boolean') {
-            types[header] = 'boolean';
-          } else if (sampleValue instanceof Date || (typeof sampleValue === 'string' && !isNaN(new Date(sampleValue).getTime()))) {
-             // Check if it's a Date object or if string can be parsed into a valid Date
-            if (sampleValue instanceof Date || (typeof sampleValue === 'string' && /\d{4}-\d{2}-\d{2}/.test(sampleValue) || /\d{1,2}\/\d{1,2}\/\d{4}/.test(sampleValue))) {
-                 if (!isNaN(new Date(sampleValue).getTime())) {
-                    types[header] = 'date';
-                 } else {
-                    types[header] = 'string';
-                 }
+    const types: Record<string, string> = {};
+    if (data.length > 0) {
+      headers.forEach(header => {
+        const sampleValue = data[0][header];
+        if (typeof sampleValue === 'number') {
+          types[header] = 'number';
+        } else if (typeof sampleValue === 'boolean') {
+          types[header] = 'boolean';
+        } else if (sampleValue instanceof Date || (typeof sampleValue === 'string' && !isNaN(new Date(sampleValue).getTime()))) {
+          if (sampleValue instanceof Date || (typeof sampleValue === 'string' && (/\d{4}-\d{2}-\d{2}/.test(sampleValue) || /\d{1,2}\/\d{1,2}\/\d{4}/.test(sampleValue)))) {
+            if (!isNaN(new Date(sampleValue).getTime())) {
+              types[header] = 'date';
             } else {
-               types[header] = 'string';
+              types[header] = 'string';
             }
           } else {
             types[header] = 'string';
           }
-        });
-        setHeaderTypes(types);
-        
-        // Transform data for AG Charts (e.g., ensure dates are Date objects if identified)
-        const transformedData = parsedData.map(row => {
-          const newRow: any = {};
-          for (const header of headers) {
-            let value = row[header];
-            if (types[header] === 'date' && typeof value === 'string' && value !== null && value !== "") {
-              const dateValue = new Date(value);
-              newRow[header] = isNaN(dateValue.getTime()) ? value : dateValue; // if parsing fails, keep original string
-            } else if (types[header] === 'number' && (value === "" || value === null) ) {
-              newRow[header] = null; // Handle empty strings for numbers as null
-            }
-            else {
-              newRow[header] = value;
-            }
-          }
-          return newRow;
-        });
-
-        setJsonData(transformedData);
-        setSelectedFields([]);
-        setXAxisField(null);
-        setYAxisField(null);
-        setInternalChartOptions(null);
-        toast({
-          title: "CSV file parsed!",
-          description: `${transformedData.length} data rows ready.`,
-        });
-        setIsChartLoading(false);
-      },
-      error: (error: any) => {
-        console.error("Error parsing CSV with PapaParse:", error);
-        toast({
-          title: "Error parsing CSV",
-          description: error.message || "Failed to read or parse the CSV file.",
-          variant: "destructive",
-        });
-        setCsvFile(null);
-        setJsonData([]);
-        setTableHeaders([]);
-        setHeaderTypes({});
-        setSelectedFields([]);
-        setXAxisField(null);
-        setYAxisField(null);
-        setInternalChartOptions(null);
-        setIsChartLoading(false);
-        setRowCount(null);
+        } else {
+          types[header] = 'string';
+        }
+      });
+    }
+    setHeaderTypes(types);
+    
+    const transformedData = data.map(row => {
+      const newRow: any = {};
+      for (const header of headers) {
+        let value = row[header];
+        if (types[header] === 'date' && typeof value === 'string' && value !== null && value !== "") {
+          const dateValue = new Date(value);
+          newRow[header] = isNaN(dateValue.getTime()) ? value : dateValue;
+        } else if (types[header] === 'number' && (value === "" || value === null) ) {
+          newRow[header] = null;
+        }
+        else {
+          newRow[header] = value;
+        }
       }
+      return newRow;
     });
+
+    setJsonData(transformedData);
+    setSelectedFields([]); // Reset selections
+    setXAxisField(null);
+    setYAxisField(null);
+    setInternalChartOptions(null); // Clear previous chart
+    
+    toast({
+      title: "Data Source Connected!",
+      description: `${numRows} data rows from "${fileName}" are ready.`,
+    });
+    setIsChartLoading(false);
+    setIsModalOpen(false); // Ensure modal closes
   };
+
 
   const handleFieldSelect = (field: string) => {
     setSelectedFields(prev => {
@@ -318,8 +275,6 @@ export default function Home() {
                 setYAxisField(currentX); 
             } else if (sourceField !== currentX) { // New field to X
                 setXAxisField(sourceField);
-                // If the new X was previously Y, Y should be cleared or reassigned
-                // This logic handles the "one field to one input" rule implicitly by new assignment
             }
         } else { // Target is 'y'
             if (sourceField === currentX) { // Swapping Y and X
@@ -327,32 +282,20 @@ export default function Home() {
                 setXAxisField(currentY); 
             } else if (sourceField !== currentY) { // New field to Y
                 setYAxisField(sourceField);
-                 // If the new Y was previously X, X should be cleared or reassigned
             }
         }
         
-        // Ensure X and Y are not the same after a drop, if they become same, clear one
-        if (target === 'x' && sourceField === yAxisField && selectedFields.length > 1) { // If X becomes same as Y
-             // setYAxisField(currentX); // This was the old X
-        } else if (target === 'y' && sourceField === xAxisField && selectedFields.length > 1) { // If Y becomes same as X
-             // setXAxisField(currentY); // This was the old Y
-        }
-        
-        // If after drop X and Y are the same, make one null
-        // This can happen if a field is dropped onto the axis it already occupies or if it's the only selected field
         if (xAxisField === yAxisField && xAxisField !== null) {
-            if (target === 'x' && draggedItem.origin === 'y') { // If Y was dragged to X and they were different
-                 setYAxisField(currentX); // Old X becomes new Y
-            } else if (target === 'y' && draggedItem.origin === 'x') { // If X was dragged to Y and they were different
-                 setXAxisField(currentY); // Old Y becomes new X
+            if (target === 'x' && draggedItem.origin === 'y') { 
+                 setYAxisField(currentX); 
+            } else if (target === 'y' && draggedItem.origin === 'x') { 
+                 setXAxisField(currentY); 
             } else if (target === 'x') {
-                 setYAxisField(null); // If dropped on X and became same as Y, clear Y
+                 setYAxisField(null); 
             } else {
-                 setXAxisField(null); // If dropped on Y and became same as X, clear X
+                 setXAxisField(null); 
             }
         }
-
-
         setDraggedItem(null);
     }
 };
@@ -481,7 +424,7 @@ export default function Home() {
       title: { text: titleText },
       series: series,
       axes: axes.length > 0 ? axes : undefined,
-      autoSize: false,
+      autoSize: false, // Important for manual sizing control
     };
     
     setInternalChartOptions(newBaseChartOptions);
@@ -588,21 +531,16 @@ export default function Home() {
         <div className="w-[300px] flex-shrink-0 border-r border-border bg-background flex flex-col">
           <div className="p-4 border-b border-border">
             <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
-            <Input 
-              id="csv-upload-main" 
-              type="file" 
-              accept=".csv" 
-              onChange={handleFileChange} 
-              className="w-full text-sm"
-              title={csvFile?.name || "Select a CSV file"}
-            />
-            {csvFile && (
-              <p className="text-xs text-muted-foreground mt-1 truncate" title={csvFile.name}>
-                Selected: {csvFile.name}
+             <Button onClick={() => setIsModalOpen(true)} className="w-full" variant="outline">
+                <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
+            </Button>
+            {dataSourceName && (
+              <p className="text-xs text-muted-foreground mt-1 truncate" title={dataSourceName}>
+                Selected: {dataSourceName}
                 {rowCount !== null && ` (${rowCount} rows)`}
               </p>
             )}
-            {!csvFile && <p className="text-xs text-muted-foreground mt-1">Upload your CSV file.</p>}
+            {!dataSourceName && <p className="text-xs text-muted-foreground mt-1">Upload a CSV or connect to Atlas.</p>}
           </div>
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
             <h2 className="text-sm font-semibold mb-2 text-foreground">Fields</h2>
@@ -630,7 +568,7 @@ export default function Home() {
                   </Label>
                 </div>
               )) : (
-                <p className="text-sm text-muted-foreground p-2">Upload a CSV to see data fields.</p>
+                <p className="text-sm text-muted-foreground p-2">Connect a data source to see fields.</p>
               )}
             </div>
           </div>
@@ -668,7 +606,7 @@ export default function Home() {
                     ) : (
                       <div className="flex flex-col items-center justify-center h-[150px] text-center">
                          <FileText className="w-10 h-10 text-muted-foreground mb-2" data-ai-hint="document icon" />
-                        <p className="text-sm text-muted-foreground">Select fields or upload data to see a preview.</p>
+                        <p className="text-sm text-muted-foreground">Select fields or connect data to see a preview.</p>
                       </div>
                     )}
                   </div>
@@ -762,7 +700,7 @@ export default function Home() {
                           {(selectedFields.length === 0 || jsonData.length === 0) ? (
                             <>
                               <FileText className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="document data" />
-                              <p className="text-sm text-muted-foreground">Upload data and select fields to visualize.</p>
+                              <p className="text-sm text-muted-foreground">Connect data and select fields to visualize.</p>
                             </>
                           ) : (!xAxisField || !yAxisField) ? (
                             <>
@@ -785,7 +723,11 @@ export default function Home() {
           </div>
         </div>
       </main>
+      <DataSourceModal 
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onDataSourceConnected={handleDataSourceConnected}
+      />
     </div>
   );
 }
-
