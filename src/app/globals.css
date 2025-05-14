@@ -1,184 +1,173 @@
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  /* --border: 240 5.9% 90%; Default from shadcn */
+  /* --input: 240 5.9% 90%; Default from shadcn */
+  /* --ring: 240 5.9% 10%; Default from shadcn */
+  --radius: 0.5rem;
+
+  /* Leafy Green Palette - Light Mode */
+  --bg-color-primary: 0 0% 100%; /* White */
+  --bg-color-primary-hover: 0 0% 95%; /* Gray Light 2 */
+  --bg-color-primary-focus: 206 100% 92%; /* Blue Light 3 */
+  --bg-color-secondary: 0 0% 97%; /* Gray Light 3 */
+  --bg-color-secondary-hover: 0 0% 95%; /* Gray Light 2 */
+  --bg-color-secondary-focus: 206 100% 92%; /* Blue Light 3 */
+  --bg-color-inverse: 240 6% 10%; /* MDB Black */
+  --bg-color-inverse-hover: 240 4% 20%; /* Gray Dark 3 */
+  --bg-color-inverse-focus: 215 80% 35%; /* Blue Dark 2 */
+  --bg-color-disabled: 0 0% 95%; /* Gray Light 2 */
+  --bg-color-info: 206 100% 92%; /* Blue Light 3 */
+  --bg-color-warning: 45 100% 92%; /* Yellow Light 3 */
+  --bg-color-success: 145 80% 92%; /* Green Light 3 */
+  --bg-color-error: 0 100% 92%; /* Red Light 3 */
+
+  --border-color-primary-light: 0 0% 59%;       /* Gray Base hsl(0, 0%, 59%) */
+  --border-color-secondary-light: 0 0% 90%;    /* Gray Light 2 hsl(0, 0%, 90%) */
+  --border-color-success-light: 145 63% 31%;   /* Green Dark 1 hsl(145, 63%, 31%) */
+  --border-color-error-light: 0 72% 51%;       /* Red Base hsl(0, 72%, 51%) */
+  --border-color-disabled-light: 0 0% 93%;    /* Gray Light 1 hsl(0, 0%, 93%) */
+  
+  /* Shadcn variable overrides for light mode using LeafyGreen */
+  --border: var(--border-color-secondary-light);
+  --input: var(--border-color-primary-light); /* Using primary border for inputs */
+  --ring: 206 100% 92%; /* Blue Light 3 for focus ring, matching bg-color-primary-focus */
+
+
+  /* Chart specific colors (example) */
+  --chart-1: 210 40% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 50% 60%;
+  --chart-5: 50 70% 50%;
+
+  /* Sidebar specific colors (example) */
+  --sidebar-background: var(--bg-color-secondary);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border-color-secondary-light);
+  --sidebar-ring: var(--ring);
+}
+
+.dark {
+  --background: 240 6% 10%; /* MDB Black from --bg-color-primary dark */
+  --foreground: 0 0% 95%;   /* Gray Light 2 from --bg-color-inverse dark */
+  --card: 240 6% 10%; /* MDB Black */
+  --card-foreground: 0 0% 95%; /* Gray Light 2 */
+  --popover: 240 6% 10%; /* MDB Black */
+  --popover-foreground: 0 0% 95%; /* Gray Light 2 */
+  --primary: 0 0% 95%; /* Gray Light 2 */
+  --primary-foreground: 240 6% 10%; /* MDB Black */
+  --secondary: 240 5% 15%; /* Gray Dark 2 from --bg-color-primary-hover dark */
+  --secondary-foreground: 0 0% 95%; /* Gray Light 2 */
+  --muted: 240 5% 15%; /* Gray Dark 2 */
+  --muted-foreground: 0 0% 60%; /* Adjusted for contrast */
+  --accent: 240 5% 15%; /* Gray Dark 2 */
+  --accent-foreground: 0 0% 95%; /* Gray Light 2 */
+  --destructive: 0 70% 25%; /* Red Dark 3 from --bg-color-error dark */
+  --destructive-foreground: 0 0% 95%; /* Gray Light 2 */
+  /* --border: 240 3.7% 15.9%; Original dark border */
+  /* --input: 240 3.7% 15.9%; Original dark input */
+  /* --ring: 240 4.9% 83.9%; Original dark ring */
+
+  /* Leafy Green Palette - Dark Mode */
+  --bg-color-primary: 240 6% 10%; /* MDB Black */
+  --bg-color-primary-hover: 240 5% 15%; /* Gray Dark 2 */
+  --bg-color-primary-focus: 215 60% 25%; /* Blue Dark 3 */
+  --bg-color-secondary: 240 4% 8%; /* Gray Dark 4 */
+  --bg-color-secondary-hover: 240 5% 15%; /* Gray Dark 2 */
+  --bg-color-secondary-focus: 215 60% 25%; /* Blue Dark 3 */
+  --bg-color-inverse: 0 0% 95%; /* Gray Light 2 */
+  --bg-color-inverse-hover: 0 0% 97%; /* Gray Light 3 */
+  --bg-color-inverse-focus: 206 90% 75%; /* Blue Light 2 */
+  --bg-color-disabled: 240 4% 20%; /* Gray Dark 3 */
+  --bg-color-info: 215 60% 25%; /* Blue Dark 3 */
+  --bg-color-warning: 45 70% 25%; /* Yellow Dark 3 */
+  --bg-color-success: 145 65% 25%; /* Green Dark 3 */
+  --bg-color-error: 0 70% 25%; /* Red Dark 3 */
+
+  --border-color-primary-dark: 0 0% 59%;       /* Gray Base hsl(0, 0%, 59%) */
+  --border-color-secondary-dark: 0 0% 20%;    /* Gray Dark 2 hsl(0, 0%, 20%) */
+  --border-color-success-dark: 145 63% 31%;   /* Green Dark 1 hsl(145, 63%, 31%) */
+  --border-color-error-dark: 0 86% 77%;       /* Red Light 1 hsl(0, 86%, 77%) */
+  --border-color-disabled-dark: 0 0% 20%;    /* Gray Dark 2 hsl(0, 0%, 20%) */
+  
+  /* Shadcn variable overrides for dark mode using LeafyGreen */
+  --border: var(--border-color-secondary-dark);
+  --input: var(--border-color-primary-dark); /* Using primary border for inputs */
+  --ring: 215 60% 25%; /* Blue Dark 3 for focus ring, matching bg-color-primary-focus dark */
+  
+  /* Chart specific colors (example) */
+  --chart-1: 200 50% 60%;
+  --chart-2: 150 70% 55%;
+  --chart-3: 40 90% 65%;
+  --chart-4: 270 60% 70%;
+  --chart-5: 60 80% 60%;
+
+  /* Sidebar specific colors (example) */
+  --sidebar-background: var(--bg-color-secondary);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border-color-secondary-dark);
+  --sidebar-ring: var(--ring);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Styles for AG Charts theme */
+.ag-theme-alpine, .ag-theme-default {
+  --ag-background-color: var(--bg-color-primary);
+  --ag-foreground-color: var(--foreground);
+  --ag-border-color: var(--border);
+  --ag-secondary-border-color: var(--border);
+  --ag-input-disabled-background-color: var(--bg-color-disabled);
+  --ag-input-background-color: var(--bg-color-primary);
+  --ag-data-color: var(--foreground);
+  --ag-modal-overlay-background-color: rgba(0,0,0,0.3);
+  /* Add more AG Chart specific variables here as needed */
+}
+
+.ag-theme-alpine-dark, .ag-theme-default-dark {
+  --ag-background-color: var(--bg-color-primary); /* Dark primary bg */
+  --ag-foreground-color: var(--foreground); /* Dark foreground */
+  --ag-border-color: var(--border); /* Dark border */
+  --ag-secondary-border-color: var(--border);
+  --ag-input-disabled-background-color: var(--bg-color-disabled);
+  --ag-input-background-color: var(--bg-color-primary); /* Dark primary bg */
+  --ag-data-color: var(--foreground); /* Dark foreground */
+  --ag-modal-overlay-background-color: rgba(255,255,255,0.1);
+   /* Add more AG Chart specific variables here as needed */
+}
+
+/* Ensure chart wrapper uses theme background */
+.ag-chart-wrapper {
+  background-color: var(--bg-color-primary);
+}
+
 body {
-  font-family: var(--font-ibm-plex-sans), 'Inter', sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
-
-@layer base {
-  :root {
-    /* Existing ShadCN/UI Theme Variables (adjust as needed or phase out) */
-    --background: 0 0% 100%; /* white - Will be overridden by --bg-color-secondary for body */
-    --foreground: 215 28% 17%; /* MDB Black equivalent for text */
-
-    --card: 0 0% 100%; /* white - Mapped to --bg-color-primary */
-    --card-foreground: 215 28% 17%;
-
-    --popover: 0 0% 100%; /* white - Mapped to --bg-color-primary */
-    --popover-foreground: 215 28% 17%;
-
-    --primary: 122 39% 49%; /* MongoDB Green */
-    --primary-foreground: 0 0% 98%; 
-
-    --secondary: 220 16% 93%; /* Gray Light 3 - Mapped to --bg-color-secondary */
-    --secondary-foreground: 215 28% 17%;
-
-    --muted: 220 16% 93%; /* Gray Light 3 */
-    --muted-foreground: 220 15% 27%; /* Gray Dark 3 */
-
-    --accent: 209 100% 95%; /* Blue Light 3 for interactive elements */
-    --accent-foreground: 226 65% 32%; /* Blue Dark 3 for text on accent */
-
-    --destructive: 0 100% 91%; /* Red Light 3 */
-    --destructive-foreground: 0 71% 31%; /* Red Dark 3 */
-
-    --border: hsl(var(--border-color-secondary)); /* Updated to use semantic token */
-    --input: hsl(var(--border-color-primary)); /* Updated to use semantic token */
-    --ring: 122 39% 49%; /* MongoDB Green for focus rings */
-
-    --radius: 0.5rem;
-
-    /* Leafy Green Background Color Tokens - Light Mode */
-    --bg-color-primary: 0 0% 100%; /* White */
-    --bg-color-primary-hover: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
-    --bg-color-primary-focus: 209 100% 95%; /* Blue Light 3 (#E3F3FF) */
-    --bg-color-secondary: 220 16% 93%; /* Gray Light 3 (#E5E7EB) */
-    --bg-color-secondary-hover: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
-    --bg-color-secondary-focus: 209 100% 95%; /* Blue Light 3 (#E3F3FF) */
-    --bg-color-inverse: 200 100% 8.4%; /* MDB Black (#001E2B) */
-    --bg-color-inverse-hover: 220 15% 27%; /* Gray Dark 3 (#374151) */
-    --bg-color-inverse-focus: 207 98% 34%; /* Blue Dark 2 (#025CAD) */
-    --bg-color-disabled: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
-    --bg-color-info: 209 100% 95%; /* Blue Light 3 (#E3F3FF) */
-    --bg-color-warning: 50 100% 86%; /* Yellow Light 3 (#FFF2B9) */
-    --bg-color-success: 147 76% 81%; /* Green Light 3 (#AAF3CD) */
-    --bg-color-error: 0 100% 91%; /* Red Light 3 (#FFD2D2) */
-
-    /* Leafy Green Border Color Tokens - Light Mode */
-    --border-color-primary: 207 6% 71%; /* Gray Base (#A7AFB2) */
-    --border-color-secondary: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
-    --border-color-success: 147 100% 17%; /* Green Dark 1 (#00582C) */
-    --border-color-error: 3 95% 63%; /* Red Base (#F95249) */
-    --border-color-disabled: 210 17% 98%; /* Gray Light 1 (#F9FAFB) */
-    
-    /* Semantic Spacing Variables */
-    --spacing-1: 0.25rem;  /* 4px */
-    --spacing-2: 0.5rem;   /* 8px */
-    --spacing-3: 0.75rem;  /* 12px */
-    --spacing-4: 1rem;     /* 16px */
-    --spacing-5: 1.25rem;  /* 20px */
-    --spacing-6: 1.5rem;   /* 24px */
-    --spacing-7: 1.75rem;  /* 28px */
-    --spacing-8: 2rem;     /* 32px */
-    --spacing-9: 2.25rem;  /* 36px */
-    --spacing-10: 2.5rem;  /* 40px */
-    --spacing-11: 2.75rem; /* 44px */
-    --spacing-12: 3rem;    /* 48px */
-    --spacing-14: 3.5rem;  /* 56px */
-    --spacing-16: 4rem;    /* 64px */
-    --spacing-20: 5rem;    /* 80px */
-    --spacing-24: 6rem;    /* 96px */
-    --spacing-28: 7rem;    /* 112px */
-    --spacing-32: 8rem;    /* 128px */
-    --spacing-36: 9rem;    /* 144px */
-    --spacing-40: 10rem;   /* 160px */
-    --spacing-44: 11rem;   /* 176px */
-    --spacing-48: 12rem;   /* 192px */
-    --spacing-52: 13rem;   /* 208px */
-    --spacing-56: 14rem;   /* 224px */
-    --spacing-60: 15rem;   /* 240px */
-    --spacing-64: 16rem;   /* 256px */
-    --spacing-72: 18rem;   /* 288px */
-    --spacing-80: 20rem;   /* 320px */
-    --spacing-96: 24rem;   /* 384px */
-
-    --sidebar-background: 0 0% 100%; /* Mapped to --bg-color-primary */
-    --sidebar-foreground: 215 28% 17%;
-    --sidebar-primary: 122 39% 49%; 
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 209 100% 95%; 
-    --sidebar-accent-foreground: 226 65% 32%;
-    --sidebar-border: 220 14% 65%;
-    --sidebar-ring: 122 39% 49%;
-  }
-
-  .dark {
-    /* Existing ShadCN/UI Theme Variables - Dark Mode (adjust as needed or phase out) */
-    --background: 200 100% 8.4%; /* MDB Black - Will be overridden by --bg-color-secondary for body */
-    --foreground: 220 16% 93%; /* Gray Light 3 for text */
-
-    --card: 200 100% 8.4%; /* MDB Black - Mapped to --bg-color-primary */
-    --card-foreground: 220 16% 93%;
-
-    --popover: 200 100% 8.4%; /* MDB Black - Mapped to --bg-color-primary */
-    --popover-foreground: 220 16% 93%;
-
-    --primary: 122 39% 49%; /* MongoDB Green */
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 220 15% 27%; /* Gray Dark 3 - Mapped to --bg-color-secondary */
-    --secondary-foreground: 220 16% 93%;
-
-    --muted: 220 15% 27%; /* Gray Dark 3 */
-    --muted-foreground: 220 17% 96%; /* Gray Light 2 */
-
-    --accent: 203 99% 20%; /* Blue Dark 3 for interactive elements */
-    --accent-foreground: 0 0% 98%; /* White text on blue accent */
-
-    --destructive: 0 71% 31%; /* Red Dark 3 */
-    --destructive-foreground: 0 0% 98%;
-
-    --border: hsl(var(--border-color-secondary)); /* Updated to use semantic token */
-    --input: hsl(var(--border-color-primary)); /* Updated to use semantic token */
-    --ring: 122 39% 49%; /* MongoDB Green for focus rings */
-    
-    /* Leafy Green Background Color Tokens - Dark Mode */
-    --bg-color-primary: 200 100% 8.4%; /* MDB Black (#001E2B) */
-    --bg-color-primary-hover: 217 14% 34%; /* Gray Dark 2 (#4B5563) */
-    --bg-color-primary-focus: 203 99% 20%; /* Blue Dark 3 (#014264) */
-    --bg-color-secondary: 215 28% 17%; /* Gray Dark 4 (#1F2937) */
-    --bg-color-secondary-hover: 217 14% 34%; /* Gray Dark 2 (#4B5563) */
-    --bg-color-secondary-focus: 203 99% 20%; /* Blue Dark 3 (#014264) */
-    --bg-color-inverse: 220 17% 96%; /* Gray Light 2 (#F3F4F6) */
-    --bg-color-inverse-hover: 220 16% 93%; /* Gray Light 3 (#E5E7EB) */
-    --bg-color-inverse-focus: 206 100% 84%; /* Blue Light 2 (#B0DEFF) */
-    --bg-color-disabled: 220 15% 27%; /* Gray Dark 3 (#374151) */
-    --bg-color-info: 203 99% 20%; /* Blue Dark 3 (#014264) */
-    --bg-color-warning: 48 100% 64%; /* Yellow Base (#FFDC49) - user table had Yellow Dark 3, Leafy Yellow Base chosen */
-    --bg-color-success: 147 100% 17%; /* Green Dark 3 (#015C30) */
-    --bg-color-error: 0 71% 31%; /* Red Dark 3 (#861616) */
-
-    /* Leafy Green Border Color Tokens - Dark Mode */
-    --border-color-primary: 207 6% 71%; /* Gray Base (#A7AFB2) - as per table, same as light */
-    --border-color-secondary: 217 14% 34%; /* Gray Dark 2 (#4B5563) */
-    --border-color-success: 147 100% 17%; /* Green Dark 1 (#00582C) - as per table, same as light */
-    --border-color-error: 3 100% 86%; /* Red Light 1 (#FFBBB8) */
-    --border-color-disabled: 217 14% 34%; /* Gray Dark 2 (#4B5563) */
-
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-
-    --sidebar-background: 200 100% 8.4%; /* Mapped to --bg-color-primary */
-    --sidebar-foreground: 220 16% 93%;
-    --sidebar-primary: 122 39% 49%; 
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 203 99% 20%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 217 14% 34%;
-    --sidebar-ring: 122 39% 49%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-bg-color-secondary text-foreground; /* Updated body background */
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
+  background-color: var(--bg-color-secondary);
+  color: var(--foreground);
 }

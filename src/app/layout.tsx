@@ -1,7 +1,7 @@
 
 import type {Metadata} from 'next';
 import { IBM_Plex_Sans } from 'next/font/google';
-import './globals.css';
+import '@/app/globals.css';
 // import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS (includes default light/dark themes)
 // import 'ag-charts-community/styles/ag-theme-alpine.css'; // Alpine theme
 // import 'ag-charts-community/styles/ag-theme-alpine-dark.css'; // Alpine dark theme
@@ -44,3 +44,4 @@ export default function RootLayout({
     </html>
   );
 }
+
