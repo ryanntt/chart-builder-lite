@@ -59,22 +59,7 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			},
-        // Leafy Green Background Tokens
-        'bg-color-primary': 'hsl(var(--bg-color-primary))',
-        'bg-color-primary-hover': 'hsl(var(--bg-color-primary-hover))',
-        'bg-color-primary-focus': 'hsl(var(--bg-color-primary-focus))',
-        'bg-color-secondary': 'hsl(var(--bg-color-secondary))',
-        'bg-color-secondary-hover': 'hsl(var(--bg-color-secondary-hover))',
-        'bg-color-secondary-focus': 'hsl(var(--bg-color-secondary-focus))',
-        'bg-color-inverse': 'hsl(var(--bg-color-inverse))',
-        'bg-color-inverse-hover': 'hsl(var(--bg-color-inverse-hover))',
-        'bg-color-inverse-focus': 'hsl(var(--bg-color-inverse-focus))',
-        'bg-color-disabled': 'hsl(var(--bg-color-disabled))',
-        'bg-color-info': 'hsl(var(--bg-color-info))',
-        'bg-color-warning': 'hsl(var(--bg-color-warning))',
-        'bg-color-success': 'hsl(var(--bg-color-success))',
-        'bg-color-error': 'hsl(var(--bg-color-error))',
+  			}
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

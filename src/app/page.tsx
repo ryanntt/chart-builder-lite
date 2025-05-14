@@ -14,36 +14,35 @@ import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Moon, Sun, Loader2, ChevronDown, DatabaseZap } from "lucide-react";
+import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Loader2, ChevronDown, DatabaseZap } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { useTheme } from "next-themes";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
-import Papa from 'papaparse';
 import { DataSourceModal } from '@/components/data-source-modal';
 
 
 const getFieldTypeIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case 'string':
-      return <Type className="h-4 w-4 text-icon-color-secondary" />;
+      return <Type className="h-4 w-4 text-muted-foreground" />;
     case 'number':
-      return <Hash className="h-4 w-4 text-icon-color-secondary" />;
+      return <Hash className="h-4 w-4 text-muted-foreground" />;
     case 'date':
-      return <CalendarDays className="h-4 w-4 text-icon-color-secondary" />;
+      return <CalendarDays className="h-4 w-4 text-muted-foreground" />;
     case 'boolean':
-      return <ToggleLeft className="h-4 w-4 text-icon-color-secondary" />;
+      return <ToggleLeft className="h-4 w-4 text-muted-foreground" />;
     default:
-      return <FileText className="h-4 w-4 text-icon-color-secondary" />;
+      return <FileText className="h-4 w-4 text-muted-foreground" />;
   }
 };
 
 const AppHeader = () => (
-  <header className="sticky top-0 z-40 w-full border-b border-border-color-secondary bg-bg-color-primary/95 backdrop-blur supports-[backdrop-filter]:bg-bg-color-primary/60">
+  <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
     <div className="container mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
         <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
-        <h1 className="text-xl font-semibold text-text-color-primary">CSV Atlas Uploader</h1>
+        <h1 className="text-xl font-semibold text-foreground">CSV Atlas Uploader</h1>
       </div>
       <ThemeToggleButton />
     </div>
@@ -95,7 +94,6 @@ export default function Home() {
         if (entries[0]) {
           const { width, height } = entries[0].contentRect;
           if (width > 0 && height > 0) {
-            // Ensure chartDimensions is updated only if there's a significant change to prevent loops
             if (!chartDimensions || Math.abs(chartDimensions.width - width) > 1 || Math.abs(chartDimensions.height - height) > 1) {
               setChartDimensions({ width, height });
             }
@@ -104,7 +102,6 @@ export default function Home() {
       });
       resizeObserver.observe(container);
 
-      // Initial dimension setting
       const { width, height } = container.getBoundingClientRect();
        if (width > 0 && height > 0) {
          if (!chartDimensions || Math.abs(chartDimensions.width - width) > 1 || Math.abs(chartDimensions.height - height) > 1) {
@@ -114,7 +111,7 @@ export default function Home() {
       return () => resizeObserver.unobserve(container);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartContainerRef.current]); // Depends on chartContainerRef.current to re-run when it's available
+  }, [chartContainerRef.current]); 
 
 
   const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, numRows: number) => {
@@ -201,13 +198,10 @@ export default function Home() {
         let currentX = xAxisField;
         let currentY = yAxisField;
 
-        // Rule: One field can only be mapped to one chart configuration input.
         if (currentX && currentY && currentX === currentY) {
-            // If by some chance they became same, prioritize X and clear Y
              setYAxisField(null);
              currentY = null;
         }
-
 
         if (currentX && !selectedFields.includes(currentX)) {
             currentX = null;
@@ -272,17 +266,17 @@ export default function Home() {
         const currentY = yAxisField;
 
         if (target === 'x') { 
-            if (sourceField === currentY) { // Swapping X and Y
+            if (sourceField === currentY) { 
                 setXAxisField(sourceField);
                 setYAxisField(currentX); 
-            } else if (sourceField !== currentX) { // New field to X
+            } else if (sourceField !== currentX) { 
                 setXAxisField(sourceField);
             }
-        } else { // Target is 'y'
-            if (sourceField === currentX) { // Swapping Y and X
+        } else { 
+            if (sourceField === currentX) { 
                 setYAxisField(sourceField);
                 setXAxisField(currentY); 
-            } else if (sourceField !== currentY) { // New field to Y
+            } else if (sourceField !== currentY) { 
                 setYAxisField(sourceField);
             }
         }
@@ -527,15 +521,15 @@ export default function Home() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-color-secondary text-text-color-primary">
+    <div className="flex flex-col min-h-screen bg-secondary text-foreground">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border-color-secondary">
-        <div className="w-[300px] flex-shrink-0 border-r border-border-color-secondary bg-bg-color-primary flex flex-col">
-          <div className="p-4 border-b border-border-color-secondary">
+      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border">
+        <div className="w-[300px] flex-shrink-0 border-r border-border bg-card flex flex-col">
+          <div className="p-4 border-b border-border">
             {dataSourceName ? (
               <>
                 <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-sm font-semibold text-text-color-primary">Data Source</h2>
+                  <h2 className="text-sm font-semibold text-foreground">Data Source</h2>
                   <Button 
                     onClick={() => setIsModalOpen(true)} 
                     size="sm" 
@@ -545,14 +539,14 @@ export default function Home() {
                     <DatabaseZap className="mr-1.5 h-3 w-3" /> Change
                   </Button>
                 </div>
-                <p className="text-sm text-text-color-primary truncate font-medium" title={dataSourceName}>
+                <p className="text-sm text-foreground truncate font-medium" title={dataSourceName}>
                   {dataSourceName}
                   {rowCount !== null && <span className="text-xs text-muted-foreground ml-1.5">({rowCount} rows)</span>}
                 </p>
               </>
             ) : (
               <>
-                <h2 className="text-sm font-semibold mb-2 text-text-color-primary">Data Source</h2>
+                <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
                  <Button onClick={() => setIsModalOpen(true)} className="w-full" variant="outline">
                     <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
                 </Button>
@@ -561,12 +555,12 @@ export default function Home() {
             )}
           </div>
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
-            <h2 className="text-sm font-semibold mb-2 text-text-color-primary">Fields</h2>
+            <h2 className="text-sm font-semibold mb-2 text-foreground">Fields</h2>
             <div className="space-y-1">
               {tableHeaders.length > 0 ? tableHeaders.map((header) => (
                 <div 
                   key={header} 
-                  className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-bg-color-primary-hover transition-colors"
+                  className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-accent transition-colors"
                   draggable={selectedFields.includes(header)}
                   onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))}
                 >
@@ -579,7 +573,7 @@ export default function Home() {
                   {getFieldTypeIcon(headerTypes[header])}
                   <Label
                     htmlFor={`checkbox-${header}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer flex-grow text-text-color-primary"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer flex-grow text-foreground"
                     title={header}
                   >
                     {header}
@@ -592,21 +586,21 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex-grow flex flex-col overflow-hidden bg-bg-color-secondary">
-          <div className="bg-bg-color-primary"> {/* Removed border-b */}
+        <div className="flex-grow flex flex-col overflow-hidden bg-secondary">
+          <div className="bg-card"> {/* Removed border-b */}
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0"> 
-                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border-color-secondary text-text-color-primary">
+                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border text-foreground">
                      Data Preview
                  </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
-                  <div className="max-h-[250px] overflow-y-auto border border-border-color-secondary rounded-md bg-bg-color-primary">
+                  <div className="max-h-[250px] overflow-y-auto border border-border rounded-md bg-card">
                     {selectedFields.length > 0 && jsonData.length > 0 ? (
                       <Table>
                         <TableHeader>
                           <TableRow>
                             {selectedFields.map((header) => (
-                              <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-bg-color-primary z-10 text-text-color-secondary">{header}</TableHead>
+                              <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-card z-10 text-muted-foreground">{header}</TableHead>
                             ))}
                           </TableRow>
                         </TableHeader>
@@ -614,7 +608,7 @@ export default function Home() {
                           {jsonData.slice(0, 10).map((row, index) => (
                             <TableRow key={index}>
                               {selectedFields.map((header) => (
-                                <TableCell key={header} className="text-xs py-1 px-2 text-text-color-primary">{String(row[header])}</TableCell>
+                                <TableCell key={header} className="text-xs py-1 px-2 text-foreground">{String(row[header])}</TableCell>
                               ))}
                             </TableRow>
                           ))}
@@ -632,17 +626,17 @@ export default function Home() {
             </Accordion>
           </div>
 
-          <div className="flex-grow flex flex-col border-b-0 bg-bg-color-primary mt-0 border-t border-border-color-secondary"> {/* Visualization section container with primary bg */}
+          <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border"> {/* Visualization section container with card bg */}
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                 <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b data-[state=closed]:border-b-0 border-border-color-secondary text-text-color-primary">
-                  <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group text-text-color-primary">
+                 <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b data-[state=closed]:border-b-0 border-border text-foreground">
+                  <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group text-foreground">
                      Visualization
                   </AccordionPrimitiveTrigger>
                    <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 ml-2 rounded-md hover:bg-bg-color-primary-hover p-1 text-icon-color-primary"
+                      className="h-7 w-7 ml-2 rounded-md hover:bg-accent p-1 text-primary"
                       onClick={handleDownloadChart}
                       disabled={!chartOptionsToRender || !isChartApiReady}
                       aria-label="Download chart"
@@ -651,10 +645,10 @@ export default function Home() {
                       <Download className="h-4 w-4" />
                     </Button>
                 </div>
-                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow bg-bg-color-primary">
+                <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow bg-card">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <div className="space-y-1">
-                      <Label htmlFor="chartType" className="text-xs text-text-color-secondary">Chart Type</Label>
+                      <Label htmlFor="chartType" className="text-xs text-muted-foreground">Chart Type</Label>
                       <Select value={chartType} onValueChange={(value) => { setChartType(value); }} name="chartType" disabled={selectedFields.length === 0}>
                         <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
                         <SelectContent>
@@ -666,38 +660,38 @@ export default function Home() {
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="xAxis" className="text-xs text-text-color-secondary">X-Axis</Label>
+                      <Label htmlFor="xAxis" className="text-xs text-muted-foreground">X-Axis</Label>
                       <div
                         id="xAxisContainer" 
                         draggable={!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField)}
                         onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
                         onDrop={() => handleDrop('x')}
                         onDragOver={handleDragOver}
-                        className={`flex items-center justify-between p-2 border border-border-color-primary rounded-md min-h-[36px] bg-bg-color-secondary text-xs text-text-color-primary ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                        className={`flex items-center justify-between p-2 border border-input rounded-md min-h-[36px] bg-background text-xs text-foreground ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                       >
                         <span className="truncate" title={xAxisField || "Select field for X-Axis"}>{xAxisField || 'Select Field'}</span>
-                        {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5 text-icon-color-primary" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
+                        {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5 text-primary" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="yAxis" className="text-xs text-text-color-secondary">Y-Axis</Label>
+                      <Label htmlFor="yAxis" className="text-xs text-muted-foreground">Y-Axis</Label>
                       <div
                         id="yAxisContainer"
                         draggable={!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField)}
                         onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
                         onDrop={() => handleDrop('y')}
                         onDragOver={handleDragOver}
-                        className={`flex items-center justify-between p-2 border border-border-color-primary rounded-md min-h-[36px] bg-bg-color-secondary text-xs text-text-color-primary ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                        className={`flex items-center justify-between p-2 border border-input rounded-md min-h-[36px] bg-background text-xs text-foreground ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                       >
                         <span className="truncate" title={yAxisField || "Select field for Y-Axis"}>{yAxisField || 'Select Field'}</span>
-                        {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5 text-icon-color-primary" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
+                        {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5 text-primary" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
                       </div>
                     </div>
                   </div>
                                       
-                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-bg-color-primary border border-border-color-secondary rounded-md">
+                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-card border border-border rounded-md">
                     {isChartLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-bg-color-primary/50 z-10 rounded-md">
+                      <div className="absolute inset-0 flex items-center justify-center bg-card/50 z-10 rounded-md">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
                     )}
@@ -747,5 +741,3 @@ export default function Home() {
     </div>
   );
 }
-
-
