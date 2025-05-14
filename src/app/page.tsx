@@ -26,24 +26,24 @@ import { DataSourceModal } from '@/components/data-source-modal';
 const getFieldTypeIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case 'string':
-      return <Type className="h-4 w-4 text-muted-foreground" />;
+      return <Type className="h-4 w-4 text-icon-color-secondary" />;
     case 'number':
-      return <Hash className="h-4 w-4 text-muted-foreground" />;
+      return <Hash className="h-4 w-4 text-icon-color-secondary" />;
     case 'date':
-      return <CalendarDays className="h-4 w-4 text-muted-foreground" />;
+      return <CalendarDays className="h-4 w-4 text-icon-color-secondary" />;
     case 'boolean':
-      return <ToggleLeft className="h-4 w-4 text-muted-foreground" />;
+      return <ToggleLeft className="h-4 w-4 text-icon-color-secondary" />;
     default:
-      return <FileText className="h-4 w-4 text-muted-foreground" />;
+      return <FileText className="h-4 w-4 text-icon-color-secondary" />;
   }
 };
 
 const AppHeader = () => (
-  <header className="sticky top-0 z-40 w-full border-b border-border bg-bg-color-primary/95 backdrop-blur supports-[backdrop-filter]:bg-bg-color-primary/60">
+  <header className="sticky top-0 z-40 w-full border-b border-border-color-secondary bg-bg-color-primary/95 backdrop-blur supports-[backdrop-filter]:bg-bg-color-primary/60">
     <div className="container mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
         <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
-        <h1 className="text-xl font-semibold text-foreground">CSV Atlas Uploader</h1>
+        <h1 className="text-xl font-semibold text-text-color-primary">CSV Atlas Uploader</h1>
       </div>
       <ThemeToggleButton />
     </div>
@@ -95,7 +95,8 @@ export default function Home() {
         if (entries[0]) {
           const { width, height } = entries[0].contentRect;
           if (width > 0 && height > 0) {
-            if (!chartDimensions || Math.abs(chartDimensions.width - width) > 0.5 || Math.abs(chartDimensions.height - height) > 0.5) {
+            // Ensure chartDimensions is updated only if there's a significant change to prevent loops
+            if (!chartDimensions || Math.abs(chartDimensions.width - width) > 1 || Math.abs(chartDimensions.height - height) > 1) {
               setChartDimensions({ width, height });
             }
           }
@@ -103,22 +104,23 @@ export default function Home() {
       });
       resizeObserver.observe(container);
 
+      // Initial dimension setting
       const { width, height } = container.getBoundingClientRect();
        if (width > 0 && height > 0) {
-         if (!chartDimensions || Math.abs(chartDimensions.width - width) > 0.5 || Math.abs(chartDimensions.height - height) > 0.5) {
+         if (!chartDimensions || Math.abs(chartDimensions.width - width) > 1 || Math.abs(chartDimensions.height - height) > 1) {
            setChartDimensions({ width, height });
          }
        }
       return () => resizeObserver.unobserve(container);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartContainerRef.current]); 
+  }, [chartContainerRef.current]); // Depends on chartContainerRef.current to re-run when it's available
 
 
   const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, numRows: number) => {
     setDataSourceName(fileName);
     setRowCount(numRows);
-    setIsChartLoading(true); // To reflect loading state while processing this new data
+    setIsChartLoading(true); 
     setIsChartApiReady(false);
 
     setTableHeaders(headers);
@@ -166,17 +168,17 @@ export default function Home() {
     });
 
     setJsonData(transformedData);
-    setSelectedFields([]); // Reset selections
+    setSelectedFields([]); 
     setXAxisField(null);
     setYAxisField(null);
-    setInternalChartOptions(null); // Clear previous chart
+    setInternalChartOptions(null); 
     
     toast({
       title: "Data Source Connected!",
       description: `${numRows} data rows from "${fileName}" are ready.`,
     });
     setIsChartLoading(false);
-    setIsModalOpen(false); // Ensure modal closes
+    setIsModalOpen(false); 
   };
 
 
@@ -424,7 +426,7 @@ export default function Home() {
       title: { text: titleText },
       series: series,
       axes: axes.length > 0 ? axes : undefined,
-      autoSize: false, // Important for manual sizing control
+      autoSize: false, 
     };
     
     setInternalChartOptions(newBaseChartOptions);
@@ -525,12 +527,12 @@ export default function Home() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-bg-color-secondary text-foreground">
+    <div className="flex flex-col min-h-screen bg-bg-color-secondary text-text-color-primary">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border">
-        <div className="w-[300px] flex-shrink-0 border-r border-border bg-bg-color-primary flex flex-col">
-          <div className="p-4 border-b border-border">
-            <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
+      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border-color-secondary">
+        <div className="w-[300px] flex-shrink-0 border-r border-border-color-secondary bg-bg-color-primary flex flex-col">
+          <div className="p-4 border-b border-border-color-secondary">
+            <h2 className="text-sm font-semibold mb-2 text-text-color-primary">Data Source</h2>
              <Button onClick={() => setIsModalOpen(true)} className="w-full" variant="outline">
                 <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
             </Button>
@@ -543,7 +545,7 @@ export default function Home() {
             {!dataSourceName && <p className="text-xs text-muted-foreground mt-1">Upload a CSV or connect to Atlas.</p>}
           </div>
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
-            <h2 className="text-sm font-semibold mb-2 text-foreground">Fields</h2>
+            <h2 className="text-sm font-semibold mb-2 text-text-color-primary">Fields</h2>
             <div className="space-y-1">
               {tableHeaders.length > 0 ? tableHeaders.map((header) => (
                 <div 
@@ -561,7 +563,7 @@ export default function Home() {
                   {getFieldTypeIcon(headerTypes[header])}
                   <Label
                     htmlFor={`checkbox-${header}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer flex-grow"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate cursor-pointer flex-grow text-text-color-primary"
                     title={header}
                   >
                     {header}
@@ -574,22 +576,21 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex-grow flex flex-col overflow-hidden bg-bg-color-primary">
-          <div className="border-b border-border">
+        <div className="flex-grow flex flex-col overflow-hidden bg-bg-color-secondary"> {/* Changed to secondary for main area bg */}
+          <div className="bg-bg-color-primary border-b border-border-color-secondary"> {/* Header for Data Preview, using primary bg */}
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0"> 
-                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border">
+                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border-color-secondary text-text-color-primary">
                      Data Preview
-                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
-                </AccordionPrimitiveTrigger>
+                 </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
-                  <div className="max-h-[250px] overflow-y-auto border rounded-md bg-bg-color-primary">
+                  <div className="max-h-[250px] overflow-y-auto border border-border-color-secondary rounded-md bg-bg-color-primary">
                     {selectedFields.length > 0 && jsonData.length > 0 ? (
                       <Table>
                         <TableHeader>
                           <TableRow>
                             {selectedFields.map((header) => (
-                              <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-bg-color-primary z-10">{header}</TableHead>
+                              <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-bg-color-primary z-10 text-text-color-secondary">{header}</TableHead>
                             ))}
                           </TableRow>
                         </TableHeader>
@@ -597,7 +598,7 @@ export default function Home() {
                           {jsonData.slice(0, 10).map((row, index) => (
                             <TableRow key={index}>
                               {selectedFields.map((header) => (
-                                <TableCell key={header} className="text-xs py-1 px-2">{String(row[header])}</TableCell>
+                                <TableCell key={header} className="text-xs py-1 px-2 text-text-color-primary">{String(row[header])}</TableCell>
                               ))}
                             </TableRow>
                           ))}
@@ -615,18 +616,17 @@ export default function Home() {
             </Accordion>
           </div>
 
-          <div className="flex-grow flex flex-col border-b-0">
+          <div className="flex-grow flex flex-col border-b-0 bg-bg-color-primary mt-0 border-t border-border-color-secondary"> {/* Visualization section container with primary bg */}
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                 <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b data-[state=closed]:border-b-0 border-border">
-                  <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group [&[data-state=open]>svg]:rotate-180">
+                 <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b data-[state=closed]:border-b-0 border-border-color-secondary text-text-color-primary">
+                  <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group text-text-color-primary">
                      Visualization
-                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 ml-2 group-data-[state=open]:rotate-180" />
                   </AccordionPrimitiveTrigger>
                    <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 ml-2 rounded-md hover:bg-bg-color-primary-hover p-1"
+                      className="h-7 w-7 ml-2 rounded-md hover:bg-bg-color-primary-hover p-1 text-icon-color-primary"
                       onClick={handleDownloadChart}
                       disabled={!chartOptionsToRender || !isChartApiReady}
                       aria-label="Download chart"
@@ -638,7 +638,7 @@ export default function Home() {
                 <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow bg-bg-color-primary">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <div className="space-y-1">
-                      <Label htmlFor="chartType" className="text-xs">Chart Type</Label>
+                      <Label htmlFor="chartType" className="text-xs text-text-color-secondary">Chart Type</Label>
                       <Select value={chartType} onValueChange={(value) => { setChartType(value); }} name="chartType" disabled={selectedFields.length === 0}>
                         <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
                         <SelectContent>
@@ -650,36 +650,36 @@ export default function Home() {
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="xAxis" className="text-xs">X-Axis</Label>
+                      <Label htmlFor="xAxis" className="text-xs text-text-color-secondary">X-Axis</Label>
                       <div
                         id="xAxisContainer" 
                         draggable={!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField)}
                         onDragStart={() => xAxisField && handleDragStart(xAxisField, 'x')}
                         onDrop={() => handleDrop('x')}
                         onDragOver={handleDragOver}
-                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-bg-color-secondary text-xs ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                        className={`flex items-center justify-between p-2 border border-border-color-primary rounded-md min-h-[36px] bg-bg-color-secondary text-xs text-text-color-primary ${!!xAxisField && selectedFields.length > 0 && selectedFields.includes(xAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                       >
                         <span className="truncate" title={xAxisField || "Select field for X-Axis"}>{xAxisField || 'Select Field'}</span>
-                        {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
+                        {xAxisField && <Button variant="ghost" size="icon" className="h-5 w-5 text-icon-color-primary" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="yAxis" className="text-xs">Y-Axis</Label>
+                      <Label htmlFor="yAxis" className="text-xs text-text-color-secondary">Y-Axis</Label>
                       <div
                         id="yAxisContainer"
                         draggable={!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField)}
                         onDragStart={() => yAxisField && handleDragStart(yAxisField, 'y')}
                         onDrop={() => handleDrop('y')}
                         onDragOver={handleDragOver}
-                        className={`flex items-center justify-between p-2 border rounded-md min-h-[36px] bg-bg-color-secondary text-xs ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
+                        className={`flex items-center justify-between p-2 border border-border-color-primary rounded-md min-h-[36px] bg-bg-color-secondary text-xs text-text-color-primary ${!!yAxisField && selectedFields.length > 0 && selectedFields.includes(yAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
                       >
                         <span className="truncate" title={yAxisField || "Select field for Y-Axis"}>{yAxisField || 'Select Field'}</span>
-                        {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
+                        {yAxisField && <Button variant="ghost" size="icon" className="h-5 w-5 text-icon-color-primary" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
                       </div>
                     </div>
                   </div>
                                       
-                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-bg-color-primary border rounded-md">
+                  <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-bg-color-primary border border-border-color-secondary rounded-md">
                     {isChartLoading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-bg-color-primary/50 z-10 rounded-md">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -731,3 +731,4 @@ export default function Home() {
     </div>
   );
 }
+
