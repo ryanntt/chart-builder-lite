@@ -532,17 +532,33 @@ export default function Home() {
       <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border-color-secondary">
         <div className="w-[300px] flex-shrink-0 border-r border-border-color-secondary bg-bg-color-primary flex flex-col">
           <div className="p-4 border-b border-border-color-secondary">
-            <h2 className="text-sm font-semibold mb-2 text-text-color-primary">Data Source</h2>
-             <Button onClick={() => setIsModalOpen(true)} className="w-full" variant="outline">
-                <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
-            </Button>
-            {dataSourceName && (
-              <p className="text-xs text-muted-foreground mt-1 truncate" title={dataSourceName}>
-                Selected: {dataSourceName}
-                {rowCount !== null && ` (${rowCount} rows)`}
-              </p>
+            {dataSourceName ? (
+              <>
+                <div className="flex items-center justify-between mb-1">
+                  <h2 className="text-sm font-semibold text-text-color-primary">Data Source</h2>
+                  <Button 
+                    onClick={() => setIsModalOpen(true)} 
+                    size="sm" 
+                    variant="outline" 
+                    className="py-1 px-2 text-xs h-auto"
+                  >
+                    <DatabaseZap className="mr-1.5 h-3 w-3" /> Change
+                  </Button>
+                </div>
+                <p className="text-sm text-text-color-primary truncate font-medium" title={dataSourceName}>
+                  {dataSourceName}
+                  {rowCount !== null && <span className="text-xs text-muted-foreground ml-1.5">({rowCount} rows)</span>}
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-sm font-semibold mb-2 text-text-color-primary">Data Source</h2>
+                 <Button onClick={() => setIsModalOpen(true)} className="w-full" variant="outline">
+                    <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">Upload a CSV or connect to Atlas.</p>
+              </>
             )}
-            {!dataSourceName && <p className="text-xs text-muted-foreground mt-1">Upload a CSV or connect to Atlas.</p>}
           </div>
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
             <h2 className="text-sm font-semibold mb-2 text-text-color-primary">Fields</h2>
@@ -576,8 +592,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex-grow flex flex-col overflow-hidden bg-bg-color-secondary"> {/* Changed to secondary for main area bg */}
-          <div className="bg-bg-color-primary border-b border-border-color-secondary"> {/* Header for Data Preview, using primary bg */}
+        <div className="flex-grow flex flex-col overflow-hidden bg-bg-color-secondary">
+          <div className="bg-bg-color-primary"> {/* Removed border-b */}
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0"> 
                  <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border-color-secondary text-text-color-primary">
@@ -731,4 +747,5 @@ export default function Home() {
     </div>
   );
 }
+
 
