@@ -14,8 +14,13 @@ import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { DataSourceModal } from '@/components/data-source-modal';
 import { ChartVisualization } from '@/components/chart-visualization';
 import { cn, getNestedValue } from "@/lib/utils";
-import ReactJson from 'react-json-view';
+import dynamic from 'next/dynamic';
 import { useTheme } from "next-themes";
+
+const ReactJson = dynamic(() => import('react-json-view'), {
+  ssr: false,
+  loading: () => <p className="text-sm text-muted-foreground p-2">Loading JSON viewer...</p>
+});
 
 
 interface FieldDefinition {
