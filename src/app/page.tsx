@@ -585,11 +585,8 @@ export default function Home() {
                 <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
                  <Button 
                     onClick={() => setIsModalOpen(true)} 
-                    className={cn(
-                        "w-full",
-                        "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border border-[var(--btn-primary-lg-border)]",
-                        "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:border-[var(--btn-primary-lg-hover-border)]",
-                      )}
+                    variant="lgPrimary"
+                    className="w-full"
                   >
                     <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
                 </Button>
