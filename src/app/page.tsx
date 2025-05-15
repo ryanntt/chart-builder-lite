@@ -7,13 +7,16 @@ import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FileText, Type, Hash, CalendarDays, ToggleLeft, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
+import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { DataSourceModal } from '@/components/data-source-modal';
 import { ChartVisualization } from '@/components/chart-visualization';
 import { cn, getNestedValue } from "@/lib/utils";
+import ReactJson from 'react-json-view';
+import { useTheme } from "next-themes";
+
 
 interface FieldDefinition {
   key: string; 
@@ -57,6 +60,21 @@ const AppHeader = () => (
   </header>
 );
 
+const checkSelectedDescendants = (field: FieldDefinition, selectedFields: string[]): boolean => {
+  if (!field.isParent || !field.children) {
+    return false;
+  }
+  for (const child of field.children) {
+    if (selectedFields.includes(child.path)) {
+      return true;
+    }
+    if (child.isParent && checkSelectedDescendants(child, selectedFields)) {
+      return true;
+    }
+  }
+  return false;
+};
+
 const RenderFieldItem: React.FC<{
   field: FieldDefinition;
   selectedFields: string[];
@@ -64,7 +82,8 @@ const RenderFieldItem: React.FC<{
   expandedFields: Set<string>;
   onToggleExpand: (path: string) => void;
   depth: number;
-}> = ({ field, selectedFields, onFieldSelect, expandedFields, onToggleExpand, depth }) => {
+  hasSelectedDescendant?: boolean;
+}> = ({ field, selectedFields, onFieldSelect, expandedFields, onToggleExpand, depth, hasSelectedDescendant }) => {
   const isExpanded = expandedFields.has(field.path);
 
   if (field.isParent) {
@@ -82,20 +101,27 @@ const RenderFieldItem: React.FC<{
           >
             {field.name}
           </Label>
+          {!isExpanded && hasSelectedDescendant && (
+            <span className="ml-auto mr-1 h-1.5 w-1.5 rounded-full bg-primary inline-block"></span>
+          )}
         </div>
         {isExpanded && field.children && field.children.length > 0 && (
           <div className="mt-1">
-            {field.children.map(child => (
-              <RenderFieldItem
-                key={child.key}
-                field={child}
-                selectedFields={selectedFields}
-                onFieldSelect={onFieldSelect}
-                expandedFields={expandedFields}
-                onToggleExpand={onToggleExpand}
-                depth={depth + 1}
-              />
-            ))}
+            {field.children.map(child => {
+               const childHasSelectedDescendant = child.isParent ? checkSelectedDescendants(child, selectedFields) : false;
+               return (
+                <RenderFieldItem
+                  key={child.key}
+                  field={child}
+                  selectedFields={selectedFields}
+                  onFieldSelect={onFieldSelect}
+                  expandedFields={expandedFields}
+                  onToggleExpand={onToggleExpand}
+                  depth={depth + 1}
+                  hasSelectedDescendant={childHasSelectedDescendant}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -144,6 +170,7 @@ export default function Home() {
 
   const [processedFieldStructure, setProcessedFieldStructure] = useState<FieldDefinition[]>([]);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
+  const { resolvedTheme } = useTheme();
 
 
   const handleToggleExpand = (path: string) => {
@@ -279,7 +306,6 @@ export default function Home() {
         ? prev.filter(f => f !== fieldPath)
         : [...prev, fieldPath];
 
-      // If a field is deselected, also remove it from X/Y axis if it's currently set there
       if (!newSelection.includes(fieldPath)) { 
         if (currentXAxisField === fieldPath) setXAxisFieldInternal(null);
         if (currentYAxisField === fieldPath) setYAxisFieldInternal(null);
@@ -300,63 +326,56 @@ export default function Home() {
   };
   
  useEffect(() => {
-    // Auto-assign to X and Y axes when selectedFields change and jsonData is available
     if (jsonData.length > 0 && selectedFields.length > 0) {
         let currentX = currentXAxisField;
         let currentY = currentYAxisField;
 
-        // If X and Y are the same, clear Y
         if (currentX && currentY && currentX === currentY) {
              setYAxisFieldInternal(null); 
              currentY = null;
         }
 
-        // If current X is no longer in selectedFields, clear it
         if (currentX && !selectedFields.includes(currentX)) {
             currentX = null;
             setXAxisFieldInternal(null);
         }
-        // If current Y is no longer in selectedFields, clear it
         if (currentY && !selectedFields.includes(currentY)) {
             currentY = null;
             setYAxisFieldInternal(null);
         }
         
-        // Attempt to set X-axis if not set, or if Y is set and X isn't
         if (!currentX && (currentY || (!currentX && !currentY))) { 
             const potentialX = 
-                selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) || // Prefer string/date for X
-                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) || // Then number
-                selectedFields.find(f => f !== currentY); // Then anything else not Y
+                selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) || 
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) || 
+                selectedFields.find(f => f !== currentY); 
             if (potentialX) {
-                if (potentialX !== currentY) { // Ensure X and Y are different unless only one field is selected
+                if (potentialX !== currentY) { 
                     setXAxisFieldInternal(potentialX);
-                } else if (selectedFields.length === 1) { // If only one field, set it to X
+                } else if (selectedFields.length === 1) { 
                     setXAxisFieldInternal(potentialX);
                 }
             }
         }
         
-        // Attempt to set Y-axis if not set, or if X is set and Y isn't (and X exists from above logic or prev state)
         if (!currentY && (currentX || (!currentX && !currentY && currentXAxisField))) { 
             const potentialY = 
-                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) || // Prefer number for Y
-                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array'); // Then anything not object/array and not X
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) || 
+                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array'); 
              if (potentialY) {
-                if (potentialY !== (currentX || currentXAxisField)) { // Ensure X and Y are different unless only one field is selected
+                if (potentialY !== (currentX || currentXAxisField)) { 
                     setYAxisFieldInternal(potentialY);
-                } else if (selectedFields.length === 1) { // If only one field, set it to Y (if X also picked it)
+                } else if (selectedFields.length === 1) { 
                     setYAxisFieldInternal(potentialY);
                 }
             }
         }
     } else if (selectedFields.length === 0) {
-        // Clear axes if no fields are selected
         setXAxisFieldInternal(null);
         setYAxisFieldInternal(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData.length, headerTypes]); // Rerun when selectedFields, jsonData, or headerTypes change
+  }, [selectedFields, jsonData.length, headerTypes]); 
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
@@ -401,17 +420,21 @@ export default function Home() {
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
             <h2 className="text-sm font-semibold mb-2 text-foreground">Fields</h2>
             <div className="space-y-1">
-              {processedFieldStructure.length > 0 ? processedFieldStructure.map((field) => (
-                <RenderFieldItem
-                  key={field.key}
-                  field={field}
-                  selectedFields={selectedFields}
-                  onFieldSelect={handleFieldSelect}
-                  expandedFields={expandedFields}
-                  onToggleExpand={handleToggleExpand}
-                  depth={0}
-                />
-              )) : (
+              {processedFieldStructure.length > 0 ? processedFieldStructure.map((field) => {
+                 const hasSelectedDescendant = field.isParent ? checkSelectedDescendants(field, selectedFields) : false;
+                 return (
+                  <RenderFieldItem
+                    key={field.key}
+                    field={field}
+                    selectedFields={selectedFields}
+                    onFieldSelect={handleFieldSelect}
+                    expandedFields={expandedFields}
+                    onToggleExpand={handleToggleExpand}
+                    depth={0}
+                    hasSelectedDescendant={hasSelectedDescendant}
+                  />
+                );
+              }) : (
                 <p className="text-sm text-muted-foreground p-2">Connect a data source to see fields.</p>
               )}
             </div>
@@ -455,11 +478,15 @@ export default function Home() {
                           <>
                             {dataSourceType === 'atlas' ? (
                               <div className="font-mono text-xs space-y-2 p-2">
-                                {jsonData.slice(0, 10).map((doc, index) => (
-                                  <pre key={index} className="bg-muted p-2 rounded-sm overflow-auto">
-                                    <code>{JSON.stringify(doc, null, 2)}</code>
-                                  </pre>
-                                ))}
+                                <ReactJson 
+                                  src={jsonData.slice(0, 10)}
+                                  theme={resolvedTheme === 'dark' ? 'ocean' : 'rjv-default'}
+                                  name={false}
+                                  collapsed={1}
+                                  displayDataTypes={false}
+                                  enableClipboard={false}
+                                  style={{ backgroundColor: 'hsl(var(--card))', padding: '0.5rem' }}
+                                />
                               </div>
                             ) : dataSourceType === 'csv' && Object.keys(jsonData[0] || {}).length > 0 ? (
                               <Table>
@@ -538,3 +565,4 @@ export default function Home() {
     </div>
   );
 }
+
