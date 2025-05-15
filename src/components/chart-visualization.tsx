@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -48,7 +47,6 @@ export function ChartVisualization({
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const { theme: resolvedTheme } = useTheme();
 
-  const [draggedItem, setDraggedItem] = useState<{ field: string; origin: 'x' | 'y' } | null>(null);
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [isChartApiReady, setIsChartApiReady] = useState(false);
   const [chartDimensions, setChartDimensions] = useState<{ width: number; height: number } | null>(null);
@@ -90,58 +88,6 @@ export function ChartVisualization({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartContainerRef.current]); // Only re-run if chartContainerRef.current itself changes
 
-  const handleDragStart = (field: string, origin: 'x' | 'y') => {
-    if (!selectedFields.includes(field)) return;
-    setDraggedItem({ field, origin });
-  };
-
-  const handleDrop = (target: 'x' | 'y') => {
-    if (draggedItem) {
-      const sourceField = draggedItem.field;
-      if (!selectedFields.includes(sourceField)) {
-        setDraggedItem(null);
-        return;
-      }
-      const currentX = currentXAxisField;
-      const currentY = currentYAxisField;
-
-      if (target === 'x') {
-        if (sourceField === currentY) {
-          setXAxisField(sourceField);
-          setYAxisField(currentX);
-        } else if (sourceField !== currentX) {
-          setXAxisField(sourceField);
-        }
-      } else { // target === 'y'
-        if (sourceField === currentX) {
-          setYAxisField(sourceField);
-          setXAxisField(currentY);
-        } else if (sourceField !== currentY) {
-          setYAxisField(sourceField);
-        }
-      }
-      
-      const newX = target === 'x' ? sourceField : currentXAxisField;
-      const newY = target === 'y' ? sourceField : currentYAxisField;
-
-      if (newX && newY && newX === newY) {
-          if (draggedItem.origin === 'x' && target === 'y') { // Dragged X to Y, X was original Y
-             setXAxisField(currentY); // old Y becomes new X
-          } else if (draggedItem.origin === 'y' && target === 'x') { // Dragged Y to X, Y was original X
-             setYAxisField(currentX); // old X becomes new Y
-          } else if (target === 'x') { // Dropped on X, and it's now same as Y
-            setYAxisField(null); // Clear Y if it wasn't a direct swap that resulted in sameness
-          } else { // Dropped on Y, and it's now same as X
-            setXAxisField(null); // Clear X
-          }
-      }
-      setDraggedItem(null);
-    }
-  };
-
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault();
-  };
 
   const regenerateChartLogic = useCallback(() => {
     if (!currentXAxisField || jsonData.length === 0 || !selectedFields.includes(currentXAxisField) ) {
@@ -150,15 +96,13 @@ export function ChartVisualization({
       return;
     }
     
-    // For non-donut charts, Y-axis field is also crucial
-    if (chartType !== 'donut' && (!currentYAxisField || !selectedFields.includes(currentYAxisField))) {
+    if (chartType !== 'donut' && chartType !== 'stacked-bar' && chartType !== 'grouped-bar' && (!currentYAxisField || !selectedFields.includes(currentYAxisField))) {
         setIsChartLoading(false);
         setInternalChartOptions(null);
         return;
     }
 
-
-    let chartData = [...jsonData]; // Make a mutable copy
+    let chartData = [...jsonData]; 
     
     const xFieldType = headerTypes[currentXAxisField];
     const yFieldType = currentYAxisField ? headerTypes[currentYAxisField] : null;
@@ -167,12 +111,11 @@ export function ChartVisualization({
     let axes: AgCartesianAxisOptions[] = [];
     let titleText = currentYAxisField ? `${currentYAxisField} by ${currentXAxisField}` : `Distribution by ${currentXAxisField}`;
 
-    // Data aggregation for bar, horizontal-bar (single Y series)
-    if ((chartType === 'bar' && (xFieldType === 'string' || xFieldType === 'date'))) {
+    if ((chartType === 'bar' && currentYAxisField && (xFieldType === 'string' || xFieldType === 'date'))) {
       const valueCounts = chartData.reduce((acc, row) => {
         const xValCategory = String(getNestedValue(row, currentXAxisField!));
         const yValNumericRaw = getNestedValue(row, currentYAxisField!);
-        const yValNumeric = yFieldType === 'number' && typeof yValNumericRaw === 'number' ? Number(yValNumericRaw) : 1; // Count occurrences if Y isn't numeric
+        const yValNumeric = headerTypes[currentYAxisField!] === 'number' && typeof yValNumericRaw === 'number' ? Number(yValNumericRaw) : 1; 
         acc[xValCategory] = (acc[xValCategory] || 0) + yValNumeric;
         return acc;
       }, {} as Record<string, number>);
@@ -196,7 +139,7 @@ export function ChartVisualization({
       const valueCounts = chartData.reduce((acc, row) => {
         const yValCategory = String(getNestedValue(row, currentYAxisField!));
         const xValNumericRaw = getNestedValue(row, currentXAxisField!);
-        const xValNumeric = xFieldType === 'number' && typeof xValNumericRaw === 'number' ? Number(xValNumericRaw) : 1;
+        const xValNumeric = headerTypes[currentXAxisField!] === 'number' && typeof xValNumericRaw === 'number' ? Number(xValNumericRaw) : 1;
         acc[yValCategory] = (acc[yValCategory] || 0) + xValNumeric;
         return acc;
       }, {} as Record<string, number>);
@@ -218,10 +161,7 @@ export function ChartVisualization({
       } else {
         chartData = aggregatedDataForChart; 
       }
-    }
-
-    // Logic for stacked and grouped bar
-    if (chartType === 'stacked-bar' || chartType === 'grouped-bar') {
+    } else if (chartType === 'stacked-bar' || chartType === 'grouped-bar') {
         const validNumericYKeys = selectedFields.filter(
             field => field !== currentXAxisField && headerTypes[field] === 'number'
         );
@@ -270,13 +210,12 @@ export function ChartVisualization({
             type: 'bar', 
             xKey: currentXAxisField!, 
             yKeys: validNumericYKeys, 
-            yNames: validNumericYKeys.map(name => name), // Display actual field names in legend/tooltip
+            yNames: validNumericYKeys.map(name => name),
             stacked: chartType === 'stacked-bar',
-            // grouped: chartType === 'grouped-bar' // AG Charts groups by default with multiple yKeys
         }];
         axes = [
             { type: (xFieldType === 'string' || xFieldType === 'date') ? 'category' : 'number', position: 'bottom', title: { text: currentXAxisField } },
-            { type: 'number', position: 'left', title: { text: 'Values' } }, // Generic Y-axis title
+            { type: 'number', position: 'left', title: { text: 'Values' } }, 
         ];
     }
 
@@ -291,7 +230,7 @@ export function ChartVisualization({
     switch (chartType) {
       case 'bar':
         if (!currentYAxisField) {setInternalChartOptions(null); setIsChartLoading(false); return;}
-        series = [{ type: 'bar', xKey: currentXAxisField, yKey: currentYAxisField, yName: currentYAxisField }];
+        series = [{ type: 'bar', xKey: currentXAxisField, yKey: currentYAxisField }];
         axes = [
           { type: (xFieldType === 'string' || xFieldType === 'date') ? 'category' : 'number', position: 'bottom', title: { text: currentXAxisField } },
           { type: 'number', position: 'left', title: { text: currentYAxisField } },
@@ -323,7 +262,7 @@ export function ChartVisualization({
         ];
         break;
       case 'donut':
-        if (!currentYAxisField || yFieldType !== 'number') {
+        if (!currentYAxisField || headerTypes[currentYAxisField!] !== 'number') {
           toast({ title: "Type Error", description: "Donut charts require a numeric field for values (Angle Key).", variant: "destructive" });
           setInternalChartOptions(null); setIsChartLoading(false); return;
         }
@@ -337,7 +276,7 @@ export function ChartVisualization({
         break;
       case 'stacked-bar':
       case 'grouped-bar':
-        // Series and axes already defined above for these types
+        // Series and axes already defined above
         break;
       default:
         toast({ title: "Unknown Chart Type", description: "Selected chart type is not supported.", variant: "destructive" });
@@ -351,7 +290,7 @@ export function ChartVisualization({
       autoSize: false, 
     };
 
-    if (axes !== undefined) { // Only add axes if they are defined (not for donut)
+    if (axes !== undefined) { 
       baseOptionsConfig.axes = axes;
     }
     
@@ -457,7 +396,7 @@ export function ChartVisualization({
         return axisType === 'x' ? 'Labels (Category/Date)' : 'Values (Number)';
       case 'stacked-bar':
       case 'grouped-bar':
-        types = axisType === 'x' ? '(Category/Date)' : '(Numeric Values)';
+        types = axisType === 'x' ? '(Category/Date)' : (axisType === 'y' ? '(Numeric Values)' : '');
         break;
       default:
         return baseLabel;
@@ -468,124 +407,194 @@ export function ChartVisualization({
   const getAxisPlaceholder = (axisType: 'x' | 'y'): string => {
     switch (chartType) {
       case 'bar':
-        return axisType === 'x' ? 'Drop field for X-Axis (Categories)' : 'Drop field for Y-Axis (Values)';
+        return axisType === 'x' ? 'Select X-Axis (Categories)' : 'Select Y-Axis (Values)';
       case 'horizontal-bar':
-        return axisType === 'x' ? 'Drop field for X-Axis (Values)' : 'Drop field for Y-Axis (Categories)';
+        return axisType === 'x' ? 'Select X-Axis (Values)' : 'Select Y-Axis (Categories)';
       case 'scatter':
-        return axisType === 'x' ? 'Drop field for X-Axis (Numeric/Date)' : 'Drop field for Y-Axis (Numeric/Date)';
+        return axisType === 'x' ? 'Select X-Axis (Numeric/Date)' : 'Select Y-Axis (Numeric/Date)';
       case 'donut':
-        return axisType === 'x' ? 'Drop field for Labels (Category/Date)' : 'Drop field for Values (Numeric)';
+        return axisType === 'x' ? 'Select Labels (Category/Date)' : 'Select Values (Numeric)';
       case 'stacked-bar':
       case 'grouped-bar':
-        return axisType === 'x' ? 'Drop field for X-Axis (Categories)' : 'Drop fields for Y-Axis (Values)';
+        return axisType === 'x' ? 'Select X-Axis (Categories)' : (axisType === 'y' ? 'Select Y-Axis (Values)' : 'Y-Axis (Multiple Numeric)');
       default:
         return `Select field for ${axisType.toUpperCase()}-Axis`;
     }
   };
 
+  const getValidFieldsForAxis = (axis: 'x' | 'y'): string[] => {
+    if (selectedFields.length === 0) return [];
+
+    const isNumeric = (field: string) => headerTypes[field] === 'number';
+    const isCategorical = (field: string) => headerTypes[field] === 'string' || headerTypes[field] === 'date';
+    const isGeo = (field: string) => headerTypes[field] === 'geojson-coordinates';
+
+
+    switch (chartType) {
+      case 'bar':
+        if (axis === 'x') return selectedFields.filter(f => isCategorical(f) || isNumeric(f));
+        if (axis === 'y') return selectedFields.filter(f => isNumeric(f) && f !== currentXAxisField);
+        break;
+      case 'horizontal-bar':
+        if (axis === 'x') return selectedFields.filter(f => isNumeric(f));
+        if (axis === 'y') return selectedFields.filter(f => isCategorical(f) && f !== currentXAxisField);
+        break;
+      case 'scatter':
+        if (axis === 'x') return selectedFields.filter(f => isNumeric(f) || headerTypes[f] === 'date');
+        if (axis === 'y') return selectedFields.filter(f => (isNumeric(f) || headerTypes[f] === 'date') && f !== currentXAxisField);
+        break;
+      case 'donut':
+        if (axis === 'x') return selectedFields.filter(f => isCategorical(f)); // Labels
+        if (axis === 'y') return selectedFields.filter(f => isNumeric(f) && f !== currentXAxisField); // Values
+        break;
+      case 'stacked-bar':
+      case 'grouped-bar':
+        if (axis === 'x') return selectedFields.filter(f => isCategorical(f));
+        // For Y-axis in stacked/grouped, it's usually multiple numeric fields.
+        // The Select input will pick one, and the logic derives all applicable numeric yKeys.
+        if (axis === 'y') return selectedFields.filter(f => isNumeric(f) && f !== currentXAxisField);
+        break;
+    }
+    return selectedFields.filter(f => !isGeo(f)); // Default: return all non-geo selected fields
+  };
+
 
   return (
-    <div className="space-y-4 flex flex-col flex-grow bg-card">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-        <div className="space-y-1">
-          <Label htmlFor="chartType" className="text-xs text-muted-foreground">Chart Type</Label>
-          <Select value={chartType} onValueChange={(value) => { setChartType(value); }} name="chartType">
-            <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
-              <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
-              <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
-              <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
-              <SelectItem value="stacked-bar" className="text-xs">Stacked Bar</SelectItem>
-              <SelectItem value="grouped-bar" className="text-xs">Grouped Bar</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="xAxisContainer" className="text-xs text-muted-foreground">{getAxisLabel('x')}</Label>
-          <div
-            id="xAxisContainer"
-            draggable={!!currentXAxisField && selectedFields.length > 0 && selectedFields.includes(currentXAxisField)}
-            onDragStart={() => currentXAxisField && handleDragStart(currentXAxisField, 'x')}
-            onDrop={() => handleDrop('x')}
-            onDragOver={handleDragOver}
-            className={`flex items-center justify-between p-2 border border-input rounded-md min-h-[36px] bg-background text-xs text-foreground ${!!currentXAxisField && selectedFields.length > 0 && selectedFields.includes(currentXAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
-            title={currentXAxisField || getAxisPlaceholder('x')}
-          >
-            <span className="truncate">{currentXAxisField || getAxisPlaceholder('x')}</span>
-            {currentXAxisField && <Button variant="ghost" size="icon" className="h-5 w-5 text-primary" onClick={handleXAxisClear}><XIcon className="w-3 h-3" /></Button>}
+    <div className="flex flex-col flex-grow bg-card space-y-4">
+      <div className="flex flex-row gap-4">
+        {/* Left Panel: Controls */}
+        <div className="w-[200px] flex-shrink-0 space-y-3">
+          <div>
+            <Label htmlFor="chartType" className="text-xs text-muted-foreground">Chart Type</Label>
+            <Select 
+              value={chartType} 
+              onValueChange={(value) => { setChartType(value); }} 
+              name="chartType"
+              disabled={selectedFields.length === 0 && jsonData.length === 0}
+            >
+              <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
+                <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
+                <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
+                <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
+                <SelectItem value="stacked-bar" className="text-xs">Stacked Bar</SelectItem>
+                <SelectItem value="grouped-bar" className="text-xs">Grouped Bar</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="yAxisContainer" className="text-xs text-muted-foreground">{getAxisLabel('y')}</Label>
-          <div
-            id="yAxisContainer"
-            draggable={!!currentYAxisField && selectedFields.length > 0 && selectedFields.includes(currentYAxisField)}
-            onDragStart={() => currentYAxisField && handleDragStart(currentYAxisField, 'y')}
-            onDrop={() => handleDrop('y')}
-            onDragOver={handleDragOver}
-            className={`flex items-center justify-between p-2 border border-input rounded-md min-h-[36px] bg-background text-xs text-foreground ${!!currentYAxisField && selectedFields.length > 0 && selectedFields.includes(currentYAxisField) ? 'cursor-grab' : 'cursor-default opacity-70'}`}
-            title={currentYAxisField || getAxisPlaceholder('y')}
-          >
-            <span className="truncate">{currentYAxisField || getAxisPlaceholder('y')}</span>
-            {currentYAxisField && <Button variant="ghost" size="icon" className="h-5 w-5 text-primary" onClick={handleYAxisClear}><XIcon className="w-3 h-3" /></Button>}
-          </div>
-        </div>
-      </div>
 
-      <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-card border border-border-secondary rounded-md">
-        {isChartLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-card/50 z-10 rounded-md">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div>
+            <Label htmlFor="xAxisSelect" className="text-xs text-muted-foreground">{getAxisLabel('x')}</Label>
+            <div className="flex items-center space-x-1">
+              <Select
+                value={currentXAxisField || ""}
+                onValueChange={(value) => setXAxisField(value === "" ? null : value)}
+                name="xAxisSelect"
+                disabled={getValidFieldsForAxis('x').length === 0 && !currentXAxisField}
+              >
+                <SelectTrigger id="xAxisSelect" className="h-9 text-xs flex-grow min-w-0">
+                  <SelectValue placeholder={getAxisPlaceholder('x')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {getValidFieldsForAxis('x').map(field => (
+                    <SelectItem key={`x-${field}`} value={field} className="text-xs">
+                      {field}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {currentXAxisField && <Button variant="ghost" size="icon" className="h-8 w-8 text-primary flex-shrink-0" onClick={handleXAxisClear}><XIcon className="w-3.5 h-3.5" /></Button>}
+            </div>
           </div>
-        )}
-        <div className={`${isChartLoading && chartOptionsToRender ? 'opacity-50' : ''} h-full w-full`}>
-          {(chartOptionsToRender && chartDimensions && chartDimensions.width > 0 && chartDimensions.height > 0) ? (
-            <AgChartsReact
-              options={chartOptionsToRender}
-              key={chartRenderKey} 
-              onChartReady={(chart) => {
-                chartApiRef.current = chart;
-                setIsChartApiReady(true); 
-              }}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center p-4">
-              {(selectedFields.length === 0 || jsonData.length === 0) ? (
-                <>
-                  <BarChart className="h-12 w-12 text-muted-foreground mb-2" data-ai-hint="document data" />
-                  <p className="text-sm text-muted-foreground">Connect data and select fields to visualize.</p>
-                </>
-              ) : (!currentXAxisField || (chartType !== 'donut' && chartType !== 'stacked-bar' && chartType !== 'grouped-bar' && !currentYAxisField) ) ? (
-                 <>
-                  <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="chart axes" />
-                  <p className="text-sm text-muted-foreground">Assign fields to X and Y axes (or Labels/Values for Donut).</p>
-                </>
+          
+          <div>
+            <Label htmlFor="yAxisSelect" className="text-xs text-muted-foreground">{getAxisLabel('y')}</Label>
+             <div className="flex items-center space-x-1">
+              <Select
+                value={currentYAxisField || ""}
+                onValueChange={(value) => setYAxisField(value === "" ? null : value)}
+                name="yAxisSelect"
+                disabled={
+                  (chartType === 'stacked-bar' || chartType === 'grouped-bar') ||
+                  (getValidFieldsForAxis('y').length === 0 && !currentYAxisField)
+                }
+              >
+                <SelectTrigger id="yAxisSelect" className="h-9 text-xs flex-grow min-w-0">
+                  <SelectValue placeholder={getAxisPlaceholder('y')} />
+                </SelectTrigger>
+                <SelectContent>
+                   {getValidFieldsForAxis('y').map(field => (
+                    <SelectItem key={`y-${field}`} value={field} className="text-xs">
+                      {field}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {currentYAxisField && <Button variant="ghost" size="icon" className="h-8 w-8 text-primary flex-shrink-0" onClick={handleYAxisClear}><XIcon className="w-3.5 h-3.5" /></Button>}
+            </div>
+            {(chartType === 'stacked-bar' || chartType === 'grouped-bar') && (
+                <p className="text-xs text-muted-foreground mt-1">Y-values derived from all selected numeric fields.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Right Panel: Chart Rendering Area */}
+        <div className="flex-grow flex flex-col min-w-0">
+          <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-card border border-border-secondary rounded-md">
+            {isChartLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-card/50 z-10 rounded-md">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            )}
+            <div className={`${isChartLoading && chartOptionsToRender ? 'opacity-50' : ''} h-full w-full`}>
+              {(chartOptionsToRender && chartDimensions && chartDimensions.width > 0 && chartDimensions.height > 0) ? (
+                <AgChartsReact
+                  options={chartOptionsToRender}
+                  key={chartRenderKey} 
+                  onChartReady={(chart) => {
+                    chartApiRef.current = chart;
+                    setIsChartApiReady(true); 
+                  }}
+                />
               ) : (
-                <>
-                  <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="analytics chart" />
-                  <p className="text-sm text-muted-foreground">Chart will render here. Ensure container has dimensions and valid configuration.</p>
-                </>
+                <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                  {(selectedFields.length === 0 || jsonData.length === 0) ? (
+                    <>
+                      <BarChart className="h-12 w-12 text-muted-foreground mb-2" data-ai-hint="document data" />
+                      <p className="text-sm text-muted-foreground">Connect data and select fields to visualize.</p>
+                    </>
+                  ) : (!currentXAxisField || (chartType !== 'donut' && chartType !== 'stacked-bar' && chartType !== 'grouped-bar' && !currentYAxisField) ) ? (
+                    <>
+                      <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="chart axes" />
+                      <p className="text-sm text-muted-foreground">Assign fields to X and Y axes (or Labels/Values for Donut).</p>
+                    </>
+                  ) : (
+                    <>
+                      <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="analytics chart" />
+                      <p className="text-sm text-muted-foreground">Chart will render here. Ensure container has dimensions and valid configuration.</p>
+                    </>
+                  )}
+                </div>
               )}
             </div>
-          )}
+          </div>
+          <div className="pt-2 flex justify-end">
+            <Button
+                variant="outline"
+                size="sm"
+                className="h-8 rounded-md px-3 text-xs border-border-secondary"
+                onClick={handleDownloadChart}
+                disabled={!chartOptionsToRender || !isChartApiReady} 
+                aria-label="Download chart"
+                title="Download chart as PNG"
+              >
+                <Download className="mr-1.5 h-3.5 w-3.5" />
+                Download Chart
+            </Button>
+          </div>
         </div>
       </div>
-       <div className="pt-2 flex justify-end">
-         <Button
-            variant="outline"
-            size="sm"
-            className="h-8 rounded-md px-3 text-xs border-border-secondary"
-            onClick={handleDownloadChart}
-            disabled={!chartOptionsToRender || !isChartApiReady} 
-            aria-label="Download chart"
-            title="Download chart as PNG"
-          >
-            <Download className="mr-1.5 h-3.5 w-3.5" />
-            Download Chart
-          </Button>
-       </div>
     </div>
   );
 }
-
