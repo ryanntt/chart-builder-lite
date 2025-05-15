@@ -19,9 +19,12 @@
   --lg-green-light-3-raw: 158 70% 96%;
   --lg-green-light-2-raw: 159 85% 87%;
   --lg-green-light-1-raw: 153 88% 70%;
-  --lg-green-base-raw: 145 100% 46%; /* Note: This is a guess, actual value might differ */
+  --lg-green-base-raw: 145 100% 46%; 
   --lg-green-dark-1-raw: 154 100% 32%;
   --lg-green-dark-2-raw: 163 100% 20%;
+
+  /* Focus Ring Color */
+  --custom-focus-ring-raw: 203 96% 47%; /* #0498EC */
 
   /* Leafy Green palette - Full HSL strings */
   --lg-black: hsl(var(--lg-black-raw));
@@ -44,24 +47,24 @@
 
 
   --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%; /* Changed from --lg-black to match ShadCN default */
+  --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
   --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%; /* Changed from --lg-black */
+  --primary-foreground: 0 0% 98%;
   --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%; /* Changed from --lg-gray-dark-1 */
+  --secondary-foreground: 240 5.9% 10%;
   --muted: 240 4.8% 95.9%;
   --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%; /* Changed from 240 5.9% 10% */
-  --accent-foreground: 240 5.9% 10%; /* Changed from 0 0% 98% */
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
   --border: 240 5.9% 90%; 
   --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
+  --ring: var(--custom-focus-ring-raw); /* Updated */
   --radius: 0.5rem;
 
   /* Semantic border colors based on LeafyGreen */
@@ -87,48 +90,48 @@
   --btn-primary-lg-bg: var(--lg-green-dark-2); 
   --btn-primary-lg-fg: hsl(0 0% 100%);
   --btn-primary-lg-border: var(--lg-green-dark-2);
-  --btn-primary-lg-icon-hsl: var(--lg-green-light-2-raw); /* Uses raw HSL values */
+  --btn-primary-lg-icon-hsl: var(--lg-green-light-2-raw); 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
   --btn-primary-lg-hover-fg: hsl(0 0% 100%);
   --btn-primary-lg-hover-border: hsl(162 100% 17%);
   --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; 
   --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl));
-  --btn-primary-lg-focus-ring-hsl: 153 88% 70%;
+  --btn-primary-lg-focus-ring-hsl: var(--custom-focus-ring-raw); /* Updated */
   --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl));
 
   /* Custom Primary LG Disabled Button Styling */
   --btn-primary-lg-disabled-bg: var(--lg-gray-light-2);
   --btn-primary-lg-disabled-fg: var(--lg-gray-base);
   --btn-primary-lg-disabled-border: var(--lg-gray-light-1);
-  --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-light-1-raw); /* Uses raw HSL */
+  --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-light-1-raw); 
 }
 
 .dark {
-  --background: 240 10% 3.9%; /* Changed from --lg-black */
-  --foreground: 0 0% 98%;   /* Changed from --lg-gray-light-2 */
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
   --card: 240 6% 10%;
   --card-foreground: 0 0% 95%;
   --popover: 240 6% 10%;
   --popover-foreground: 0 0% 95%;
   --primary: 0 0% 95%;
-  --primary-foreground: 240 5% 10.9%; /* Changed from --lg-gray-light-2 */
-  --secondary: 240 3.7% 15.9%; /* Changed from 240 5% 15% */
-  --secondary-foreground: 0 0% 98%; /* Changed from --lg-gray-light-1 */
-  --muted: 240 3.7% 15.9%; /* Changed from 240 5% 15% */
-  --muted-foreground: 240 5% 64.9%; /* Changed from 0 0% 60% */
-  --accent: 240 3.7% 15.9%; /* Changed from 240 5% 15% */
-  --accent-foreground: 0 0% 98%; /* Changed from 0 0% 95% */
+  --primary-foreground: 240 5% 10.9%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
   --border: 240 3.7% 15.9%; 
   --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
+  --ring: var(--custom-focus-ring-raw); /* Updated */
 
   /* Semantic border colors based on LeafyGreen - Dark Mode */
   --border-color-primary: var(--lg-gray-base);
   --border-color-secondary: var(--lg-gray-dark-2);
   --border-color-success: var(--lg-green-dark-1);
-  --border-color-error: hsl(0, 72%, 70%); /* Example Red Light 1 */
+  --border-color-error: hsl(0, 72%, 70%); 
   --border-color-disabled: var(--lg-gray-dark-2);
 
   /* Chart specific colors - dark theme adjustments */
@@ -147,20 +150,20 @@
   --btn-primary-lg-bg: var(--lg-green-dark-2);
   --btn-primary-lg-fg: hsl(0 0% 100%);
   --btn-primary-lg-border: var(--lg-green-dark-1);
-  --btn-primary-lg-icon-hsl: var(--lg-green-light-1-raw); /* Uses raw HSL */
+  --btn-primary-lg-icon-hsl: var(--lg-green-light-1-raw); 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
   --btn-primary-lg-hover-fg: hsl(0 0% 100%);
   --btn-primary-lg-hover-border: var(--lg-green-dark-1);
   --btn-primary-lg-hover-shadow-hsl: 163 100% 20%; 
   --btn-primary-lg-hover-shadow: 0 0 0 3px hsla(var(--btn-primary-lg-hover-shadow-hsl), 0.7);
-  --btn-primary-lg-focus-ring-hsl: 159 85% 87%; 
+  --btn-primary-lg-focus-ring-hsl: var(--custom-focus-ring-raw); /* Updated */
   --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl));
 
   /* Custom Primary LG Disabled Button Styling - Dark Mode */
   --btn-primary-lg-disabled-bg: var(--lg-gray-dark-3);
   --btn-primary-lg-disabled-fg: var(--lg-gray-dark-1);
   --btn-primary-lg-disabled-border: var(--lg-gray-dark-1);
-  --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-dark-2-raw); /* Uses raw HSL */
+  --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-dark-2-raw); 
 }
 
 
@@ -175,6 +178,13 @@
   --ag-input-background-color: hsl(var(--background));
   --ag-data-color: hsl(var(--card-foreground));
   --ag-modal-overlay-background-color: hsla(var(--background), 0.6);
+  --ag-font-family: var(--font-ibm-plex-sans), sans-serif;
+  --ag-value-color: hsl(var(--foreground));
+  --ag-axis-grid-line-color: hsl(var(--border-color-secondary));
+  --ag-series-label-color: hsl(var(--muted-foreground));
+  --ag-legend-label-color: hsl(var(--muted-foreground));
+  --ag-tooltip-background-color: hsl(var(--popover));
+  --ag-tooltip-foreground-color: hsl(var(--popover-foreground));
 }
 
 .ag-theme-alpine-dark, .ag-theme-default-dark {
@@ -186,6 +196,13 @@
   --ag-input-background-color: hsl(var(--background));
   --ag-data-color: hsl(var(--card-foreground));
   --ag-modal-overlay-background-color: hsla(var(--background), 0.7);
+  --ag-font-family: var(--font-ibm-plex-sans), sans-serif;
+  --ag-value-color: hsl(var(--foreground));
+  --ag-axis-grid-line-color: hsl(var(--border-color-secondary));
+  --ag-series-label-color: hsl(var(--muted-foreground));
+  --ag-legend-label-color: hsl(var(--muted-foreground));
+  --ag-tooltip-background-color: hsl(var(--popover));
+  --ag-tooltip-foreground-color: hsl(var(--popover-foreground));
 }
 
 /* Ensure chart wrapper uses theme background */
