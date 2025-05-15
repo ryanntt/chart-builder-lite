@@ -97,7 +97,7 @@
   --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl));
 
   /* Custom Primary LG Disabled Button Styling */
-  --btn-primary-lg-disabled-bg: var(--lg-gray-dark-2);
+  --btn-primary-lg-disabled-bg: var(--lg-gray-light-2);
   --btn-primary-lg-disabled-fg: var(--lg-gray-base);
   --btn-primary-lg-disabled-border: var(--lg-gray-light-1);
   --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-light-1-raw); /* Uses raw HSL */

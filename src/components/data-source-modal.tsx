@@ -215,7 +215,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 </p>
                 <p className="text-xs text-muted-foreground">CSV files only</p>
                 <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4 border-border" disabled={isLoading}>
-                  {isLoading && activeTab === 'upload' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {isLoading && activeTab === 'upload' ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" /> : null}
                   Browse File
                 </Button>
               </div>
@@ -242,7 +242,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
               disabled={isFetchButtonDisabled} 
               className="w-full"
             >
-              {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlugZap className="mr-2 h-4 w-4" />}
+              {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" /> : <PlugZap className="mr-2 h-4 w-4" />}
               Fetch Databases
             </Button>
 
@@ -306,7 +306,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                             >
                               <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
                               {colName}
-                              {isLoading && selectedCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
+                              {isLoading && selectedCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin text-primary" />}
                             </Button>
                           ))}
                         </div>
@@ -328,5 +328,3 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     </Dialog>
   );
 }
-
-    
