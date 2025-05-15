@@ -8,13 +8,16 @@ import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AgChartsReact } from 'ag-charts-react';
-// import 'ag-charts-community/styles/ag-charts-community.css'; // Core AG Charts CSS - Consistently causes "Module not found"
-// import 'ag-charts-community/styles/ag-theme-alpine.css'; // Alpine theme - Consistently causes "Module not found"
-// import 'ag-charts-community/styles/ag-theme-alpine-dark.css'; // Alpine dark theme - Consistently causes "Module not found"
+// The AG Charts CSS imports below consistently cause "Module not found" errors.
+// This indicates that the build process cannot locate these CSS files within the ag-charts-community package.
+// AG Charts styling might be affected until this is resolved.
+// import 'ag-charts-community/styles/ag-charts-community.css'; 
+// import 'ag-charts-community/styles/ag-theme-alpine.css'; 
+// import 'ag-charts-community/styles/ag-theme-alpine-dark.css'; 
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, FileText, Type, Hash, CalendarDays, ToggleLeft, BarChart, Download, Loader2, ChevronDown, DatabaseZap } from "lucide-react";
+import { XIcon, FileText, Hash, CalendarDays, ToggleLeft, BarChart, Download, Loader2, ChevronDown, DatabaseZap } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { useTheme } from "next-themes";
@@ -26,7 +29,7 @@ import { cn } from "@/lib/utils";
 const getFieldTypeIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case 'string':
-      return <Type className="h-4 w-4 text-muted-foreground" />;
+      return <FileText className="h-4 w-4 text-muted-foreground" />;
     case 'number':
       return <Hash className="h-4 w-4 text-muted-foreground" />;
     case 'date':
@@ -804,3 +807,5 @@ export default function Home() {
   );
 }
 
+
+    

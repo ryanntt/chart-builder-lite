@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, Database, ListTree, CircleAlert, ChevronLeft } from 'lucide-react';
+import { Loader2, UploadCloud, CircleAlert, ChevronLeft, PlugZap, Folder, Database } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataSourceModalProps {
@@ -94,7 +94,8 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     } else {
       toast({ title: "Invalid File Type", description: "Please drop a CSV file.", variant: "destructive" });
     }
-  }, [processAndConnectFile]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processAndConnectFile]);
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -186,21 +187,21 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0 bg-card">
+      <DialogContent className="sm:max-w-[600px] p-0 bg-card border-border-secondary">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-foreground">Connect Data Source</DialogTitle>
           <DialogDescription className="text-muted-foreground">Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-muted">
+          <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-border-secondary bg-muted">
             <TabsTrigger value="upload" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Upload File</TabsTrigger>
             <TabsTrigger value="atlas" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Connect to Atlas</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="p-6">
             <div
-              className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer  transition-colors
-                ${isDragging ? 'border-primary bg-accent/10' : 'border-border bg-background hover:bg-accent/50'}`}
+              className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-md cursor-pointer  transition-colors border-border-primary 
+                ${isDragging ? 'border-primary bg-accent/10' : 'bg-background hover:bg-accent/50'}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -211,7 +212,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   <span className="font-semibold">Click to browse</span> or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">CSV files only</p>
-                <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4" disabled={isLoading}>
+                <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4 border-border-primary" disabled={isLoading}>
                   {isLoading && activeTab === 'upload' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Browse File
                 </Button>
@@ -231,18 +232,19 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 value={connectionString}
                 onChange={(e) => setConnectionString(e.target.value)}
                 disabled={isFetchingDatabases || isFetchingCollections || isLoading}
+                className="border-border-primary"
               />
             </div>
             <Button onClick={handleFetchDatabases} disabled={isFetchingDatabases || isFetchingCollections || isLoading || !connectionString} className="w-full">
-              {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
+              {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlugZap className="mr-2 h-4 w-4" />}
               Fetch Databases
             </Button>
 
             {error && <p className="text-sm text-destructive flex items-center"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>}
             
-            <div className="min-h-[240px]"> 
+            <div className="min-h-[240px] max-h-[300px] overflow-y-auto"> 
               {isFetchingDatabases && (
-                <ScrollArea className="h-[240px] w-full rounded-md border border-border">
+                <ScrollArea className="h-[240px] w-full rounded-md border border-border-secondary">
                   <div className="p-2">
                     {[...Array(5)].map((_, i) => <SkeletonListItem key={i} />)}
                   </div>
@@ -252,7 +254,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
               {!isFetchingDatabases && databases.length > 0 && !selectedDatabase && (
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Select a Database:</Label>
-                  <ScrollArea className="h-[240px] w-full rounded-md border border-border">
+                  <ScrollArea className="h-[240px] w-full rounded-md border border-border-secondary">
                     <div className="p-2">
                       {databases.map(dbName => (
                         <Button 
@@ -273,11 +275,11 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
               {selectedDatabase && (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="mb-2">
+                  <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="mb-2 border-border-primary">
                     <ChevronLeft className="mr-1 h-4 w-4" /> Back to Databases
                   </Button>
                   {isFetchingCollections && (
-                     <ScrollArea className="h-[200px] w-full rounded-md border border-border"> 
+                     <ScrollArea className="h-[200px] w-full rounded-md border border-border-secondary"> 
                         <div className="p-2">
                         {[...Array(5)].map((_, i) => <SkeletonListItem key={i} />)}
                         </div>
@@ -286,7 +288,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   {!isFetchingCollections && collections.length > 0 && (
                     <div className="space-y-2">
                       <Label className="text-muted-foreground">Select a Collection from {selectedDatabase}:</Label>
-                      <ScrollArea className="h-[200px] w-full rounded-md border border-border"> 
+                      <ScrollArea className="h-[200px] w-full rounded-md border border-border-secondary"> 
                         <div className="p-2">
                           {collections.map(colName => (
                             <Button 
@@ -296,7 +298,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                               onClick={() => handleLoadCollectionData(colName)}
                               disabled={isLoading && selectedCollection === colName}
                             >
-                              <ListTree className="mr-2 h-4 w-4 text-muted-foreground" />
+                              <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
                               {colName}
                               {isLoading && selectedCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
                             </Button>
@@ -313,10 +315,11 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
             </div>
           </TabsContent>
         </Tabs>
-        <DialogFooter className="p-6 pt-0 border-t-0 border-border">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections}>Cancel</Button>
+        <DialogFooter className="p-6 pt-0 border-t-0 border-t-border-secondary">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections} className="border-border-primary">Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
