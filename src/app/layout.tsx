@@ -18,7 +18,7 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'CSV Atlas Uploader & Visualizer',
+  title: 'Chart Builder Lite',
   description: 'Upload CSV data and visualize it.',
 };
 
@@ -43,3 +43,4 @@ export default function RootLayout({
     </html>
   );
 }
+

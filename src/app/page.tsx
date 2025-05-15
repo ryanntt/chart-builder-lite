@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
-import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
@@ -55,11 +54,10 @@ const getFieldTypeIcon = (type: string) => {
 };
 
 const AppHeader = () => (
-  <header className="sticky top-0 z-40 w-full border-b border-[var(--border-color-secondary)] bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+  <header className="sticky top-0 z-40 w-full bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
     <div className="mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
-        <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
-        <h1 className="text-xl font-semibold text-foreground">CSV Atlas Uploader</h1>
+        <h1 className="text-xl font-semibold text-foreground">Chart Builder Lite</h1>
       </div>
       <ThemeToggleButton />
     </div>
@@ -409,7 +407,7 @@ export default function Home() {
                     onClick={() => setIsModalOpen(true)}
                     size="sm"
                     variant="outline"
-                    className="py-1 px-2 text-xs h-auto border-[var(--btn-primary-lg-border)] hover:border-[var(--btn-primary-lg-hover-border)]"
+                    className="py-1 px-2 text-xs h-auto border-[var(--border-color-secondary)] hover:border-[var(--border-color-secondary)]"
                   >
                     <DatabaseZap className="mr-1.5 h-3 w-3" /> Change
                   </Button>
@@ -427,7 +425,7 @@ export default function Home() {
                  <Button
                     onClick={() => setIsModalOpen(true)}
                     variant="lgPrimary"
-                    className="w-full"
+                    className="w-full border border-[var(--btn-primary-lg-border)] hover:border-[var(--btn-primary-lg-hover-border)]"
                   >
                     <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
                 </Button>
@@ -589,3 +587,4 @@ export default function Home() {
     </div>
   );
 }
+
