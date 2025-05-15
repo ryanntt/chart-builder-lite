@@ -17,7 +17,7 @@ import { AgChartsReact } from 'ag-charts-react';
 import type { AgChartOptions, AgCartesianAxisOptions, AgChart } from 'ag-charts-community';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { XIcon, FileText, Hash, CalendarDays, ToggleLeft, BarChart, Download, Loader2, ChevronDown, DatabaseZap } from "lucide-react";
+import { XIcon, Hash, CalendarDays, ToggleLeft, BarChart, Download, Loader2, ChevronDown, DatabaseZap, FileText } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { useTheme } from "next-themes";
@@ -677,7 +677,7 @@ export default function Home() {
                       </Table>
                     ) : (
                       <div className="flex flex-col items-center justify-center h-[150px] text-center">
-                         <FileText className="w-10 h-10 text-muted-foreground mb-2" data-ai-hint="document icon" />
+                         <FileText className="h-8 w-8 text-muted-foreground mb-2" data-ai-hint="document icon" />
                         <p className="text-sm text-muted-foreground">Select fields or connect data to see a preview.</p>
                       </div>
                     )}
@@ -773,7 +773,7 @@ export default function Home() {
                         <div className="flex flex-col items-center justify-center h-full text-center p-4">
                           {(selectedFields.length === 0 || jsonData.length === 0) ? (
                             <>
-                              <FileText className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="document data" />
+                              <BarChart className="h-12 w-12 text-muted-foreground mb-2" data-ai-hint="document data" />
                               <p className="text-sm text-muted-foreground">Connect data and select fields to visualize.</p>
                             </>
                           ) : (!xAxisField || !yAxisField) ? (
@@ -806,6 +806,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-    

@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, CircleAlert, ChevronLeft, PlugZap, Folder, Database } from 'lucide-react';
+import { Loader2, UploadCloud, CircleAlert, ChevronLeft, PlugZap, Database, Folder } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataSourceModalProps {
@@ -322,4 +322,3 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     </Dialog>
   );
 }
-
