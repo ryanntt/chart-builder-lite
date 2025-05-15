@@ -5,10 +5,12 @@
 
 :root {
   /* Leafy Green palette - Reference for --btn-primary-lg variables */
-  --lg-green-light-1: hsl(153, 88%, 70%);
-  --lg-green-base: hsl(145, 100%, 46%);
-  --lg-green-dark-1: hsl(154, 100%, 32%);
-  --lg-green-dark-2: hsl(163, 100%, 20%);
+  --lg-green-light-2: 159 85% 87%;
+  --lg-green-light-1: 153 88% 70%;
+  --lg-green-base: 145 100% 46%;
+  --lg-green-dark-1: 154 100% 32%;
+  --lg-green-dark-2: 163 100% 20%;
+
 
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
@@ -44,20 +46,23 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables */
-  --btn-primary-lg-bg: var(--lg-green-dark-2); /* hsl(163, 100%, 20%) */
+  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2)); /* hsl(163, 100%, 20%) */
   --btn-primary-lg-fg: hsl(0 0% 100%);
-  --btn-primary-lg-border: var(--lg-green-dark-2);
+  --btn-primary-lg-border: hsl(var(--lg-green-dark-2));
+
+  --btn-primary-lg-icon-hsl: var(--lg-green-light-2); /* raw HSL values */
 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
   --btn-primary-lg-hover-fg: hsl(0 0% 100%);
   --btn-primary-lg-hover-border: hsl(162 100% 17%);
 
-  --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; /* Light blue HSL values for debug */
-  --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl)); /* Debug: standard shadow shape */
-  
-  --btn-primary-lg-focus-ring: hsl(220 80% 70%);
-  --btn-primary-lg-focus-bg: hsl(220 70% 55%);
-  --btn-primary-lg-focus-fg: hsl(0 0% 100%);
+  /* Debugging: using a distinct color for hover shadow in light theme */
+  --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; /* Light blue HSL values for visibility */
+  --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl)); /* conventional shadow */
+
+
+  --btn-primary-lg-focus-ring-hsl: 153 88% 70%; /* Light green */
+  --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl)); /* Full HSL string */
 }
 
 .dark {
@@ -94,22 +99,22 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables - Dark Mode */
-  /* --btn-primary-lg-bg: hsl(220 60% 55%); */
-  /* --btn-primary-lg-fg: hsl(0 0% 95%); */
-  --btn-primary-lg-border: var(--lg-green-base);
+  --btn-primary-lg-bg: hsl(var(--lg-green-base)); /* Lighter green for dark mode */
+  --btn-primary-lg-fg: hsl(0 0% 100%);
+  --btn-primary-lg-border: hsl(var(--lg-green-base));
 
-  /* --btn-primary-lg-hover-bg: hsl(220 60% 65%); */
-  /* --btn-primary-lg-hover-fg: hsl(0 0% 95%); */
-  --btn-primary-lg-hover-border: var(--lg-green-base);
+  --btn-primary-lg-icon-hsl: var(--lg-green-light-1); /* raw HSL values */
 
-  --btn-primary-lg-hover-shadow-hsl: 220 30% 20%; /* Raw HSL values for the shadow color */
-  --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-primary-lg-hover-shadow-hsl), 0.5); /* Drop shadow for dark mode */
+  --btn-primary-lg-hover-bg: hsl(var(--lg-green-dark-1));
+  --btn-primary-lg-hover-fg: hsl(0 0% 100%);
+  --btn-primary-lg-hover-border: hsl(var(--lg-green-dark-1));
 
-  --btn-primary-lg-focus-ring: hsl(220 70% 75%);
-  --btn-primary-lg-focus-bg: hsl(220 60% 60%);
-  --btn-primary-lg-focus-fg: hsl(0 0% 95%);
+  --btn-primary-lg-hover-shadow-hsl: 163 100% 20%; /* Dark Green for dark mode shadow */
+  --btn-primary-lg-hover-shadow: 0 0 0 3px hsla(var(--btn-primary-lg-hover-shadow-hsl), 0.7);
+
+  --btn-primary-lg-focus-ring-hsl: 159 85% 87%; /* Lighter Green */
+  --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl)); /* Full HSL string */
 }
-
 
 /* Styles for AG Charts theme - Ensure these are compatible with ShadCN theme */
 /* Using default AG Charts themes and letting ShadCN variables influence them where possible */

@@ -588,8 +588,7 @@ export default function Home() {
                     className={cn(
                         "w-full",
                         "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border border-[var(--btn-primary-lg-border)]",
-                        "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:shadow-[var(--btn-primary-lg-hover-shadow)] hover:border-[var(--btn-primary-lg-hover-border)]",
-                        "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-primary-lg-focus-ring)]"
+                        "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:border-[var(--btn-primary-lg-hover-border)]",
                       )}
                   >
                     <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
