@@ -4,9 +4,9 @@
 @tailwind utilities;
 
 :root {
-  /* Leafy Green palette - REMOVED as per previous request, using ShadCN defaults now */
-  /* --lg-green-dark-1: 154, 100%, 32%; */
-  /* --lg-green-dark-2: 163, 100%, 20%; */
+  /* Leafy Green palette - Keep this for now */
+  --lg-green-dark-1: 154, 100%, 32%;
+  --lg-green-dark-2: 163, 100%, 20%;
 
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
@@ -44,17 +44,17 @@
   --sidebar-border: hsl(var(--border));
   
   /* Custom Button Styling Foundation Variables */
-  --btn-custom-bg-hsl: 220 70% 50%; /* Example: A nice blue */
-  --btn-custom-fg-hsl: 0 0% 100%;   /* Example: White text */
+  --btn-lg-bg-hsl: var(--lg-green-dark-2); /* CORRECTED: Stores HSL values "163, 100%, 20%" */
+  --btn-lg-fg-hsl: 0 0% 100%;   /* Example: White text - stores HSL values */
   
-  --btn-custom-hover-bg-hsl: 220 70% 60%;
-  --btn-custom-hover-fg-hsl: 0 0% 100%;
-  --btn-custom-hover-shadow-hsl: 220 40% 30%; /* For shadow color */
-  --btn-custom-hover-shadow: 0 4px 10px -2px hsla(var(--btn-custom-hover-shadow-hsl), 0.4);
+  --btn-lg-hover-bg-hsl: 220 70% 60%; /* Stores HSL values */
+  --btn-lg-hover-fg-hsl: 0 0% 100%; /* Stores HSL values */
+  --btn-lg-hover-shadow-hsl: 220 40% 30%; /* For shadow color - stores HSL values */
+  --btn-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-lg-hover-shadow-hsl), 0.4); /* CORRECTED typo */
 
-  --btn-custom-focus-ring-hsl: 220 80% 70%;
-  --btn-custom-focus-bg-hsl: 220 70% 55%; /* Optional: if background changes on focus */
-  --btn-custom-focus-fg-hsl: 0 0% 100%;   /* Optional: if foreground changes on focus */
+  --btn-lg-focus-ring-hsl: 220 80% 70%; /* Stores HSL values */
+  --btn-lg-focus-bg-hsl: 220 70% 55%; /* Optional: if background changes on focus - stores HSL values */
+  --btn-lg-focus-fg-hsl: 0 0% 100%;   /* Optional: if foreground changes on focus - stores HSL values */
 }
 
 .dark {
@@ -92,17 +92,17 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Button Styling Foundation Variables - Dark Mode */
-  --btn-custom-bg-hsl: 220 60% 55%;
-  --btn-custom-fg-hsl: 0 0% 95%;
+  --btn-lg-bg-hsl: 220 60% 55%; /* Stores HSL values */
+  --btn-lg-fg-hsl: 0 0% 95%; /* Stores HSL values */
   
-  --btn-custom-hover-bg-hsl: 220 60% 65%;
-  --btn-custom-hover-fg-hsl: 0 0% 95%;
-  --btn-custom-hover-shadow-hsl: 220 30% 20%;
-  --btn-custom-hover-shadow: 0 4px 10px -2px hsla(var(--btn-custom-hover-shadow-hsl), 0.5);
+  --btn-lg-hover-bg-hsl: 220 60% 65%; /* Stores HSL values */
+  --btn-lg-hover-fg-hsl: 0 0% 95%; /* Stores HSL values */
+  --btn-lg-hover-shadow-hsl: 220 30% 20%; /* Stores HSL values */
+  --btn-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-lg-hover-shadow-hsl), 0.5);
 
-  --btn-custom-focus-ring-hsl: 220 70% 75%;
-  --btn-custom-focus-bg-hsl: 220 60% 60%;
-  --btn-custom-focus-fg-hsl: 0 0% 95%;
+  --btn-lg-focus-ring-hsl: 220 70% 75%; /* Stores HSL values */
+  --btn-lg-focus-bg-hsl: 220 60% 60%; /* Stores HSL values */
+  --btn-lg-focus-fg-hsl: 0 0% 95%; /* Stores HSL values */
 }
 
 
@@ -164,3 +164,4 @@ body {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
+
