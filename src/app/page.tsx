@@ -38,7 +38,7 @@ interface FieldDefinition {
 const getFieldTypeIcon = (type: string) => {
   switch (type.toLowerCase()) {
     case 'string':
-      return <Type className="h-4 w-4 text-muted-foreground" />;
+      return <Type className="h-4 w-4 text-muted-foreground" />; // Changed to Type icon
     case 'number':
       return <Hash className="h-4 w-4 text-muted-foreground" />;
     case 'date':
@@ -46,11 +46,11 @@ const getFieldTypeIcon = (type: string) => {
     case 'boolean':
       return <ToggleLeft className="h-4 w-4 text-muted-foreground" />;
     case 'object':
-      return <Container className="h-4 w-4 text-muted-foreground" />;
+      return <Brackets className="h-4 w-4 text-muted-foreground" />; // Changed to Brackets icon
     case 'array':
-      return <Brackets className="h-4 w-4 text-muted-foreground" />;
+      return <Brackets className="h-4 w-4 text-muted-foreground" />; // Using Brackets for array as well
     default:
-      return <FileText className="h-4 w-4 text-muted-foreground" />; // Default for unknown or simple string if not 'Type'
+      return <FileText className="h-4 w-4 text-muted-foreground" />; 
   }
 };
 
@@ -785,7 +785,7 @@ export default function Home() {
                     ) : (
                       <div className="flex flex-col items-center justify-center h-[150px] text-center">
                          <FileText className="h-8 w-8 text-muted-foreground mb-2" data-ai-hint="document icon" />
-                        <p className="text-sm text-muted-foreground">Select fields or connect data to see a preview.</p>
+                        <p className="text-sm text-muted-foreground">Connect data and select fields to see a preview.</p>
                       </div>
                     )}
                   </div>
@@ -913,3 +913,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

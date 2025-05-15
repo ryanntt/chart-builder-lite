@@ -227,24 +227,27 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           <TabsContent value="atlas" className="p-6 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="connectionString" className="text-muted-foreground">MongoDB Connection String</Label>
-              <Input 
-                id="connectionString" 
-                placeholder="mongodb+srv://<username>:<password>@<cluster-url>/..." 
-                value={connectionString}
-                onChange={(e) => setConnectionString(e.target.value)}
-                disabled={isFetchingDatabases || isFetchingCollections || isLoading}
-                className="border-border"
-              />
+              <div className="flex space-x-2 items-center">
+                <Input 
+                  id="connectionString" 
+                  placeholder="mongodb+srv://<username>:<password>@<cluster-url>/..." 
+                  value={connectionString}
+                  onChange={(e) => setConnectionString(e.target.value)}
+                  disabled={isFetchingDatabases || isFetchingCollections || isLoading}
+                  className="border-border flex-grow"
+                />
+                <Button 
+                  onClick={handleFetchDatabases} 
+                  variant={isFetchButtonDisabled ? "lgDisabled" : "lgPrimary"}
+                  disabled={isFetchButtonDisabled}
+                  className="flex-shrink-0"
+                >
+                  {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlugZap className="mr-2 h-4 w-4" />}
+                  Fetch
+                </Button>
+              </div>
             </div>
-            <Button 
-              onClick={handleFetchDatabases} 
-              variant={isFetchButtonDisabled ? "lgDisabled" : "lgPrimary"}
-              disabled={isFetchButtonDisabled} 
-              className="w-full"
-            >
-              {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" /> : <PlugZap className="mr-2 h-4 w-4" />}
-              Fetch Databases
-            </Button>
+            
 
             {error && <p className="text-sm text-destructive flex items-center"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>}
             
@@ -259,7 +262,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
               {!isFetchingDatabases && databases.length > 0 && !selectedDatabase && (
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Select a Database:</Label>
+                  <Label className="text-foreground font-medium">Select a Database:</Label>
                   <ScrollArea className="h-[240px] w-full rounded-md border border-border-secondary">
                     <div className="p-2">
                       {databases.map(dbName => (
@@ -281,9 +284,12 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
               {selectedDatabase && (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="mb-2 border-border">
-                    <ChevronLeft className="mr-1 h-4 w-4" /> Back to Databases
-                  </Button>
+                  <div className="flex justify-between items-center mb-2">
+                    <Label className="text-foreground font-medium">Select a Collection from {selectedDatabase}:</Label>
+                    <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="border-border h-auto py-1 px-2 text-xs">
+                      <ChevronLeft className="mr-1 h-3 w-3" /> Back to Databases
+                    </Button>
+                  </div>
                   {isFetchingCollections && (
                      <ScrollArea className="h-[200px] w-full rounded-md border border-border-secondary"> 
                         <div className="p-2">
@@ -293,7 +299,6 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   )}
                   {!isFetchingCollections && collections.length > 0 && (
                     <div className="space-y-2">
-                      <Label className="text-muted-foreground">Select a Collection from {selectedDatabase}:</Label>
                       <ScrollArea className="h-[200px] w-full rounded-md border border-border-secondary"> 
                         <div className="p-2">
                           {collections.map(colName => (
@@ -306,7 +311,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                             >
                               <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
                               {colName}
-                              {isLoading && selectedCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin text-primary" />}
+                              {isLoading && selectedCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
                             </Button>
                           ))}
                         </div>
@@ -328,3 +333,5 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     </Dialog>
   );
 }
+
+    
