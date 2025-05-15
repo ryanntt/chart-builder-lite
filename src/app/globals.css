@@ -34,9 +34,9 @@
   --chart-1: hsl(var(--primary));
   --chart-2: hsl(var(--secondary));
   /* --chart-3: hsl(var(--accent)); -- Reverted to use a distinct color for demonstration */
-  --chart-3: 160 70% 45%; /* A distinct teal/green for charts */
-  --chart-4: 180 50% 60%; /* teal-ish */
-  --chart-5: 300 70% 50%; /* magenta-ish */
+  --chart-3: hsl(160 70% 45%); /* A distinct teal/green for charts */
+  --chart-4: hsl(180 50% 60%); /* teal-ish */
+  --chart-5: hsl(300 70% 50%); /* magenta-ish */
 
   /* Sidebar specific colors (example) - these can use the base vars */
   --sidebar-background: hsl(var(--card)); /* Using card as default sidebar bg */
@@ -44,17 +44,17 @@
   --sidebar-border: hsl(var(--border));
   
   /* Custom Button Styling Foundation Variables */
-  --btn-lg-bg-hsl: var(--lg-green-dark-2); /* CORRECTED: Stores HSL values "163, 100%, 20%" */
-  --btn-lg-fg-hsl: 0 0% 100%;   /* Example: White text - stores HSL values */
+  --btn-lg-bg: hsl(var(--lg-green-dark-2)); /* Stores full hsl() string */
+  --btn-lg-fg: hsl(0 0% 100%);   /* Stores full hsl() string */
   
-  --btn-lg-hover-bg-hsl: 220 70% 60%; /* Stores HSL values */
-  --btn-lg-hover-fg-hsl: 0 0% 100%; /* Stores HSL values */
-  --btn-lg-hover-shadow-hsl: 220 40% 30%; /* For shadow color - stores HSL values */
-  --btn-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-lg-hover-shadow-hsl), 0.4); /* CORRECTED typo */
+  --btn-lg-hover-bg: hsl(220 70% 60%); /* Stores full hsl() string */
+  --btn-lg-hover-fg: hsl(0 0% 100%); /* Stores full hsl() string */
+  --btn-lg-hover-shadow-hsl: 220 40% 30%; /* For shadow color - stores HSL values for hsla() */
+  --btn-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-lg-hover-shadow-hsl), 0.4); 
 
-  --btn-lg-focus-ring-hsl: 220 80% 70%; /* Stores HSL values */
-  --btn-lg-focus-bg-hsl: 220 70% 55%; /* Optional: if background changes on focus - stores HSL values */
-  --btn-lg-focus-fg-hsl: 0 0% 100%;   /* Optional: if foreground changes on focus - stores HSL values */
+  --btn-lg-focus-ring: hsl(220 80% 70%); /* Stores full hsl() string */
+  --btn-lg-focus-bg: hsl(220 70% 55%); /* Stores full hsl() string */
+  --btn-lg-focus-fg: hsl(0 0% 100%);   /* Stores full hsl() string */
 }
 
 .dark {
@@ -82,9 +82,9 @@
   --chart-1: hsl(var(--primary));
   --chart-2: hsl(var(--secondary));
   /* --chart-3: hsl(var(--accent)); -- Reverted to use a distinct color for demonstration */
-  --chart-3: 160 60% 55%; /* Lighter teal/green for charts in dark mode */
-  --chart-4: 180 50% 70%; /* lighter teal-ish */
-  --chart-5: 300 70% 60%; /* lighter magenta-ish */
+  --chart-3: hsl(160 60% 55%); /* Lighter teal/green for charts in dark mode */
+  --chart-4: hsl(180 50% 70%); /* lighter teal-ish */
+  --chart-5: hsl(300 70% 60%); /* lighter magenta-ish */
 
   /* Sidebar specific colors (example) - dark theme adjustments */
   --sidebar-background: hsl(var(--card));
@@ -92,17 +92,17 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Button Styling Foundation Variables - Dark Mode */
-  --btn-lg-bg-hsl: 220 60% 55%; /* Stores HSL values */
-  --btn-lg-fg-hsl: 0 0% 95%; /* Stores HSL values */
+  --btn-lg-bg: hsl(220 60% 55%); /* Stores full hsl() string */
+  --btn-lg-fg: hsl(0 0% 95%); /* Stores full hsl() string */
   
-  --btn-lg-hover-bg-hsl: 220 60% 65%; /* Stores HSL values */
-  --btn-lg-hover-fg-hsl: 0 0% 95%; /* Stores HSL values */
-  --btn-lg-hover-shadow-hsl: 220 30% 20%; /* Stores HSL values */
+  --btn-lg-hover-bg: hsl(220 60% 65%); /* Stores full hsl() string */
+  --btn-lg-hover-fg: hsl(0 0% 95%); /* Stores full hsl() string */
+  --btn-lg-hover-shadow-hsl: 220 30% 20%; /* Stores HSL values for hsla() */
   --btn-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-lg-hover-shadow-hsl), 0.5);
 
-  --btn-lg-focus-ring-hsl: 220 70% 75%; /* Stores HSL values */
-  --btn-lg-focus-bg-hsl: 220 60% 60%; /* Stores HSL values */
-  --btn-lg-focus-fg-hsl: 0 0% 95%; /* Stores HSL values */
+  --btn-lg-focus-ring: hsl(220 70% 75%); /* Stores full hsl() string */
+  --btn-lg-focus-bg: hsl(220 60% 60%); /* Stores full hsl() string */
+  --btn-lg-focus-fg: hsl(0 0% 95%); /* Stores full hsl() string */
 }
 
 
