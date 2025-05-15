@@ -3,7 +3,6 @@
 
 import { MongoClient, ServerApiVersion, Collection, ObjectId } from 'mongodb';
 import type { Document } from 'mongodb';
-import sampleMflixMoviesData from '@/lib/sample-data/mflix-movies.json';
 
 interface AtlasActionResult<T> {
   success: boolean;
@@ -150,7 +149,7 @@ export async function fetchCollectionData(
       return { success: true, data: { jsonData: [], tableHeaders: [], rowCount: 0 } };
     }
 
-    const flattenedDocs = documents.map(doc => flattenDocument(doc));
+    const flattenedDocs = documents.map(doc => flattenDocument(doc as Document)); // Cast to Document
     
     const headersSet = new Set<string>();
     flattenedDocs.forEach(doc => {
@@ -183,100 +182,3 @@ export async function fetchCollectionData(
     }
   }
 }
-
-// --- Sample Data Actions ---
-
-export async function fetchSampleDatabases(): Promise<AtlasActionResult<string[]>> {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return { success: true, data: ['sample_mflix'] };
-}
-
-export async function fetchSampleCollections(dbName: string): Promise<AtlasActionResult<string[]>> {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  if (dbName === 'sample_mflix') {
-    return { success: true, data: ['movies'] }; // Only 'movies' collection for sample_mflix
-  }
-  return { success: false, error: `Sample database "${dbName}" not found.` };
-}
-
-// Helper to extract all dot-notation paths from a single object
-function extractObjectPaths(obj: any, prefix: string = '', paths: Set<string> = new Set()): void {
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const newPath = prefix ? `${prefix}.${key}` : key;
-      paths.add(newPath);
-      const value = obj[key];
-      if (typeof value === 'object' && value !== null && !(value instanceof Date) && !Array.isArray(value)) {
-        extractObjectPaths(value, newPath, paths);
-      } else if (Array.isArray(value)) {
-        // Add path for array itself
-        paths.add(newPath); 
-        // Optionally, if you want to access array elements by index like 'genres.0', 'genres.1'
-        // value.forEach((item, index) => {
-        //   const arrayElementPath = `${newPath}.${index}`;
-        //   paths.add(arrayElementPath);
-        //   if (typeof item === 'object' && item !== null) {
-        //     extractObjectPaths(item, arrayElementPath, paths);
-        //   }
-        // });
-      }
-    }
-  }
-}
-
-// Helper to extract all unique dot-notation paths from an array of objects
-function extractPathsFromData(data: any[]): string[] {
-  const allPaths = new Set<string>();
-  data.forEach(item => {
-    extractObjectPaths(item, '', allPaths);
-  });
-  return Array.from(allPaths).sort();
-}
-
-
-export async function fetchSampleCollectionData(
-  dbName: string,
-  collectionName: string
-): Promise<AtlasActionResult<FetchCollectionDataResult>> {
-  await new Promise(resolve => setTimeout(resolve, 700));
-
-  if (dbName === 'sample_mflix') {
-    if (collectionName === 'movies') {
-      // The imported data is already in the correct nested JSON format
-      const jsonData = sampleMflixMoviesData as any[]; 
-      const tableHeaders = extractPathsFromData(jsonData);
-      
-      // Convert BSON-like date and ObjectId formats to simpler types for frontend
-      const processedJsonData = jsonData.map(doc => {
-        const newDoc = { ...doc };
-        if (newDoc._id && newDoc._id.$oid) {
-          newDoc._id = newDoc._id.$oid;
-        }
-        if (newDoc.released && newDoc.released.$date && newDoc.released.$date.$numberLong) {
-          const dateVal = new Date(parseInt(newDoc.released.$date.$numberLong));
-          newDoc.released = isNaN(dateVal.getTime()) ? null : dateVal.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-        }
-        if (newDoc.tomatoes && newDoc.tomatoes.lastUpdated && newDoc.tomatoes.lastUpdated.$date && newDoc.tomatoes.lastUpdated.$date.$numberLong) {
-            const dateVal = new Date(parseInt(newDoc.tomatoes.lastUpdated.$date.$numberLong));
-            newDoc.tomatoes.lastUpdated = isNaN(dateVal.getTime()) ? null : dateVal.toISOString().split('T')[0];
-        }
-        // Add more conversions for other nested dates if necessary
-        return newDoc;
-      });
-
-      return {
-        success: true,
-        data: {
-          jsonData: processedJsonData,
-          tableHeaders,
-          rowCount: processedJsonData.length,
-        },
-      };
-    }
-    // Other sample_mflix collections (comments, theaters, users) are removed
-    return { success: false, error: `Sample collection "${collectionName}" in "${dbName}" not found or data not available.` };
-  }
-  return { success: false, error: `Sample database "${dbName}" not found.` };
-}
-
-    
