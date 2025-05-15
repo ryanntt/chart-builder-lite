@@ -10,9 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
-import { fetchDatabases, fetchCollections, fetchCollectionData, fetchSampleDatabases, fetchSampleCollections, fetchSampleCollectionData } from '@/actions/atlas';
+import { fetchDatabases, fetchCollections, fetchCollectionData, fetchSampleCollections, fetchSampleCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, CircleAlert, ChevronLeft, PlugZap, Database, Folder, BookOpen } from 'lucide-react';
+import { Loader2, UploadCloud, CircleAlert, ChevronLeft, PlugZap, Database, Folder } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataSourceModalProps {
@@ -41,17 +41,15 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   
   // Sample Data states
-  const [sampleDatabases, setSampleDatabases] = useState<string[]>([]);
-  const [selectedSampleDatabase, setSelectedSampleDatabase] = useState<string | null>(null);
   const [sampleCollections, setSampleCollections] = useState<string[]>([]);
   const [selectedSampleCollection, setSelectedSampleCollection] = useState<string | null>(null);
+  const [isFetchingSampleCollections, setIsFetchingSampleCollections] = useState(false);
+
 
   // Shared loading/error states
   const [isLoading, setIsLoading] = useState(false); 
   const [isFetchingDatabases, setIsFetchingDatabases] = useState(false);
   const [isFetchingCollections, setIsFetchingCollections] = useState(false);
-  const [isFetchingSampleDatabases, setIsFetchingSampleDatabases] = useState(false);
-  const [isFetchingSampleCollections, setIsFetchingSampleCollections] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
 
@@ -196,79 +194,44 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
   };
 
   // Sample Data specific handlers
-  const handleFetchSampleDatabases = async () => {
-    setIsFetchingSampleDatabases(true);
-    setError(null);
-    setSampleDatabases([]);
-    setSelectedSampleDatabase(null);
-    setSampleCollections([]);
-    setSelectedSampleCollection(null);
-
-    const result = await fetchSampleDatabases();
-    if (result.success && result.data) {
-      setSampleDatabases(result.data);
-    } else {
-      setError(result.error || "Failed to fetch sample databases.");
-      toast({ title: "Error", description: result.error || "Failed to fetch sample databases.", variant: "destructive" });
-    }
-    setIsFetchingSampleDatabases(false);
-  };
-
-  const handleSampleDatabaseSelect = async (dbName: string) => {
-    setSelectedSampleDatabase(dbName);
-    setIsFetchingSampleCollections(true);
-    setError(null);
-    setSampleCollections([]);
-    setSelectedSampleCollection(null);
-
-    const result = await fetchSampleCollections(dbName);
-    if (result.success && result.data) {
-      setSampleCollections(result.data);
-    } else {
-      setError(result.error || `Failed to fetch collections for sample database ${dbName}.`);
-      toast({ title: "Error", description: result.error || `Failed to fetch collections for ${dbName}.`, variant: "destructive" });
-    }
-    setIsFetchingSampleCollections(false);
-  };
-
-  const handleLoadSampleCollectionData = async (collectionName: string) => {
-    if (!selectedSampleDatabase) {
-        setError("Sample database not selected.");
-        return;
-    }
-    setSelectedSampleCollection(collectionName);
+  const handleLoadSpecificSampleCollectionData = async (dbName: string, collectionName: string) => {
+    setSelectedSampleCollection(collectionName); // To show loading on the correct item
     setIsLoading(true);
     setError(null);
 
-    const result = await fetchSampleCollectionData(selectedSampleDatabase, collectionName);
+    const result = await fetchSampleCollectionData(dbName, collectionName);
     if (result.success && result.data) {
         const { jsonData, tableHeaders, rowCount } = result.data;
-        onDataSourceConnected(jsonData, tableHeaders, `Sample: ${selectedSampleDatabase}.${collectionName}`, rowCount);
-        toast({ title: "Sample Data Loaded", description: `Data from ${selectedSampleDatabase}.${collectionName} loaded.`});
+        onDataSourceConnected(jsonData, tableHeaders, `Sample: ${dbName}.${collectionName}`, rowCount);
+        toast({ title: "Sample Data Loaded", description: `Data from ${dbName}.${collectionName} loaded.`});
         onOpenChange(false);
     } else {
         setError(result.error || `Failed to load data from sample collection ${collectionName}.`);
         toast({ title: "Error", description: result.error || `Failed to load data from ${collectionName}.`, variant: "destructive" });
     }
     setIsLoading(false);
-    setSelectedSampleCollection(null);
+    setSelectedSampleCollection(null); // Reset after loading
   };
   
-  const handleBackToSampleDatabases = () => {
-    setSelectedSampleDatabase(null);
-    setSampleCollections([]);
-    setSelectedSampleCollection(null);
-    setError(null);
-  };
-
-  // Effect to load sample databases when "Sample Data" tab is activated
+  // Effect to load sample collections (now only 'movies' for 'sample_mflix')
   useEffect(() => {
-    if (activeTab === 'sample' && sampleDatabases.length === 0 && !selectedSampleDatabase) {
-      handleFetchSampleDatabases();
+    if (activeTab === 'sample' && sampleCollections.length === 0 && !isLoading && !isFetchingSampleCollections) {
+      const fetchMflixCollections = async () => {
+        setIsFetchingSampleCollections(true);
+        setError(null);
+        const result = await fetchSampleCollections('sample_mflix'); // This will now return just ['movies']
+        if (result.success && result.data) {
+          setSampleCollections(result.data);
+        } else {
+          setError(result.error || `Failed to fetch sample collections.`);
+          toast({ title: "Error", description: result.error || `Failed to fetch sample collections.`, variant: "destructive" });
+        }
+        setIsFetchingSampleCollections(false);
+      };
+      fetchMflixCollections();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
-
+  }, [activeTab, isLoading, isFetchingSampleCollections]); // Removed sampleCollections.length as it would prevent re-fetch if it was empty due to an error
 
   const isFetchAtlasButtonDisabled = isFetchingDatabases || isFetchingCollections || isLoading || !connectionString;
 
@@ -413,32 +376,33 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           </TabsContent>
 
           <TabsContent value="sample" className="p-6 space-y-4">
-            <div className="min-h-[calc(240px+4rem)] max-h-[calc(300px+4rem)] overflow-y-auto"> {/* Adjusted height to match Atlas tab */}
+            <div className="min-h-[calc(240px+4rem)] max-h-[calc(300px+4rem)] overflow-y-auto">
               {error && activeTab === 'sample' && <p className="text-sm text-destructive flex items-center"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>}
               
-              {isFetchingSampleDatabases && (
+              {isFetchingSampleCollections && (
                 <ScrollArea className="h-[240px] w-full rounded-md border border-border-secondary">
                   <div className="p-2">
-                    {[...Array(3)].map((_, i) => <SkeletonListItem key={i} />)}
+                    {[...Array(1)].map((_, i) => <SkeletonListItem key={i} />)} {/* Show fewer skeletons as we expect only 'movies' */}
                   </div>
                 </ScrollArea>
               )}
 
-              {!isFetchingSampleDatabases && sampleDatabases.length > 0 && !selectedSampleDatabase && (
+              {!isFetchingSampleCollections && sampleCollections.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-foreground font-medium">Select a Sample Database:</Label>
+                  <Label className="text-foreground font-medium">Available Sample Datasets:</Label>
                   <ScrollArea className="h-[240px] w-full rounded-md border border-border-secondary">
                     <div className="p-2">
-                      {sampleDatabases.map(dbName => (
+                      {sampleCollections.map(colName => ( // colName should be 'movies'
                         <Button 
-                          key={dbName} 
+                          key={colName} 
                           variant="ghost" 
                           className="w-full justify-start mb-1 hover:bg-accent text-foreground"
-                          onClick={() => handleSampleDatabaseSelect(dbName)}
-                          disabled={isFetchingSampleCollections || isLoading}
+                          onClick={() => handleLoadSpecificSampleCollectionData('sample_mflix', colName)}
+                          disabled={isLoading && selectedSampleCollection === colName}
                         >
-                          <BookOpen className="mr-2 h-4 w-4 text-muted-foreground" />
-                          {dbName}
+                          <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
+                          {`sample_mflix.${colName}`}
+                          {isLoading && selectedSampleCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
                         </Button>
                       ))}
                     </div>
@@ -446,58 +410,17 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 </div>
               )}
 
-              {selectedSampleDatabase && (
-                <>
-                  <div className="flex justify-between items-center mb-2">
-                    <Label className="text-foreground font-medium">Select a Collection from {selectedSampleDatabase}:</Label>
-                    <Button variant="outline" size="sm" onClick={handleBackToSampleDatabases} disabled={isFetchingSampleCollections || isLoading} className="border-border h-auto py-1 px-2 text-xs">
-                      <ChevronLeft className="mr-1 h-3 w-3" /> Back to Sample Databases
-                    </Button>
-                  </div>
-                  {isFetchingSampleCollections && (
-                     <ScrollArea className="h-[200px] w-full rounded-md border border-border-secondary"> 
-                        <div className="p-2">
-                        {[...Array(3)].map((_, i) => <SkeletonListItem key={i} />)}
-                        </div>
-                    </ScrollArea>
-                  )}
-                  {!isFetchingSampleCollections && sampleCollections.length > 0 && (
-                    <div className="space-y-2">
-                      <ScrollArea className="h-[200px] w-full rounded-md border border-border-secondary"> 
-                        <div className="p-2">
-                          {sampleCollections.map(colName => (
-                            <Button 
-                              key={colName} 
-                              variant="ghost" 
-                              className="w-full justify-start mb-1 hover:bg-accent text-foreground"
-                              onClick={() => handleLoadSampleCollectionData(colName)}
-                              disabled={isLoading && selectedSampleCollection === colName}
-                            >
-                              <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
-                              {colName}
-                              {isLoading && selectedSampleCollection === colName && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
-                            </Button>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  )}
-                  {!isFetchingSampleCollections && sampleCollections.length === 0 && !error && (
-                     <p className="text-sm text-muted-foreground text-center py-4">No collections found in sample database {selectedSampleDatabase}.</p>
-                  )}
-                   {!isFetchingSampleCollections && sampleCollections.length === 0 && error && activeTab === 'sample' && (
-                     <p className="text-sm text-destructive flex items-center"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>
-                  )}
-                </>
+              {!isFetchingSampleCollections && sampleCollections.length === 0 && !error && activeTab === 'sample' && (
+                <p className="text-sm text-muted-foreground text-center py-4">No sample data available or failed to load. Try again if the tab was just opened.</p>
               )}
-              {!isFetchingSampleDatabases && sampleDatabases.length === 0 && !error && activeTab === 'sample' && (
-                <p className="text-sm text-muted-foreground text-center py-4">No sample databases available. Try refreshing.</p>
+               {!isFetchingSampleCollections && sampleCollections.length === 0 && error && activeTab === 'sample' && (
+                 <p className="text-sm text-destructive flex items-center justify-center py-4"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>
               )}
             </div>
           </TabsContent>
         </Tabs>
         <DialogFooter className="p-6 pt-0 border-t-0 border-t-border-secondary">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections || isFetchingSampleDatabases || isFetchingSampleCollections} className="border-border">Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections || isFetchingSampleCollections} className="border-border">Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

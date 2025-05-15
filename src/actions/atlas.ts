@@ -199,7 +199,7 @@ export async function fetchSampleDatabases(): Promise<AtlasActionResult<string[]
 export async function fetchSampleCollections(dbName: string): Promise<AtlasActionResult<string[]>> {
   await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
   if (dbName === 'sample_mflix') {
-    return { success: true, data: ['movies', 'comments', 'theaters', 'users'] };
+    return { success: true, data: ['movies'] }; // Only return 'movies' for now
   }
   return { success: false, error: `Sample database "${dbName}" not found.` };
 }
@@ -257,5 +257,3 @@ export async function fetchSampleCollectionData(
   }
   return { success: false, error: `Sample database "${dbName}" not found.` };
 }
-
-    
