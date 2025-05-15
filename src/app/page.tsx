@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
+import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe, GripVertical } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -229,7 +229,7 @@ export default function Home() {
               }
             }
           }
-        } else if (!isLastNamePart && !node.isParent) {
+        } else if (!isLastNamePart && !node.isParent) { // If node exists and it's not the last part, ensure it's marked as parent
             node.isParent = true;
             node.children = node.children || [];
             node.type = (index < parts.length -1 && /^\d+$/.test(parts[index+1])) ? 'array' : 'object';
@@ -312,7 +312,7 @@ export default function Home() {
         ? prev.filter(f => f !== fieldPath)
         : [...prev, fieldPath];
 
-      if (!newSelection.includes(fieldPath)) {
+      if (!newSelection.includes(fieldPath)) { // Field was just deselected
         if (currentXAxisField === fieldPath) setXAxisFieldInternal(null);
         if (currentYAxisField === fieldPath) setYAxisFieldInternal(null);
       }
@@ -336,10 +336,26 @@ export default function Home() {
         let currentX = currentXAxisField;
         let currentY = currentYAxisField;
 
-        if (currentX && currentY && currentX === currentY) {
-             setYAxisFieldInternal(null);
-             currentY = null;
+        // If X and Y are the same, and there are other options, clear Y or X.
+        if (currentX && currentY && currentX === currentY && selectedFields.length > 1) {
+             // Try to find a new Y first
+            const potentialNewY = selectedFields.find(f => f !== currentX && (headerTypes[f] === 'number' || headerTypes[f] === 'string' || headerTypes[f] === 'date'));
+            if (potentialNewY) {
+                setYAxisFieldInternal(potentialNewY);
+                currentY = potentialNewY;
+            } else {
+                // If no other Y, try to find new X
+                const potentialNewX = selectedFields.find(f => f !== currentY && (headerTypes[f] === 'string' || headerTypes[f] === 'date' || headerTypes[f] === 'number'));
+                 if (potentialNewX) {
+                    setXAxisFieldInternal(potentialNewX);
+                    currentX = potentialNewX;
+                } else { // If still no options, clear Y
+                    setYAxisFieldInternal(null);
+                    currentY = null;
+                }
+            }
         }
+
 
         if (currentX && !selectedFields.includes(currentX)) {
             currentX = null;
@@ -356,9 +372,7 @@ export default function Home() {
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
                 selectedFields.find(f => f !== currentY);
             if (potentialX) {
-                if (potentialX !== currentY) {
-                    setXAxisFieldInternal(potentialX);
-                } else if (selectedFields.length === 1) {
+                if (potentialX !== currentY || selectedFields.length === 1) {
                     setXAxisFieldInternal(potentialX);
                 }
             }
@@ -369,9 +383,7 @@ export default function Home() {
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) ||
                 selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array');
              if (potentialY) {
-                if (potentialY !== (currentX || currentXAxisField)) {
-                    setYAxisFieldInternal(potentialY);
-                } else if (selectedFields.length === 1) {
+                if (potentialY !== (currentX || currentXAxisField) || selectedFields.length === 1) {
                     setYAxisFieldInternal(potentialY);
                 }
             }
@@ -415,7 +427,7 @@ export default function Home() {
                  <Button
                     onClick={() => setIsModalOpen(true)}
                     variant="lgPrimary"
-                    className="w-full border border-[var(--btn-primary-lg-border)] hover:border-[var(--btn-primary-lg-hover-border)]"
+                    className="w-full"
                   >
                     <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
                 </Button>
@@ -455,8 +467,8 @@ export default function Home() {
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 mr-2" />
                      Data Preview
                  </AccordionPrimitiveTrigger>
-                <AccordionContent className="p-4 pt-0">
-                  <div className="min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y">
+                <AccordionContent className="p-4 pt-0 group relative">
+                  <div className="min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y group relative">
                     {jsonData.length > 0 ? (
                       <>
                         {selectedFields.length > 0 ? (
@@ -536,6 +548,9 @@ export default function Home() {
                         <p className="text-sm text-muted-foreground">Connect data and select fields to see a preview.</p>
                       </div>
                     )}
+                     {jsonData.length > 0 && (
+                        <GripVertical className="absolute bottom-1 left-1/2 -translate-x-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      )}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -578,3 +593,4 @@ export default function Home() {
   );
 }
 
+    
