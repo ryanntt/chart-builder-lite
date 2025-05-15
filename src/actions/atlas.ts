@@ -100,7 +100,11 @@ function flattenDocument(doc: Document, prefix: string = ''): Document {
       if (value instanceof ObjectId) {
         flattened[newKey] = value.toString();
       } else if (value instanceof Date) {
-        flattened[newKey] = value.toISOString();
+        if (isNaN(value.getTime())) { // Check if the date is valid
+          flattened[newKey] = null; // Represent invalid dates as null
+        } else {
+          flattened[newKey] = value.toISOString();
+        }
       } else if (Array.isArray(value)) {
         // For arrays, stringify them. Could also iterate and flatten if needed.
         flattened[newKey] = JSON.stringify(value);
@@ -199,25 +203,25 @@ export async function fetchSampleDatabases(): Promise<AtlasActionResult<string[]
 export async function fetchSampleCollections(dbName: string): Promise<AtlasActionResult<string[]>> {
   await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
   if (dbName === 'sample_mflix') {
-    return { success: true, data: ['movies'] }; // Only return 'movies' for now
+    return { success: true, data: ['movies', 'comments', 'theaters', 'users'] }; // Return multiple collections for sample_mflix
   }
   return { success: false, error: `Sample database "${dbName}" not found.` };
 }
 
 const sampleMflixMoviesData = [
-  { _id: "573a1390f29313caabcd4135", title: "Blacksmith Scene", year: 1893, runtime: 1, released: new Date("-2418528000000"), type: "movie", genres: ["Short"]},
-  { _id: "573a1390f29313caabcd42e8", title: "The Great Train Robbery", year: 1903, runtime: 11, released: new Date("-2082940800000"), type: "movie", genres: ["Short", "Western"]},
-  { _id: "573a1390f29313caabcd446f", title: "The Land Beyond the Sunset", year: 1912, runtime: 14, released: new Date("-1820908800000"), type: "movie", genres: ["Short", "Drama"]},
-  { _id: "573a1390f29313caabcd4803", title: "The Wonderful Wizard of Oz", year: 1910, runtime: 15, released: new Date("-1883952000000"), type: "movie", genres: ["Short", "Adventure", "Fantasy"]},
-  { _id: "573a1390f29313caabcd498c", title: "A Corner in Wheat", year: 1909, runtime: 14, released: new Date("-1902096000000"), type: "movie", genres: ["Short", "Drama"]},
+  { _id: new ObjectId("573a1390f29313caabcd4135"), title: "Blacksmith Scene", year: 1893, runtime: 1, released: new Date("-2418528000000"), type: "movie", genres: ["Short"]},
+  { _id: new ObjectId("573a1390f29313caabcd42e8"), title: "The Great Train Robbery", year: 1903, runtime: 11, released: new Date("-2082940800000"), type: "movie", genres: ["Short", "Western"]},
+  { _id: new ObjectId("573a1390f29313caabcd446f"), title: "The Land Beyond the Sunset", year: 1912, runtime: 14, released: new Date("-1820908800000"), type: "movie", genres: ["Short", "Drama"]},
+  { _id: new ObjectId("573a1390f29313caabcd4803"), title: "The Wonderful Wizard of Oz", year: 1910, runtime: 15, released: new Date("-1883952000000"), type: "movie", genres: ["Short", "Adventure", "Fantasy"]},
+  { _id: new ObjectId("573a1390f29313caabcd498c"), title: "A Corner in Wheat", year: 1909, runtime: 14, released: new Date("-1902096000000"), type: "movie", genres: ["Short", "Drama"]},
 ];
 const sampleMflixMoviesHeaders = ["_id", "title", "year", "runtime", "released", "type", "genres"];
 
 
 const sampleMflixCommentsData = [
-  { _id: "5a9427648b0beebeb69579e7", name: "Mercedes Tyler", email: "mercedes_tyler@fakegmail.com", movie_id: "573a1390f29313caabcd4135", text: "Eius veritatis vero facilis quaerat fuga temporibus. Praesentium natus illum nisi.", date: new Date("2012-03-26T04:33:30.000Z")},
-  { _id: "5a9427648b0beebeb69579e8", name: "John Doe", email: "john_doe@fakegmail.com", movie_id: "573a1390f29313caabcd42e8", text: "Accusantium quod error ut enim sequi consectetur. Minus ex ipsam commodi quas.", date: new Date("1999-08-15T15:02:00.000Z")},
-  { _id: "5a9427648b0beebeb69579e9", name: "Sophie Turner", email: "sophie_turner@fakegmail.com", movie_id: "573a1390f29313caabcd446f", text: "Maiores quasi itaque animi maxime excepturi. Necessitatibus labore ad ut ab. Quisquam quos commodi.", date: new Date("2001-05-10T03:17:13.000Z")},
+  { _id: new ObjectId("5a9427648b0beebeb69579e7"), name: "Mercedes Tyler", email: "mercedes_tyler@fakegmail.com", movie_id: new ObjectId("573a1390f29313caabcd4135"), text: "Eius veritatis vero facilis quaerat fuga temporibus. Praesentium natus illum nisi.", date: new Date("2012-03-26T04:33:30.000Z")},
+  { _id: new ObjectId("5a9427648b0beebeb69579e8"), name: "John Doe", email: "john_doe@fakegmail.com", movie_id: new ObjectId("573a1390f29313caabcd42e8"), text: "Accusantium quod error ut enim sequi consectetur. Minus ex ipsam commodi quas.", date: new Date("1999-08-15T15:02:00.000Z")},
+  { _id: new ObjectId("5a9427648b0beebeb69579e9"), name: "Sophie Turner", email: "sophie_turner@fakegmail.com", movie_id: new ObjectId("573a1390f29313caabcd446f"), text: "Maiores quasi itaque animi maxime excepturi. Necessitatibus labore ad ut ab. Quisquam quos commodi.", date: new Date("2001-05-10T03:17:13.000Z")},
 ];
 const sampleMflixCommentsHeaders = ["_id", "name", "email", "movie_id", "text", "date"];
 
@@ -230,7 +234,7 @@ export async function fetchSampleCollectionData(
 
   if (dbName === 'sample_mflix') {
     if (collectionName === 'movies') {
-      const jsonData = sampleMflixMoviesData.map(doc => flattenDocument(doc));
+      const jsonData = sampleMflixMoviesData.map(doc => flattenDocument(doc as Document));
       return {
         success: true,
         data: {
@@ -240,7 +244,7 @@ export async function fetchSampleCollectionData(
         },
       };
     } else if (collectionName === 'comments') {
-       const jsonData = sampleMflixCommentsData.map(doc => flattenDocument(doc));
+       const jsonData = sampleMflixCommentsData.map(doc => flattenDocument(doc as Document));
       return {
         success: true,
         data: {
