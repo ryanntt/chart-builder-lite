@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe, GripVertical } from "lucide-react";
+import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -467,8 +467,8 @@ export default function Home() {
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 mr-2" />
                      Data Preview
                  </AccordionPrimitiveTrigger>
-                <AccordionContent className="p-4 pt-0 group relative">
-                  <div className="min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y group relative">
+                <AccordionContent className="p-4 pt-0">
+                  <div className="min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y">
                     {jsonData.length > 0 ? (
                       <>
                         {selectedFields.length > 0 ? (
@@ -548,9 +548,6 @@ export default function Home() {
                         <p className="text-sm text-muted-foreground">Connect data and select fields to see a preview.</p>
                       </div>
                     )}
-                     {jsonData.length > 0 && (
-                        <GripVertical className="absolute bottom-1 left-1/2 -translate-x-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                      )}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -592,5 +589,7 @@ export default function Home() {
     </div>
   );
 }
+
+    
 
     
