@@ -580,7 +580,15 @@ export default function Home() {
             ) : (
               <>
                 <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
-                 <Button onClick={() => setIsModalOpen(true)} className="w-full" variant="outline">
+                 <Button 
+                    onClick={() => setIsModalOpen(true)} 
+                    className={cn(
+                        "w-full",
+                        "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)]",
+                        "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:shadow-[var(--btn-primary-lg-hover-shadow)]",
+                        "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-primary-lg-focus-ring)]"
+                      )}
+                  >
                     <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">Upload a CSV or connect to Atlas.</p>
