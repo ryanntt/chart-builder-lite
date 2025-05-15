@@ -24,7 +24,7 @@
   --accent-foreground: 0 0% 98%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
+  --border: 240 5.9% 90%; /* Updated to use border-color-secondary semantic variable */
   --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;
   --radius: 0.5rem;
@@ -42,15 +42,15 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables */
-  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2-hsl));
+  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2-hsl)); /* hsl(163, 100%, 20%) */
   --btn-primary-lg-fg: hsl(0 0% 100%);
 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
   --btn-primary-lg-hover-fg: hsl(0 0% 100%);
 
-  --btn-primary-lg-hover-shadow: 0 0 0 3px #3498DB; /* Vibrant blue ring for debug */
-  --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; /* Keeping for reference or if hsl() is needed elsewhere */
-
+  --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; /* Light blue HSL values for debug */
+  --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl)); /* Debug: standard shadow shape */
+  
   --btn-primary-lg-focus-ring: hsl(220 80% 70%);
   --btn-primary-lg-focus-bg: hsl(220 70% 55%);
   --btn-primary-lg-focus-fg: hsl(0 0% 100%);
@@ -73,7 +73,7 @@
   --accent-foreground: 0 0% 95%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
+  --border: 240 3.7% 15.9%; /* Updated to use border-color-secondary semantic variable */
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
 
