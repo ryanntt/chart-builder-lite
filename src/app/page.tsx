@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card"; // Added Card and CardContent
+import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { DataSourceModal } from '@/components/data-source-modal';
 import { ChartVisualization } from '@/components/chart-visualization';
@@ -25,9 +25,9 @@ const ReactJson = dynamic(() => import('react-json-view'), {
 
 
 interface FieldDefinition {
-  key: string; 
-  name: string; 
-  path: string; 
+  key: string;
+  name: string;
+  path: string;
   type: 'string' | 'number' | 'boolean' | 'date' | 'object' | 'array' | 'geojson-coordinates' | 'unknown';
   isParent: boolean;
   children?: FieldDefinition[];
@@ -46,16 +46,16 @@ const getFieldTypeIcon = (type: string) => {
     case 'object':
       return <Brackets className="h-4 w-4 text-muted-foreground" />;
     case 'array':
-      return <Brackets className="h-4 w-4 text-muted-foreground" />; 
+      return <Brackets className="h-4 w-4 text-muted-foreground" />;
     case 'geojson-coordinates':
       return <Globe className="h-4 w-4 text-muted-foreground" />;
     default:
-      return <FileText className="h-4 w-4 text-muted-foreground" />; 
+      return <FileText className="h-4 w-4 text-muted-foreground" />;
   }
 };
 
 const AppHeader = () => (
-  <header className="sticky top-0 z-40 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+  <header className="sticky top-0 z-40 w-full border-b border-border-secondary bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
     <div className="mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
         <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
@@ -95,7 +95,7 @@ const RenderFieldItem: React.FC<{
   if (field.isParent) {
     return (
       <div style={{ paddingLeft: `${depth * 1.5}rem` }}>
-        <div 
+        <div
           className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-accent transition-colors cursor-pointer"
           onClick={() => onToggleExpand(field.path)}
         >
@@ -135,8 +135,8 @@ const RenderFieldItem: React.FC<{
   }
 
   return (
-    <div 
-      key={field.key} 
+    <div
+      key={field.key}
       className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-accent transition-colors"
       style={{ paddingLeft: `${depth * 1.5}rem` }}
     >
@@ -166,7 +166,7 @@ export default function Home() {
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [headerTypes, setHeaderTypes] = useState<Record<string, string>>({});
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  
+
   const [chartType, setChartType] = useState<string>('bar');
   const [currentXAxisField, setXAxisFieldInternal] = useState<string | null>(null);
   const [currentYAxisField, setYAxisFieldInternal] = useState<string | null>(null);
@@ -190,26 +190,26 @@ export default function Home() {
       return newSet;
     });
   };
-  
+
   const buildFieldTree = (flatHeaders: string[], types: Record<string, string>): FieldDefinition[] => {
     const tree: FieldDefinition[] = [];
     const map: Record<string, FieldDefinition> = {};
-  
-    flatHeaders.sort().forEach(fullPath => { 
+
+    flatHeaders.sort().forEach(fullPath => {
       const parts = fullPath.split('.');
       let currentPathProcessed = '';
-  
+
       parts.forEach((part, index) => {
         const isLastNamePart = index === parts.length - 1;
         const parentPath = currentPathProcessed;
         currentPathProcessed = currentPathProcessed ? `${currentPathProcessed}.${part}` : part;
-  
+
         let node = map[currentPathProcessed];
-  
+
         if (!node) {
-          const fieldType = isLastNamePart ? (types[fullPath] || 'unknown') : 
+          const fieldType = isLastNamePart ? (types[fullPath] || 'unknown') :
                             ( (index < parts.length -1 && /^\d+$/.test(parts[index+1])) ? 'array' : 'object');
-          
+
           node = {
             key: currentPathProcessed,
             name: part,
@@ -219,7 +219,7 @@ export default function Home() {
             children: isLastNamePart ? undefined : [],
           };
           map[currentPathProcessed] = node;
-  
+
           if (index === 0) {
             tree.push(node);
           } else {
@@ -229,7 +229,7 @@ export default function Home() {
               }
             }
           }
-        } else if (!isLastNamePart && !node.isParent) { 
+        } else if (!isLastNamePart && !node.isParent) {
             node.isParent = true;
             node.children = node.children || [];
             node.type = (index < parts.length -1 && /^\d+$/.test(parts[index+1])) ? 'array' : 'object';
@@ -243,7 +243,7 @@ export default function Home() {
   const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, sampledRows: number, totalRows: number, sourceType: 'csv' | 'atlas') => {
     setDataSourceName(fileName);
     setDataSourceType(sourceType);
-    
+
     let countTextVal = "";
     if (totalRows > sampledRows) {
       countTextVal = `(sampled ${sampledRows} of ${totalRows} rows)`;
@@ -251,8 +251,8 @@ export default function Home() {
       countTextVal = `(${totalRows} rows)`;
     }
     setRowCountText(countTextVal);
-    
-    setTableHeaders(headers); 
+
+    setTableHeaders(headers);
 
     const types: Record<string, string> = {};
     if (data.length > 0) {
@@ -280,12 +280,12 @@ export default function Home() {
     }
     setHeaderTypes(types);
     setProcessedFieldStructure(buildFieldTree(headers, types));
-    setJsonData(data); 
-    setSelectedFields([]); 
+    setJsonData(data);
+    setSelectedFields([]);
     setXAxisFieldInternal(null);
     setYAxisFieldInternal(null);
-    setExpandedFields(new Set()); 
-    
+    setExpandedFields(new Set());
+
     let toastDescription = `${fileName}" are ready.`;
     if (totalRows > sampledRows) {
       toastDescription = `Sampled ${sampledRows} of ${totalRows} data rows from "${fileName}" are ready.`;
@@ -296,7 +296,7 @@ export default function Home() {
       title: "Data Source Connected!",
       description: toastDescription,
     });
-    setIsModalOpen(false); 
+    setIsModalOpen(false);
   };
 
 
@@ -312,7 +312,7 @@ export default function Home() {
         ? prev.filter(f => f !== fieldPath)
         : [...prev, fieldPath];
 
-      if (!newSelection.includes(fieldPath)) { 
+      if (!newSelection.includes(fieldPath)) {
         if (currentXAxisField === fieldPath) setXAxisFieldInternal(null);
         if (currentYAxisField === fieldPath) setYAxisFieldInternal(null);
       }
@@ -330,14 +330,14 @@ export default function Home() {
     }
     return undefined;
   };
-  
+
  useEffect(() => {
     if (jsonData.length > 0 && selectedFields.length > 0) {
         let currentX = currentXAxisField;
         let currentY = currentYAxisField;
 
         if (currentX && currentY && currentX === currentY) {
-             setYAxisFieldInternal(null); 
+             setYAxisFieldInternal(null);
              currentY = null;
         }
 
@@ -349,29 +349,29 @@ export default function Home() {
             currentY = null;
             setYAxisFieldInternal(null);
         }
-        
-        if (!currentX && (currentY || (!currentX && !currentY))) { 
-            const potentialX = 
-                selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) || 
-                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) || 
-                selectedFields.find(f => f !== currentY); 
+
+        if (!currentX && (currentY || (!currentX && !currentY))) {
+            const potentialX =
+                selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) ||
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
+                selectedFields.find(f => f !== currentY);
             if (potentialX) {
-                if (potentialX !== currentY) { 
+                if (potentialX !== currentY) {
                     setXAxisFieldInternal(potentialX);
-                } else if (selectedFields.length === 1) { 
+                } else if (selectedFields.length === 1) {
                     setXAxisFieldInternal(potentialX);
                 }
             }
         }
-        
-        if (!currentY && (currentX || (!currentX && !currentY && currentXAxisField))) { 
-            const potentialY = 
-                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) || 
-                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array'); 
+
+        if (!currentY && (currentX || (!currentX && !currentY && currentXAxisField))) {
+            const potentialY =
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) ||
+                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array');
              if (potentialY) {
-                if (potentialY !== (currentX || currentXAxisField)) { 
+                if (potentialY !== (currentX || currentXAxisField)) {
                     setYAxisFieldInternal(potentialY);
-                } else if (selectedFields.length === 1) { 
+                } else if (selectedFields.length === 1) {
                     setYAxisFieldInternal(potentialY);
                 }
             }
@@ -381,7 +381,7 @@ export default function Home() {
         setYAxisFieldInternal(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData.length, headerTypes]); 
+  }, [selectedFields, jsonData.length, headerTypes]);
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
@@ -393,10 +393,10 @@ export default function Home() {
               <>
                 <div className="flex items-center justify-between mb-1">
                   <h2 className="text-sm font-semibold text-foreground">Data Source</h2>
-                  <Button 
-                    onClick={() => setIsModalOpen(true)} 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    onClick={() => setIsModalOpen(true)}
+                    size="sm"
+                    variant="outline"
                     className="py-1 px-2 text-xs h-auto border-[var(--btn-primary-lg-border)] hover:border-[var(--btn-primary-lg-hover-border)]"
                   >
                     <DatabaseZap className="mr-1.5 h-3 w-3" /> Change
@@ -412,10 +412,10 @@ export default function Home() {
             ) : (
               <>
                 <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
-                 <Button 
-                    onClick={() => setIsModalOpen(true)} 
+                 <Button
+                    onClick={() => setIsModalOpen(true)}
                     variant="lgPrimary"
-                    className="w-full"
+                    className="w-full border border-[var(--btn-primary-lg-border)] hover:border-[var(--btn-primary-lg-hover-border)]"
                   >
                     <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
                 </Button>
@@ -448,15 +448,15 @@ export default function Home() {
         </div>
 
         <div className="flex-grow flex flex-col overflow-hidden bg-secondary">
-          <div className="bg-card"> 
+          <div className="bg-card">
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
-              <AccordionItem value="preview-accordion-item" className="border-b-0"> 
+              <AccordionItem value="preview-accordion-item" className="border-b-0">
                  <AccordionPrimitiveTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 mr-2" />
                      Data Preview
                  </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
-                  <div className="max-h-[250px] overflow-y-auto border border-border-secondary rounded-md bg-card">
+                  <div className="min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y">
                     {jsonData.length > 0 ? (
                       <>
                         {selectedFields.length > 0 ? (
@@ -483,11 +483,11 @@ export default function Home() {
                         ) : (
                           <>
                             {dataSourceType === 'atlas' ? (
-                              <div className="max-h-[250px] overflow-y-auto space-y-2 p-1">
+                              <div className="space-y-2 p-1">
                                 {jsonData.slice(0, 10).map((doc, index) => (
                                   <Card key={index} className="bg-card border-border-secondary">
                                     <CardContent className="p-2 font-mono text-xs">
-                                      <ReactJson 
+                                      <ReactJson
                                         src={doc}
                                         theme={resolvedTheme === 'dark' ? 'ocean' : 'rjv-default'}
                                         name={false}
@@ -542,7 +542,7 @@ export default function Home() {
             </Accordion>
           </div>
 
-          <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border-secondary"> 
+          <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border-secondary">
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
                  <AccordionPrimitiveTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
@@ -551,7 +551,7 @@ export default function Home() {
                   </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-2 flex flex-col flex-grow bg-card">
                   <ChartVisualization
-                    jsonData={jsonData} 
+                    jsonData={jsonData}
                     tableHeaders={tableHeaders}
                     headerTypes={headerTypes}
                     selectedFields={selectedFields}
@@ -569,7 +569,7 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <DataSourceModal 
+      <DataSourceModal
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         onDataSourceConnected={handleDataSourceConnected}
