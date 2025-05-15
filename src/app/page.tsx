@@ -380,22 +380,12 @@ export default function Home() {
                     <DatabaseZap className="mr-1.5 h-3 w-3" /> Change
                   </Button>
                 </div>
-                <p className="text-sm text-foreground truncate font-medium" title={dataSourceName}>
-                  {dataSourceName}
-                  {rowCountText && <span className="text-xs text-muted-foreground ml-1.5">{rowCountText}</span>}
-                </p>
-                 <Button
-                    className={cn(
-                      "w-auto mt-2 text-sm",
-                      "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border border-[var(--btn-primary-lg-border)]",
-                      "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)]",
-                      "focus-visible:ring-[var(--btn-primary-lg-focus-ring)]",
-                      "[&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]"
-                    )}
-                    onClick={() => {console.log("Custom Button Clicked!")}}
-                  >
-                    Custom Styled Button
-                </Button>
+                <div>
+                  <p className="text-sm text-foreground truncate font-medium" title={dataSourceName}>
+                    {dataSourceName}
+                  </p>
+                  {rowCountText && <p className="text-xs text-muted-foreground mt-0.5">{rowCountText}</p>}
+                </div>
               </>
             ) : (
               <>
@@ -438,7 +428,8 @@ export default function Home() {
           <div className="bg-card"> 
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0"> 
-                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border-secondary text-foreground">
+                 <AccordionPrimitiveTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
+                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 mr-2" />
                      Data Preview
                  </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
@@ -479,7 +470,8 @@ export default function Home() {
           <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border-secondary"> 
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b-0 border-b border-border-secondary text-foreground">
+                 <AccordionPrimitiveTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
+                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 mr-2" />
                      Visualization
                   </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-2 flex flex-col flex-grow bg-card">
@@ -509,3 +501,4 @@ export default function Home() {
     </div>
   );
 }
+
