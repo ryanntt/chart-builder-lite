@@ -21,7 +21,9 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         lgPrimary:
           "border bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border-[var(--btn-primary-lg-border)] hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]",
-        themedSystem: // Example of dark mode directly in CVA
+        lgDisabled:
+          "border bg-[var(--btn-primary-lg-disabled-bg)] text-[var(--btn-primary-lg-disabled-fg)] border-[var(--btn-primary-lg-disabled-border)] [&_svg]:text-[hsl(var(--btn-primary-lg-disabled-icon-hsl))] cursor-not-allowed opacity-100", // Ensure opacity is 100 if using this for visual disabled state
+        themedSystem: 
           "bg-neutral-200 text-neutral-900 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600",
       },
       size: {
@@ -59,3 +61,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
+
+    

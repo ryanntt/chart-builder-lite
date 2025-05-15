@@ -184,6 +184,8 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     setError(null);
   };
 
+  const isFetchButtonDisabled = isFetchingDatabases || isFetchingCollections || isLoading || !connectionString;
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -200,7 +202,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           
           <TabsContent value="upload" className="p-6">
             <div
-              className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-md cursor-pointer  transition-colors border-border-primary 
+              className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-md cursor-pointer  transition-colors border-border 
                 ${isDragging ? 'border-primary bg-accent/10' : 'bg-background hover:bg-accent/50'}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -212,7 +214,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   <span className="font-semibold">Click to browse</span> or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">CSV files only</p>
-                <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4 border-border-primary" disabled={isLoading}>
+                <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4 border-border" disabled={isLoading}>
                   {isLoading && activeTab === 'upload' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Browse File
                 </Button>
@@ -231,10 +233,15 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 value={connectionString}
                 onChange={(e) => setConnectionString(e.target.value)}
                 disabled={isFetchingDatabases || isFetchingCollections || isLoading}
-                className="border-border-primary"
+                className="border-border"
               />
             </div>
-            <Button onClick={handleFetchDatabases} disabled={isFetchingDatabases || isFetchingCollections || isLoading || !connectionString} className="w-full">
+            <Button 
+              onClick={handleFetchDatabases} 
+              variant={isFetchButtonDisabled ? "lgDisabled" : "lgPrimary"}
+              disabled={isFetchButtonDisabled} 
+              className="w-full"
+            >
               {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlugZap className="mr-2 h-4 w-4" />}
               Fetch Databases
             </Button>
@@ -274,7 +281,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
               {selectedDatabase && (
                 <>
-                  <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="mb-2 border-border-primary">
+                  <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="mb-2 border-border">
                     <ChevronLeft className="mr-1 h-4 w-4" /> Back to Databases
                   </Button>
                   {isFetchingCollections && (
@@ -315,9 +322,11 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           </TabsContent>
         </Tabs>
         <DialogFooter className="p-6 pt-0 border-t-0 border-t-border-secondary">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections} className="border-border-primary">Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections} className="border-border">Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
+    
