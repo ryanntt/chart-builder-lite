@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,8 +18,8 @@ import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { DataSourceModal } from '@/components/data-source-modal';
-import { ChartVisualization } from '@/components/chart-visualization'; // Import the new component
-import { cn } from "@/lib/utils";
+import { ChartVisualization } from '@/components/chart-visualization';
+import { cn, getNestedValue } from "@/lib/utils";
 
 interface FieldDefinition {
   key: string; 
@@ -43,7 +43,7 @@ const getFieldTypeIcon = (type: string) => {
     case 'object':
       return <Brackets className="h-4 w-4 text-muted-foreground" />;
     case 'array':
-      return <Brackets className="h-4 w-4 text-muted-foreground" />;
+      return <Brackets className="h-4 w-4 text-muted-foreground" />; // Using Brackets for array too
     default:
       return <FileText className="h-4 w-4 text-muted-foreground" />; 
   }
@@ -70,7 +70,7 @@ const RenderFieldItem: React.FC<{
   depth: number;
   currentXAxisField: string | null;
   currentYAxisField: string | null;
-  onDragStartAxis: (field: string, origin: 'x' | 'y') => void; // For dragging to axis
+  onDragStartAxis: (field: string, origin: 'x' | 'y') => void;
 }> = ({ field, selectedFields, onFieldSelect, expandedFields, onToggleExpand, depth, currentXAxisField, currentYAxisField, onDragStartAxis }) => {
   const isExpanded = expandedFields.has(field.path);
 
@@ -112,7 +112,6 @@ const RenderFieldItem: React.FC<{
     );
   }
 
-  // Leaf node
   return (
     <div 
       key={field.key} 
@@ -121,8 +120,7 @@ const RenderFieldItem: React.FC<{
       draggable={selectedFields.includes(field.path)}
       onDragStart={() => {
           if (selectedFields.includes(field.path)) {
-            // Determine if this field is currently an axis field to set origin correctly
-            const origin = currentXAxisField === field.path ? 'x' : (currentYAxisField === field.path ? 'y' : 'x');
+            const origin = currentXAxisField === field.path ? 'x' : (currentYAxisField === field.path ? 'y' : 'x'); // Default to 'x' if not an axis
             onDragStartAxis(field.path, origin);
           }
         }
@@ -150,6 +148,7 @@ const RenderFieldItem: React.FC<{
 export default function Home() {
   const [dataSourceName, setDataSourceName] = useState<string | null>(null);
   const [jsonData, setJsonData] = useState<any[]>([]);
+  // tableHeaders will store dot-notation paths
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [headerTypes, setHeaderTypes] = useState<Record<string, string>>({});
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
@@ -164,12 +163,10 @@ export default function Home() {
   const [processedFieldStructure, setProcessedFieldStructure] = useState<FieldDefinition[]>([]);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
 
-  // This state will be passed to ChartVisualization for its internal drag start
-  const [draggedAxisItem, setDraggedAxisItem] = useState<{ field: string; origin: 'x' | 'y' } | null>(null);
-
   const handleDragStartForAxis = (field: string, origin: 'x' | 'y') => {
     if (!selectedFields.includes(field)) return; 
-    setDraggedAxisItem({ field, origin });
+    // This state would be used by ChartVisualization if it handled its own drag starts from axis boxes
+    // For now, it's more for dragging from the Fields panel to the axis boxes in ChartVisualization
   };
 
 
@@ -185,47 +182,52 @@ export default function Home() {
     });
   };
   
+  // buildFieldTree expects flatHeaders (dot-notation) and infers structure
   const buildFieldTree = (flatHeaders: string[], types: Record<string, string>): FieldDefinition[] => {
     const tree: FieldDefinition[] = [];
     const map: Record<string, FieldDefinition> = {};
   
-    flatHeaders.forEach(fullPath => {
+    flatHeaders.sort().forEach(fullPath => { // Sort to ensure parent paths are processed first
       const parts = fullPath.split('.');
-      let currentPath = '';
+      let currentPathProcessed = '';
   
       parts.forEach((part, index) => {
         const isLastNamePart = index === parts.length - 1;
-        const oldPath = currentPath;
-        currentPath = currentPath ? `${currentPath}.${part}` : part;
+        const parentPath = currentPathProcessed;
+        currentPathProcessed = currentPathProcessed ? `${currentPathProcessed}.${part}` : part;
   
-        let node = map[currentPath];
+        let node = map[currentPathProcessed];
   
         if (!node) {
+          // For type, use the type of the full path if it's a leaf, otherwise infer object/array
           const fieldType = isLastNamePart ? (types[fullPath] || 'unknown') : 
-                            ( /^\d+$/.test(parts[index+1]) ? 'array' : 'object'); // Basic inference
+                            ( (index < parts.length -1 && /^\d+$/.test(parts[index+1])) ? 'array' : 'object');
           
           node = {
-            key: currentPath, // Use full path as key for uniqueness
+            key: currentPathProcessed,
             name: part,
-            path: currentPath, // Store full path
+            path: currentPathProcessed,
             type: fieldType as FieldDefinition['type'],
             isParent: !isLastNamePart,
             children: isLastNamePart ? undefined : [],
           };
-          map[currentPath] = node;
+          map[currentPathProcessed] = node;
   
-          if (index === 0) { // Root level
+          if (index === 0) {
             tree.push(node);
-          } else { // Nested level
-            const parentPath = oldPath;
+          } else {
             if (map[parentPath] && map[parentPath].children) {
-              map[parentPath].children!.push(node);
+              // Ensure no duplicate children
+              if (!map[parentPath].children!.find(child => child.path === currentPathProcessed)) {
+                 map[parentPath].children!.push(node);
+              }
             }
           }
-        } else if (!isLastNamePart && !node.children) { 
-            node.children = [];
+        } else if (!isLastNamePart && !node.isParent) { 
+            // If an existing leaf node is found to be a parent
             node.isParent = true;
-            node.type = /^\d+$/.test(parts[index+1]) ? 'array' : 'object';
+            node.children = node.children || [];
+            node.type = (index < parts.length -1 && /^\d+$/.test(parts[index+1])) ? 'array' : 'object';
         }
       });
     });
@@ -236,56 +238,62 @@ export default function Home() {
   const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, numRows: number) => {
     setDataSourceName(fileName);
     setRowCount(numRows);
-
-    setTableHeaders(headers); 
+    setTableHeaders(headers); // headers are expected to be dot-notation paths
 
     const types: Record<string, string> = {};
     if (data.length > 0) {
-      headers.forEach(header => {
-        const sampleValue = data[0][header];
+      const sampleRow = data[0];
+      headers.forEach(headerPath => {
+        const sampleValue = getNestedValue(sampleRow, headerPath);
         if (typeof sampleValue === 'number') {
-          types[header] = 'number';
+          types[headerPath] = 'number';
         } else if (typeof sampleValue === 'boolean') {
-          types[header] = 'boolean';
-        } else if (sampleValue instanceof Date || (typeof sampleValue === 'string' && !isNaN(new Date(sampleValue).getTime()))) {
-          if (sampleValue instanceof Date || (typeof sampleValue === 'string' && (/\d{4}-\d{2}-\d{2}/.test(sampleValue) || /\d{1,2}\/\d{1,2}\/\d{4}/.test(sampleValue)))) {
-            if (!isNaN(new Date(sampleValue).getTime())) { 
-              types[header] = 'date';
-            } else {
-              types[header] = 'string';
-            }
-          } else {
-            types[header] = 'string';
-          }
-        } else {
-          types[header] = 'string';
+          types[headerPath] = 'boolean';
+        } else if (sampleValue instanceof Date || (typeof sampleValue === 'string' && !isNaN(new Date(sampleValue).getTime()) && /\d{4}-\d{2}-\d{2}/.test(sampleValue))) {
+          types[headerPath] = 'date';
+        } else if (Array.isArray(sampleValue)){
+          types[headerPath] = 'array';
+        } else if (typeof sampleValue === 'object' && sampleValue !== null && !(sampleValue instanceof Date)){
+          types[headerPath] = 'object';
+        }
+        else {
+          types[headerPath] = 'string';
         }
       });
     }
     setHeaderTypes(types);
+    
+    // buildFieldTree will use the dot-notation headers to create the tree structure
     setProcessedFieldStructure(buildFieldTree(headers, types));
     
+    // jsonData remains nested
     const transformedData = data.map(row => {
       const newRow: any = {};
-      for (const header of headers) {
-        let value = row[header];
-        if (types[header] === 'date' && typeof value === 'string' && value !== null && value !== "") {
+      for (const headerPath of headers) {
+        let value = getNestedValue(row, headerPath); // Use original nested data for transformation
+        if (types[headerPath] === 'date' && typeof value === 'string' && value !== null && value !== "") {
           const dateValue = new Date(value);
-          newRow[header] = isNaN(dateValue.getTime()) ? value : dateValue; 
-        } else if (types[header] === 'number' && (value === "" || value === null) ) {
-          newRow[header] = null; 
-        }
-        else {
-          newRow[header] = value;
+          // Store date as Date object if valid, otherwise keep original string
+          newRow[headerPath] = isNaN(dateValue.getTime()) ? value : dateValue; 
+        } else if (types[headerPath] === 'number' && (value === "" || value === null) ) {
+          newRow[headerPath] = null; 
+        } else {
+           // For direct assignment, we need to reconstruct the nested structure if we were to modify it.
+           // However, for jsonData passed to chart, it's better to keep it as original nested `data`.
+           // The 'newRow' construction here is more for if we were creating a *new flat* structure for display.
+           // Since jsonData is now intended to be nested, this transformation might be simplified or rethought.
+           // For now, let's assume `data` is already the jsonData we want.
         }
       }
-      return newRow;
+      // return newRow; // This would create flat rows based on header paths
+      return row; // Return the original (potentially nested) row
     });
 
-    setJsonData(transformedData);
+    setJsonData(data); // Store the original (potentially nested) data
     setSelectedFields([]); 
     setXAxisFieldInternal(null);
     setYAxisFieldInternal(null);
+    setExpandedFields(new Set()); // Reset expanded fields
     
     toast({
       title: "Data Source Connected!",
@@ -296,6 +304,13 @@ export default function Home() {
 
 
   const handleFieldSelect = (fieldPath: string) => {
+    // Only leaf nodes (non-parents) should be selectable for the table/chart
+    const fieldDefinition = findFieldInTree(processedFieldStructure, fieldPath);
+    if (fieldDefinition && fieldDefinition.isParent) {
+      toast({ title: "Selection Info", description: "Parent fields cannot be directly selected for charting. Please select their child fields.", variant: "default"});
+      return;
+    }
+
     setSelectedFields(prev => {
       const newSelection = prev.includes(fieldPath)
         ? prev.filter(f => f !== fieldPath)
@@ -307,6 +322,17 @@ export default function Home() {
       }
       return newSelection;
     });
+  };
+
+  const findFieldInTree = (nodes: FieldDefinition[], path: string): FieldDefinition | undefined => {
+    for (const node of nodes) {
+      if (node.path === path) return node;
+      if (node.children) {
+        const found = findFieldInTree(node.children, path);
+        if (found) return found;
+      }
+    }
+    return undefined;
   };
   
  useEffect(() => {
@@ -336,10 +362,8 @@ export default function Home() {
             if (potentialX) {
                 if (potentialX !== currentY) { 
                     setXAxisFieldInternal(potentialX);
-                    currentX = potentialX; 
                 } else if (selectedFields.length === 1) { 
                     setXAxisFieldInternal(potentialX);
-                    currentX = potentialX;
                 }
             }
         }
@@ -347,7 +371,7 @@ export default function Home() {
         if (!currentY && (currentX || (!currentX && !currentY && currentXAxisField))) { 
             const potentialY = 
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) || 
-                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object');
+                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array'); // Exclude objects/arrays from auto Y
              if (potentialY) {
                 if (potentialY !== (currentX || currentXAxisField)) { 
                     setYAxisFieldInternal(potentialY);
@@ -366,11 +390,11 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border">
+      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border-secondary">
         {/* Left Sidebar: Data Source and Fields */}
-        <div className="w-[300px] flex-shrink-0 border-r border-border bg-card flex flex-col">
+        <div className="w-[300px] flex-shrink-0 border-r border-border-secondary bg-card flex flex-col">
           {/* Data Source Section */}
-          <div className="p-4 border-b border-border">
+          <div className="p-4 border-b border-border-secondary">
             {dataSourceName ? (
               <>
                 <div className="flex items-center justify-between mb-1">
@@ -418,7 +442,7 @@ export default function Home() {
                   depth={0}
                   currentXAxisField={currentXAxisField}
                   currentYAxisField={currentYAxisField}
-                  onDragStartAxis={handleDragStartForAxis} // Pass the drag start handler
+                  onDragStartAxis={handleDragStartForAxis}
                 />
               )) : (
                 <p className="text-sm text-muted-foreground p-2">Connect a data source to see fields.</p>
@@ -433,11 +457,11 @@ export default function Home() {
           <div className="bg-card"> 
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0"> 
-                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border text-foreground">
+                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border-secondary text-foreground">
                      Data Preview
                  </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
-                  <div className="max-h-[250px] overflow-y-auto border border-border rounded-md bg-card">
+                  <div className="max-h-[250px] overflow-y-auto border border-border-secondary rounded-md bg-card">
                     {selectedFields.length > 0 && jsonData.length > 0 ? (
                       <Table>
                         <TableHeader>
@@ -451,7 +475,9 @@ export default function Home() {
                           {jsonData.slice(0, 10).map((row, index) => (
                             <TableRow key={index}>
                               {selectedFields.map((header) => (
-                                <TableCell key={header} className="text-xs py-1 px-2 text-foreground">{String(row[header])}</TableCell>
+                                <TableCell key={header} className="text-xs py-1 px-2 text-foreground">
+                                  {String(getNestedValue(row, header))}
+                                </TableCell>
                               ))}
                             </TableRow>
                           ))}
@@ -470,15 +496,15 @@ export default function Home() {
           </div>
 
           {/* Visualization Section (Collapsible) */}
-          <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border"> 
+          <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border-secondary"> 
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b-0 border-b border-border text-foreground">
+                 <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b-0 border-b border-border-secondary text-foreground">
                      Visualization
                   </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-2 flex flex-col flex-grow bg-card">
                   <ChartVisualization
-                    jsonData={jsonData}
+                    jsonData={jsonData} // Pass nested jsonData
                     headerTypes={headerTypes}
                     selectedFields={selectedFields}
                     setSelectedFields={setSelectedFields}

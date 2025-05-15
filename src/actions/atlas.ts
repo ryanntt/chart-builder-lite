@@ -3,6 +3,7 @@
 
 import { MongoClient, ServerApiVersion, Collection, ObjectId } from 'mongodb';
 import type { Document } from 'mongodb';
+import sampleMflixMoviesData from '@/lib/sample-data/mflix-movies.json';
 
 interface AtlasActionResult<T> {
   success: boolean;
@@ -12,7 +13,6 @@ interface AtlasActionResult<T> {
 
 function sanitizeError(error: unknown): string {
   if (error instanceof Error) {
-    // Avoid exposing detailed internal error messages
     if (error.message.includes('authentication') || error.message.includes('credentials')) {
       return 'Authentication failed. Please check your connection string and credentials.';
     }
@@ -40,7 +40,7 @@ export async function fetchDatabases(connectionString: string): Promise<AtlasAct
     });
     await client.connect();
     const databases = await client.db().admin().listDatabases();
-    const dbNames = databases.databases.map(db => db.name).filter(name => !['admin', 'local', 'config'].includes(name)); // Filter out system DBs
+    const dbNames = databases.databases.map(db => db.name).filter(name => !['admin', 'local', 'config'].includes(name));
     console.log("Successfully fetched databases:", dbNames);
     return { success: true, data: dbNames };
   } catch (error) {
@@ -89,7 +89,7 @@ interface FetchCollectionDataResult {
     rowCount: number;
 }
 
-// Helper to flatten a document
+// Helper to flatten a document - still used for direct Atlas connections
 function flattenDocument(doc: Document, prefix: string = ''): Document {
   const flattened: Document = {};
   for (const key in doc) {
@@ -100,23 +100,19 @@ function flattenDocument(doc: Document, prefix: string = ''): Document {
       if (value instanceof ObjectId) {
         flattened[newKey] = value.toString();
       } else if (value instanceof Date) {
-        if (isNaN(value.getTime())) { // Check if the date is valid
-          flattened[newKey] = null; // Represent invalid dates as null
+        if (isNaN(value.getTime())) {
+          flattened[newKey] = null; 
         } else {
           flattened[newKey] = value.toISOString();
         }
       } else if (Array.isArray(value)) {
-        // For arrays, stringify them. Could also iterate and flatten if needed.
-        flattened[newKey] = JSON.stringify(value);
+        flattened[newKey] = JSON.stringify(value); // Simple stringify for arrays in flattened view
       } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value) && Object.keys(value).length > 0) {
-        // If it's a non-empty nested object (and not null, not Buffer), recurse
         Object.assign(flattened, flattenDocument(value, newKey));
       } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value) && Object.keys(value).length === 0) {
-        // Handle empty objects e.g. by stringifying or specific representation
         flattened[newKey] = '{}'; 
       }
       else {
-        // For primitives, Buffers, or null
         flattened[newKey] = Buffer.isBuffer(value) ? `[Buffer]` : value;
       }
     }
@@ -129,7 +125,7 @@ export async function fetchCollectionData(
     connectionString: string, 
     dbName: string, 
     collectionName: string,
-    limit: number = 100 // Default limit to 100 documents
+    limit: number = 100 
 ): Promise<AtlasActionResult<FetchCollectionDataResult>> {
   if (!connectionString || !dbName || !collectionName) {
     return { success: false, error: 'Connection string, database name, and collection name are required.' };
@@ -147,7 +143,6 @@ export async function fetchCollectionData(
     await client.connect();
     const collection: Collection<Document> = client.db(dbName).collection(collectionName);
     
-    // Fetch a sample of documents (e.g., the first 'limit' documents)
     const documents = await collection.find().limit(limit).toArray();
     console.log(`Successfully fetched ${documents.length} documents from ${dbName}.${collectionName}`);
 
@@ -155,17 +150,14 @@ export async function fetchCollectionData(
       return { success: true, data: { jsonData: [], tableHeaders: [], rowCount: 0 } };
     }
 
-    // Flatten documents and extract headers
     const flattenedDocs = documents.map(doc => flattenDocument(doc));
     
-    // Determine headers from all keys in flattened documents
     const headersSet = new Set<string>();
     flattenedDocs.forEach(doc => {
       Object.keys(doc).forEach(key => headersSet.add(key));
     });
     const tableHeaders = Array.from(headersSet);
 
-    // Ensure all jsonData rows have all headers, filling with null if a key is missing
     const jsonData = flattenedDocs.map(doc => {
         const row: any = {};
         tableHeaders.forEach(header => {
@@ -179,7 +171,7 @@ export async function fetchCollectionData(
         data: { 
             jsonData, 
             tableHeaders,
-            rowCount: documents.length // Or use collection.countDocuments() for total, but that's another call
+            rowCount: documents.length 
         } 
     };
   } catch (error) {
@@ -195,69 +187,96 @@ export async function fetchCollectionData(
 // --- Sample Data Actions ---
 
 export async function fetchSampleDatabases(): Promise<AtlasActionResult<string[]>> {
-  // Simulate fetching sample databases
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
   return { success: true, data: ['sample_mflix'] };
 }
 
 export async function fetchSampleCollections(dbName: string): Promise<AtlasActionResult<string[]>> {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
   if (dbName === 'sample_mflix') {
-    return { success: true, data: ['movies', 'comments', 'theaters', 'users'] }; // Return multiple collections for sample_mflix
+    return { success: true, data: ['movies'] }; // Only 'movies' collection for sample_mflix
   }
   return { success: false, error: `Sample database "${dbName}" not found.` };
 }
 
-const sampleMflixMoviesData = [
-  { _id: new ObjectId("573a1390f29313caabcd4135"), title: "Blacksmith Scene", year: 1893, runtime: 1, released: new Date("-2418528000000"), type: "movie", genres: ["Short"]},
-  { _id: new ObjectId("573a1390f29313caabcd42e8"), title: "The Great Train Robbery", year: 1903, runtime: 11, released: new Date("-2082940800000"), type: "movie", genres: ["Short", "Western"]},
-  { _id: new ObjectId("573a1390f29313caabcd446f"), title: "The Land Beyond the Sunset", year: 1912, runtime: 14, released: new Date("-1820908800000"), type: "movie", genres: ["Short", "Drama"]},
-  { _id: new ObjectId("573a1390f29313caabcd4803"), title: "The Wonderful Wizard of Oz", year: 1910, runtime: 15, released: new Date("-1883952000000"), type: "movie", genres: ["Short", "Adventure", "Fantasy"]},
-  { _id: new ObjectId("573a1390f29313caabcd498c"), title: "A Corner in Wheat", year: 1909, runtime: 14, released: new Date("-1902096000000"), type: "movie", genres: ["Short", "Drama"]},
-];
-const sampleMflixMoviesHeaders = ["_id", "title", "year", "runtime", "released", "type", "genres"];
+// Helper to extract all dot-notation paths from a single object
+function extractObjectPaths(obj: any, prefix: string = '', paths: Set<string> = new Set()): void {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const newPath = prefix ? `${prefix}.${key}` : key;
+      paths.add(newPath);
+      const value = obj[key];
+      if (typeof value === 'object' && value !== null && !(value instanceof Date) && !Array.isArray(value)) {
+        extractObjectPaths(value, newPath, paths);
+      } else if (Array.isArray(value)) {
+        // Add path for array itself
+        paths.add(newPath); 
+        // Optionally, if you want to access array elements by index like 'genres.0', 'genres.1'
+        // value.forEach((item, index) => {
+        //   const arrayElementPath = `${newPath}.${index}`;
+        //   paths.add(arrayElementPath);
+        //   if (typeof item === 'object' && item !== null) {
+        //     extractObjectPaths(item, arrayElementPath, paths);
+        //   }
+        // });
+      }
+    }
+  }
+}
 
-
-const sampleMflixCommentsData = [
-  { _id: new ObjectId("5a9427648b0beebeb69579e7"), name: "Mercedes Tyler", email: "mercedes_tyler@fakegmail.com", movie_id: new ObjectId("573a1390f29313caabcd4135"), text: "Eius veritatis vero facilis quaerat fuga temporibus. Praesentium natus illum nisi.", date: new Date("2012-03-26T04:33:30.000Z")},
-  { _id: new ObjectId("5a9427648b0beebeb69579e8"), name: "John Doe", email: "john_doe@fakegmail.com", movie_id: new ObjectId("573a1390f29313caabcd42e8"), text: "Accusantium quod error ut enim sequi consectetur. Minus ex ipsam commodi quas.", date: new Date("1999-08-15T15:02:00.000Z")},
-  { _id: new ObjectId("5a9427648b0beebeb69579e9"), name: "Sophie Turner", email: "sophie_turner@fakegmail.com", movie_id: new ObjectId("573a1390f29313caabcd446f"), text: "Maiores quasi itaque animi maxime excepturi. Necessitatibus labore ad ut ab. Quisquam quos commodi.", date: new Date("2001-05-10T03:17:13.000Z")},
-];
-const sampleMflixCommentsHeaders = ["_id", "name", "email", "movie_id", "text", "date"];
+// Helper to extract all unique dot-notation paths from an array of objects
+function extractPathsFromData(data: any[]): string[] {
+  const allPaths = new Set<string>();
+  data.forEach(item => {
+    extractObjectPaths(item, '', allPaths);
+  });
+  return Array.from(allPaths).sort();
+}
 
 
 export async function fetchSampleCollectionData(
   dbName: string,
   collectionName: string
 ): Promise<AtlasActionResult<FetchCollectionDataResult>> {
-  await new Promise(resolve => setTimeout(resolve, 700)); // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 700));
 
   if (dbName === 'sample_mflix') {
     if (collectionName === 'movies') {
-      const jsonData = sampleMflixMoviesData.map(doc => flattenDocument(doc as Document));
+      // The imported data is already in the correct nested JSON format
+      const jsonData = sampleMflixMoviesData as any[]; 
+      const tableHeaders = extractPathsFromData(jsonData);
+      
+      // Convert BSON-like date and ObjectId formats to simpler types for frontend
+      const processedJsonData = jsonData.map(doc => {
+        const newDoc = { ...doc };
+        if (newDoc._id && newDoc._id.$oid) {
+          newDoc._id = newDoc._id.$oid;
+        }
+        if (newDoc.released && newDoc.released.$date && newDoc.released.$date.$numberLong) {
+          const dateVal = new Date(parseInt(newDoc.released.$date.$numberLong));
+          newDoc.released = isNaN(dateVal.getTime()) ? null : dateVal.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        }
+        if (newDoc.tomatoes && newDoc.tomatoes.lastUpdated && newDoc.tomatoes.lastUpdated.$date && newDoc.tomatoes.lastUpdated.$date.$numberLong) {
+            const dateVal = new Date(parseInt(newDoc.tomatoes.lastUpdated.$date.$numberLong));
+            newDoc.tomatoes.lastUpdated = isNaN(dateVal.getTime()) ? null : dateVal.toISOString().split('T')[0];
+        }
+        // Add more conversions for other nested dates if necessary
+        return newDoc;
+      });
+
       return {
         success: true,
         data: {
-          jsonData,
-          tableHeaders: sampleMflixMoviesHeaders,
-          rowCount: sampleMflixMoviesData.length,
+          jsonData: processedJsonData,
+          tableHeaders,
+          rowCount: processedJsonData.length,
         },
       };
-    } else if (collectionName === 'comments') {
-       const jsonData = sampleMflixCommentsData.map(doc => flattenDocument(doc as Document));
-      return {
-        success: true,
-        data: {
-          jsonData,
-          tableHeaders: sampleMflixCommentsHeaders,
-          rowCount: sampleMflixCommentsData.length,
-        },
-      };
-    } else if (collectionName === 'theaters' || collectionName === 'users') {
-        // Simulate empty collections for these for now
-        return { success: true, data: { jsonData: [], tableHeaders: [], rowCount: 0 } };
     }
+    // Other sample_mflix collections (comments, theaters, users) are removed
     return { success: false, error: `Sample collection "${collectionName}" in "${dbName}" not found or data not available.` };
   }
   return { success: false, error: `Sample database "${dbName}" not found.` };
 }
+
+    

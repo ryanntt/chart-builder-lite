@@ -17,15 +17,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { XIcon, BarChart, Download, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { getNestedValue } from "@/lib/utils"; // Import the helper
 
 interface ChartVisualizationProps {
-  jsonData: any[];
-  headerTypes: Record<string, string>;
-  selectedFields: string[];
+  jsonData: any[]; // Expects potentially nested data
+  headerTypes: Record<string, string>; // Types for dot-notation paths
+  selectedFields: string[]; // Dot-notation paths
   setSelectedFields: React.Dispatch<React.SetStateAction<string[]>>;
-  currentXAxisField: string | null;
+  currentXAxisField: string | null; // Dot-notation path
   setXAxisField: (field: string | null) => void;
-  currentYAxisField: string | null;
+  currentYAxisField: string | null; // Dot-notation path
   setYAxisField: (field: string | null) => void;
   chartType: string;
   setChartType: (type: string) => void;
@@ -111,7 +112,7 @@ export function ChartVisualization({
         } else if (sourceField !== currentX) {
           setXAxisField(sourceField);
         }
-      } else {
+      } else { // target === 'y'
         if (sourceField === currentX) {
           setYAxisField(sourceField);
           setXAxisField(currentY);
@@ -119,13 +120,22 @@ export function ChartVisualization({
           setYAxisField(sourceField);
         }
       }
-      if (currentXAxisField === currentYAxisField && currentXAxisField !== null) {
-        if (target === 'x' && draggedItem.origin === 'y') {
-        } else if (target === 'y' && draggedItem.origin === 'x') {
-        } else if (target === 'x') {
-          setYAxisField(null);
-        } else {
-          setXAxisField(null);
+      // If X and Y become the same after a drop, clear one if not from a swap
+      if (target === 'x' && sourceField === currentYAxisField) {
+        // This was a swap, it's fine
+      } else if (target === 'y' && sourceField === currentXAxisField) {
+        // This was a swap, it's fine
+      } else if (target === 'x' && sourceField === currentXAxisField) {
+         // Dropped X on X, no change
+      } else if (target === 'y' && sourceField === currentYAxisField) {
+        // Dropped Y on Y, no change
+      } else {
+        // Check if X and Y are now the same after the drop
+        const newX = target === 'x' ? sourceField : currentXAxisField;
+        const newY = target === 'y' ? sourceField : currentYAxisField;
+        if (newX === newY && newX !== null) {
+            if (draggedItem.origin === 'x') setXAxisField(null);
+            else setYAxisField(null);
         }
       }
       setDraggedItem(null);
@@ -144,8 +154,9 @@ export function ChartVisualization({
     }
 
     let chartData = jsonData.map(row => ({
-      [currentXAxisField]: row[currentXAxisField],
-      [currentYAxisField]: row[currentYAxisField],
+      // Use getNestedValue to extract data for charting
+      [currentXAxisField]: getNestedValue(row, currentXAxisField),
+      [currentYAxisField]: getNestedValue(row, currentYAxisField),
     }));
 
     const xFieldType = headerTypes[currentXAxisField];
@@ -157,11 +168,16 @@ export function ChartVisualization({
 
     if ((chartType === 'bar' && (xFieldType === 'string' || xFieldType === 'date'))) {
       const valueCounts = chartData.reduce((acc, row) => {
-        const value = String(row[currentXAxisField]);
-        acc[value] = (acc[value] || 0) + (yFieldType === 'number' && typeof row[currentYAxisField] === 'number' ? Number(row[currentYAxisField]) : 1);
+        const xVal = String(row[currentXAxisField]);
+        const yVal = yFieldType === 'number' && typeof row[currentYAxisField] === 'number' ? Number(row[currentYAxisField]) : 1;
+        acc[xVal] = (acc[xVal] || 0) + yVal;
         return acc;
       }, {} as Record<string, number>);
-      const sortedUniqueValues = Object.entries(valueCounts).sort(([, valA], [, valB]) => valB - valA).map(([value]) => value);
+      
+      const sortedUniqueValues = Object.entries(valueCounts)
+        .sort(([, valA], [, valB]) => valB - valA)
+        .map(([value]) => value);
+
       if (sortedUniqueValues.length > 20) {
         const top20Values = new Set(sortedUniqueValues.slice(0, 20));
         chartData = chartData.filter(row => top20Values.has(String(row[currentXAxisField])));
@@ -169,17 +185,23 @@ export function ChartVisualization({
       }
     } else if ((chartType === 'horizontal-bar' && (yFieldType === 'string' || yFieldType === 'date'))) {
       const valueCounts = chartData.reduce((acc, row) => {
-        const value = String(row[currentYAxisField]);
-        acc[value] = (acc[value] || 0) + (xFieldType === 'number' && typeof row[currentXAxisField] === 'number' ? Number(row[currentXAxisField]) : 1);
+        const yVal = String(row[currentYAxisField]);
+        const xVal = xFieldType === 'number' && typeof row[currentXAxisField] === 'number' ? Number(row[currentXAxisField]) : 1;
+        acc[yVal] = (acc[yVal] || 0) + xVal;
         return acc;
       }, {} as Record<string, number>);
-      const sortedUniqueValues = Object.entries(valueCounts).sort(([, valA], [, valB]) => valB - valA).map(([value]) => value);
+
+      const sortedUniqueValues = Object.entries(valueCounts)
+        .sort(([, valA], [, valB]) => valB - valA)
+        .map(([value]) => value);
+      
       if (sortedUniqueValues.length > 20) {
         const top20Values = new Set(sortedUniqueValues.slice(0, 20));
         chartData = chartData.filter(row => top20Values.has(String(row[currentYAxisField])));
         toast({ title: "Data Filtered", description: `Y-axis field "${currentYAxisField}" displaying top 20 unique values by their aggregated X-axis values or frequency.` });
       }
     }
+
 
     if (chartData.length === 0) {
       toast({ title: "No Data After Filtering", description: "No data remains for the selected fields after filtering. Please check your selections or data.", variant: "destructive" });
@@ -225,7 +247,7 @@ export function ChartVisualization({
           setInternalChartOptions(null); setIsChartLoading(false); return;
         }
         series = [{ type: 'donut', angleKey: currentYAxisField, calloutLabelKey: currentXAxisField, legendItemKey: currentXAxisField }];
-        axes = [];
+        axes = []; // No axes for donut charts
         titleText = `Distribution of ${currentYAxisField} by ${currentXAxisField}`;
         break;
       default:
@@ -238,29 +260,31 @@ export function ChartVisualization({
       title: { text: titleText },
       series: series,
       axes: axes.length > 0 ? axes : undefined,
-      autoSize: false,
+      autoSize: false, // Important: disable autoSize when managing dimensions manually
     };
     setInternalChartOptions(newBaseChartOptions);
-    setChartRenderKey(prevKey => prevKey + 1);
+    setChartRenderKey(prevKey => prevKey + 1); // Force re-render of AgChartsReact
     setIsChartLoading(false);
     if (currentXAxisField && currentYAxisField && jsonData.length > 0 && selectedFields.length > 0) {
       toast({ title: "Visualization Updated!", description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.` });
     }
-  }, [chartType, currentXAxisField, currentYAxisField, jsonData, selectedFields, headerTypes]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartType, currentXAxisField, currentYAxisField, jsonData, selectedFields, headerTypes, resolvedTheme]); // Removed jsonData from direct deps, relying on fields changing
 
   useEffect(() => {
     if (currentXAxisField && currentYAxisField && jsonData.length > 0 && selectedFields.length > 0 && selectedFields.includes(currentXAxisField) && selectedFields.includes(currentYAxisField) && chartDimensions) {
       setIsChartLoading(true);
-      setIsChartApiReady(false);
+      setIsChartApiReady(false); // Reset API ready state
       const timer = setTimeout(() => {
         regenerateChartLogic();
-      }, 300);
+      }, 300); // Debounce regeneration
       return () => clearTimeout(timer);
     } else {
-      setInternalChartOptions(null);
+      setInternalChartOptions(null); // Clear chart if conditions aren't met
       setIsChartLoading(false);
     }
-  }, [chartType, currentXAxisField, currentYAxisField, jsonData, selectedFields, headerTypes, chartDimensions, regenerateChartLogic, resolvedTheme]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartType, currentXAxisField, currentYAxisField, jsonData.length, selectedFields, headerTypes, chartDimensions, resolvedTheme]); // jsonData.length to react to data presence
 
   useEffect(() => {
     if (!chartOptionsToRender) {
@@ -277,7 +301,7 @@ export function ChartVisualization({
     const chartWrapper = chartContainerRef.current;
     if (chartWrapper) {
       const canvas = chartWrapper.querySelector('canvas');
-      if (canvas && chartOptionsToRender && isChartApiReady) {
+      if (canvas && chartOptionsToRender && isChartApiReady) { // Check isChartApiReady
         const filename = sanitizeFilename(chartOptionsToRender.title?.text);
         try {
           const dataUrl = canvas.toDataURL('image/png');
@@ -303,7 +327,7 @@ export function ChartVisualization({
   const handleXAxisClear = () => {
     const fieldToDeselect = currentXAxisField;
     setXAxisField(null);
-    if (fieldToDeselect && currentYAxisField !== fieldToDeselect) {
+    if (fieldToDeselect && currentYAxisField !== fieldToDeselect) { // Only deselect if not also Y
       setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
     }
   };
@@ -311,11 +335,11 @@ export function ChartVisualization({
   const handleYAxisClear = () => {
     const fieldToDeselect = currentYAxisField;
     setYAxisField(null);
-    if (fieldToDeselect && currentXAxisField !== fieldToDeselect) {
-      setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
+    if (fieldToDeselect && currentXAxisField !== fieldToDeselect) { // Only deselect if not also X
+       setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
     }
   };
-
+  
   const getAxisLabel = (axisType: 'x' | 'y'): string => {
     const baseLabel = axisType === 'x' ? 'X-Axis' : 'Y-Axis';
     let types = '';
@@ -402,7 +426,7 @@ export function ChartVisualization({
       </div>
 
       {/* Chart Rendering Area */}
-      <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-card border border-border rounded-md">
+      <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-card border border-border-secondary rounded-md">
         {isChartLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-card/50 z-10 rounded-md">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -412,10 +436,10 @@ export function ChartVisualization({
           {(chartOptionsToRender && chartDimensions && chartDimensions.width > 0 && chartDimensions.height > 0) ? (
             <AgChartsReact
               options={chartOptionsToRender}
-              key={chartRenderKey}
+              key={chartRenderKey} // Key to force re-render when options change fundamentally
               onChartReady={(chart) => {
                 chartApiRef.current = chart;
-                setIsChartApiReady(true);
+                setIsChartApiReady(true); // Set chart API ready
               }}
             />
           ) : (
@@ -444,9 +468,9 @@ export function ChartVisualization({
          <Button
             variant="outline"
             size="sm"
-            className="h-8 rounded-md px-3 text-xs"
+            className="h-8 rounded-md px-3 text-xs border-border-secondary"
             onClick={handleDownloadChart}
-            disabled={!chartOptionsToRender || !isChartApiReady}
+            disabled={!chartOptionsToRender || !isChartApiReady} // Disable if chart not ready
             aria-label="Download chart"
             title="Download chart as PNG"
           >
