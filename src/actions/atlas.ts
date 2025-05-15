@@ -188,3 +188,74 @@ export async function fetchCollectionData(
   }
 }
 
+// --- Sample Data Actions ---
+
+export async function fetchSampleDatabases(): Promise<AtlasActionResult<string[]>> {
+  // Simulate fetching sample databases
+  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+  return { success: true, data: ['sample_mflix'] };
+}
+
+export async function fetchSampleCollections(dbName: string): Promise<AtlasActionResult<string[]>> {
+  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+  if (dbName === 'sample_mflix') {
+    return { success: true, data: ['movies', 'comments', 'theaters', 'users'] };
+  }
+  return { success: false, error: `Sample database "${dbName}" not found.` };
+}
+
+const sampleMflixMoviesData = [
+  { _id: "573a1390f29313caabcd4135", title: "Blacksmith Scene", year: 1893, runtime: 1, released: new Date("-2418528000000"), type: "movie", genres: ["Short"]},
+  { _id: "573a1390f29313caabcd42e8", title: "The Great Train Robbery", year: 1903, runtime: 11, released: new Date("-2082940800000"), type: "movie", genres: ["Short", "Western"]},
+  { _id: "573a1390f29313caabcd446f", title: "The Land Beyond the Sunset", year: 1912, runtime: 14, released: new Date("-1820908800000"), type: "movie", genres: ["Short", "Drama"]},
+  { _id: "573a1390f29313caabcd4803", title: "The Wonderful Wizard of Oz", year: 1910, runtime: 15, released: new Date("-1883952000000"), type: "movie", genres: ["Short", "Adventure", "Fantasy"]},
+  { _id: "573a1390f29313caabcd498c", title: "A Corner in Wheat", year: 1909, runtime: 14, released: new Date("-1902096000000"), type: "movie", genres: ["Short", "Drama"]},
+];
+const sampleMflixMoviesHeaders = ["_id", "title", "year", "runtime", "released", "type", "genres"];
+
+
+const sampleMflixCommentsData = [
+  { _id: "5a9427648b0beebeb69579e7", name: "Mercedes Tyler", email: "mercedes_tyler@fakegmail.com", movie_id: "573a1390f29313caabcd4135", text: "Eius veritatis vero facilis quaerat fuga temporibus. Praesentium natus illum nisi.", date: new Date("2012-03-26T04:33:30.000Z")},
+  { _id: "5a9427648b0beebeb69579e8", name: "John Doe", email: "john_doe@fakegmail.com", movie_id: "573a1390f29313caabcd42e8", text: "Accusantium quod error ut enim sequi consectetur. Minus ex ipsam commodi quas.", date: new Date("1999-08-15T15:02:00.000Z")},
+  { _id: "5a9427648b0beebeb69579e9", name: "Sophie Turner", email: "sophie_turner@fakegmail.com", movie_id: "573a1390f29313caabcd446f", text: "Maiores quasi itaque animi maxime excepturi. Necessitatibus labore ad ut ab. Quisquam quos commodi.", date: new Date("2001-05-10T03:17:13.000Z")},
+];
+const sampleMflixCommentsHeaders = ["_id", "name", "email", "movie_id", "text", "date"];
+
+
+export async function fetchSampleCollectionData(
+  dbName: string,
+  collectionName: string
+): Promise<AtlasActionResult<FetchCollectionDataResult>> {
+  await new Promise(resolve => setTimeout(resolve, 700)); // Simulate network delay
+
+  if (dbName === 'sample_mflix') {
+    if (collectionName === 'movies') {
+      const jsonData = sampleMflixMoviesData.map(doc => flattenDocument(doc));
+      return {
+        success: true,
+        data: {
+          jsonData,
+          tableHeaders: sampleMflixMoviesHeaders,
+          rowCount: sampleMflixMoviesData.length,
+        },
+      };
+    } else if (collectionName === 'comments') {
+       const jsonData = sampleMflixCommentsData.map(doc => flattenDocument(doc));
+      return {
+        success: true,
+        data: {
+          jsonData,
+          tableHeaders: sampleMflixCommentsHeaders,
+          rowCount: sampleMflixCommentsData.length,
+        },
+      };
+    } else if (collectionName === 'theaters' || collectionName === 'users') {
+        // Simulate empty collections for these for now
+        return { success: true, data: { jsonData: [], tableHeaders: [], rowCount: 0 } };
+    }
+    return { success: false, error: `Sample collection "${collectionName}" in "${dbName}" not found or data not available.` };
+  }
+  return { success: false, error: `Sample database "${dbName}" not found.` };
+}
+
+    
