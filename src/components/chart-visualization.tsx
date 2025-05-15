@@ -240,8 +240,6 @@ export function ChartVisualization({
             direction: 'horizontal', 
             xKey: currentXAxisField, 
             yKey: currentYAxisField,
-            // xName: currentXAxisField, // Removed for diagnostics
-            // yName: currentYAxisField  // Removed for diagnostics
         }];
         axes = [
           { type: 'number', position: 'bottom', title: { text: currentXAxisField } },
@@ -278,14 +276,18 @@ export function ChartVisualization({
         setInternalChartOptions(null); setIsChartLoading(false); return;
     }
 
-    const newBaseChartOptions: Omit<AgChartOptions, 'width' | 'height' | 'theme'> = {
+    const baseOptionsConfig: Omit<AgChartOptions, 'width' | 'height' | 'theme' | 'axes'> & { axes?: AgCartesianAxisOptions[] } = {
       data: chartData,
       title: { text: titleText },
       series: series,
-      axes: axes.length > 0 ? axes : undefined,
       autoSize: false, 
     };
-    setInternalChartOptions(newBaseChartOptions);
+
+    if (chartType !== 'donut' && axes.length > 0) {
+      baseOptionsConfig.axes = axes;
+    }
+    
+    setInternalChartOptions(baseOptionsConfig);
     setChartRenderKey(prevKey => prevKey + 1); 
     setIsChartLoading(false);
     if (currentXAxisField && currentYAxisField && jsonData.length > 0 && selectedFields.length > 0) {
@@ -307,7 +309,7 @@ export function ChartVisualization({
       setIsChartLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartType, currentXAxisField, currentYAxisField, jsonData.length, selectedFields, headerTypes, chartDimensions, resolvedTheme, regenerateChartLogic]); // Added regenerateChartLogic
+  }, [chartType, currentXAxisField, currentYAxisField, jsonData.length, selectedFields, headerTypes, chartDimensions, resolvedTheme, regenerateChartLogic]); 
 
   useEffect(() => {
     if (!chartOptionsToRender) {
@@ -352,7 +354,7 @@ export function ChartVisualization({
     setXAxisField(null);
     if (fieldToDeselect && currentYAxisField !== fieldToDeselect) { 
       setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
-    } else if (fieldToDeselect && !currentYAxisField) { // If Y is also null, deselect
+    } else if (fieldToDeselect && !currentYAxisField) { 
       setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
     }
   };
@@ -362,7 +364,7 @@ export function ChartVisualization({
     setYAxisField(null);
     if (fieldToDeselect && currentXAxisField !== fieldToDeselect) { 
        setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
-    } else if (fieldToDeselect && !currentXAxisField) { // If X is also null, deselect
+    } else if (fieldToDeselect && !currentXAxisField) { 
        setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
     }
   };
