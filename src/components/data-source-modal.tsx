@@ -2,7 +2,7 @@
 "use client";
 
 import type React from 'react';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface DataSourceModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onDataSourceConnected: (data: any[], headers: string[], fileName: string, rowCount: number) => void;
+  onDataSourceConnected: (data: any[], headers: string[], fileName: string, sampledRowCount: number, totalRowCount: number) => void;
 }
 
 const SkeletonListItem = () => (
@@ -67,7 +67,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           setIsLoading(false);
           return;
         }
-        onDataSourceConnected(parsedData, headers, file.name, parsedData.length);
+        onDataSourceConnected(parsedData, headers, file.name, parsedData.length, parsedData.length);
         toast({ title: "CSV Uploaded", description: `${file.name} processed successfully.` });
         setIsLoading(false);
         onOpenChange(false); 
@@ -168,8 +168,8 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
     const result = await fetchCollectionData(connectionString, selectedDatabase, collectionName);
     if (result.success && result.data) {
-        const { jsonData, tableHeaders, rowCount } = result.data;
-        onDataSourceConnected(jsonData, tableHeaders, `${selectedDatabase}.${collectionName}`, rowCount);
+        const { jsonData, tableHeaders, sampledRowCount, totalRowCount } = result.data;
+        onDataSourceConnected(jsonData, tableHeaders, `${selectedDatabase}.${collectionName}`, sampledRowCount, totalRowCount);
         toast({ title: "Data Loaded", description: `Data from ${selectedDatabase}.${collectionName} loaded.`});
         onOpenChange(false); 
     } else {

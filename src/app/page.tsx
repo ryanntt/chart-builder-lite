@@ -6,12 +6,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-// The AG Charts CSS imports below consistently cause "Module not found" errors.
-// This indicates that the build process cannot locate these CSS files within the ag-charts-community package.
-// AG Charts styling might be affected until this is resolved.
-// import 'ag-charts-community/styles/ag-charts-community.css'; 
-// import 'ag-charts-community/styles/ag-theme-alpine.css'; 
-// import 'ag-charts-community/styles/ag-theme-alpine-dark.css'; 
 import { Label } from "@/components/ui/label";
 import { FileText, Type, Hash, CalendarDays, ToggleLeft, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
@@ -43,7 +37,7 @@ const getFieldTypeIcon = (type: string) => {
     case 'object':
       return <Brackets className="h-4 w-4 text-muted-foreground" />;
     case 'array':
-      return <Brackets className="h-4 w-4 text-muted-foreground" />; // Using Brackets for array too
+      return <Brackets className="h-4 w-4 text-muted-foreground" />; 
     default:
       return <FileText className="h-4 w-4 text-muted-foreground" />; 
   }
@@ -120,7 +114,7 @@ const RenderFieldItem: React.FC<{
       draggable={selectedFields.includes(field.path)}
       onDragStart={() => {
           if (selectedFields.includes(field.path)) {
-            const origin = currentXAxisField === field.path ? 'x' : (currentYAxisField === field.path ? 'y' : 'x'); // Default to 'x' if not an axis
+            const origin = currentXAxisField === field.path ? 'x' : (currentYAxisField === field.path ? 'y' : 'x'); 
             onDragStartAxis(field.path, origin);
           }
         }
@@ -148,7 +142,6 @@ const RenderFieldItem: React.FC<{
 export default function Home() {
   const [dataSourceName, setDataSourceName] = useState<string | null>(null);
   const [jsonData, setJsonData] = useState<any[]>([]);
-  // tableHeaders will store dot-notation paths
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [headerTypes, setHeaderTypes] = useState<Record<string, string>>({});
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
@@ -157,7 +150,7 @@ export default function Home() {
   const [currentXAxisField, setXAxisFieldInternal] = useState<string | null>(null);
   const [currentYAxisField, setYAxisFieldInternal] = useState<string | null>(null);
 
-  const [rowCount, setRowCount] = useState<number | null>(null);
+  const [rowCountText, setRowCountText] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [processedFieldStructure, setProcessedFieldStructure] = useState<FieldDefinition[]>([]);
@@ -165,8 +158,6 @@ export default function Home() {
 
   const handleDragStartForAxis = (field: string, origin: 'x' | 'y') => {
     if (!selectedFields.includes(field)) return; 
-    // This state would be used by ChartVisualization if it handled its own drag starts from axis boxes
-    // For now, it's more for dragging from the Fields panel to the axis boxes in ChartVisualization
   };
 
 
@@ -182,12 +173,11 @@ export default function Home() {
     });
   };
   
-  // buildFieldTree expects flatHeaders (dot-notation) and infers structure
   const buildFieldTree = (flatHeaders: string[], types: Record<string, string>): FieldDefinition[] => {
     const tree: FieldDefinition[] = [];
     const map: Record<string, FieldDefinition> = {};
   
-    flatHeaders.sort().forEach(fullPath => { // Sort to ensure parent paths are processed first
+    flatHeaders.sort().forEach(fullPath => { 
       const parts = fullPath.split('.');
       let currentPathProcessed = '';
   
@@ -199,7 +189,6 @@ export default function Home() {
         let node = map[currentPathProcessed];
   
         if (!node) {
-          // For type, use the type of the full path if it's a leaf, otherwise infer object/array
           const fieldType = isLastNamePart ? (types[fullPath] || 'unknown') : 
                             ( (index < parts.length -1 && /^\d+$/.test(parts[index+1])) ? 'array' : 'object');
           
@@ -217,14 +206,12 @@ export default function Home() {
             tree.push(node);
           } else {
             if (map[parentPath] && map[parentPath].children) {
-              // Ensure no duplicate children
               if (!map[parentPath].children!.find(child => child.path === currentPathProcessed)) {
                  map[parentPath].children!.push(node);
               }
             }
           }
         } else if (!isLastNamePart && !node.isParent) { 
-            // If an existing leaf node is found to be a parent
             node.isParent = true;
             node.children = node.children || [];
             node.type = (index < parts.length -1 && /^\d+$/.test(parts[index+1])) ? 'array' : 'object';
@@ -235,10 +222,18 @@ export default function Home() {
   };
 
 
-  const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, numRows: number) => {
+  const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, sampledRows: number, totalRows: number) => {
     setDataSourceName(fileName);
-    setRowCount(numRows);
-    setTableHeaders(headers); // headers are expected to be dot-notation paths
+    
+    let countTextVal = "";
+    if (totalRows > sampledRows) {
+      countTextVal = `(sampled ${sampledRows} of ${totalRows} rows)`;
+    } else {
+      countTextVal = `(${totalRows} rows)`;
+    }
+    setRowCountText(countTextVal);
+    
+    setTableHeaders(headers); 
 
     const types: Record<string, string> = {};
     if (data.length > 0) {
@@ -262,49 +257,28 @@ export default function Home() {
       });
     }
     setHeaderTypes(types);
-    
-    // buildFieldTree will use the dot-notation headers to create the tree structure
     setProcessedFieldStructure(buildFieldTree(headers, types));
-    
-    // jsonData remains nested
-    const transformedData = data.map(row => {
-      const newRow: any = {};
-      for (const headerPath of headers) {
-        let value = getNestedValue(row, headerPath); // Use original nested data for transformation
-        if (types[headerPath] === 'date' && typeof value === 'string' && value !== null && value !== "") {
-          const dateValue = new Date(value);
-          // Store date as Date object if valid, otherwise keep original string
-          newRow[headerPath] = isNaN(dateValue.getTime()) ? value : dateValue; 
-        } else if (types[headerPath] === 'number' && (value === "" || value === null) ) {
-          newRow[headerPath] = null; 
-        } else {
-           // For direct assignment, we need to reconstruct the nested structure if we were to modify it.
-           // However, for jsonData passed to chart, it's better to keep it as original nested `data`.
-           // The 'newRow' construction here is more for if we were creating a *new flat* structure for display.
-           // Since jsonData is now intended to be nested, this transformation might be simplified or rethought.
-           // For now, let's assume `data` is already the jsonData we want.
-        }
-      }
-      // return newRow; // This would create flat rows based on header paths
-      return row; // Return the original (potentially nested) row
-    });
-
-    setJsonData(data); // Store the original (potentially nested) data
+    setJsonData(data); 
     setSelectedFields([]); 
     setXAxisFieldInternal(null);
     setYAxisFieldInternal(null);
-    setExpandedFields(new Set()); // Reset expanded fields
+    setExpandedFields(new Set()); 
     
+    let toastDescription = `${fileName}" are ready.`;
+    if (totalRows > sampledRows) {
+      toastDescription = `Sampled ${sampledRows} of ${totalRows} data rows from "${fileName}" are ready.`;
+    } else {
+      toastDescription = `${totalRows} data rows from "${fileName}" are ready.`;
+    }
     toast({
       title: "Data Source Connected!",
-      description: `${numRows} data rows from "${fileName}" are ready.`,
+      description: toastDescription,
     });
     setIsModalOpen(false); 
   };
 
 
   const handleFieldSelect = (fieldPath: string) => {
-    // Only leaf nodes (non-parents) should be selectable for the table/chart
     const fieldDefinition = findFieldInTree(processedFieldStructure, fieldPath);
     if (fieldDefinition && fieldDefinition.isParent) {
       toast({ title: "Selection Info", description: "Parent fields cannot be directly selected for charting. Please select their child fields.", variant: "default"});
@@ -371,7 +345,7 @@ export default function Home() {
         if (!currentY && (currentX || (!currentX && !currentY && currentXAxisField))) { 
             const potentialY = 
                 selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) || 
-                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array'); // Exclude objects/arrays from auto Y
+                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array');
              if (potentialY) {
                 if (potentialY !== (currentX || currentXAxisField)) { 
                     setYAxisFieldInternal(potentialY);
@@ -385,15 +359,13 @@ export default function Home() {
         setYAxisFieldInternal(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData, headerTypes]); 
+  }, [selectedFields, jsonData.length, headerTypes]); 
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
       <AppHeader />
       <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border-secondary">
-        {/* Left Sidebar: Data Source and Fields */}
         <div className="w-[300px] flex-shrink-0 border-r border-border-secondary bg-card flex flex-col">
-          {/* Data Source Section */}
           <div className="p-4 border-b border-border-secondary">
             {dataSourceName ? (
               <>
@@ -410,8 +382,20 @@ export default function Home() {
                 </div>
                 <p className="text-sm text-foreground truncate font-medium" title={dataSourceName}>
                   {dataSourceName}
-                  {rowCount !== null && <span className="text-xs text-muted-foreground ml-1.5">({rowCount} rows)</span>}
+                  {rowCountText && <span className="text-xs text-muted-foreground ml-1.5">{rowCountText}</span>}
                 </p>
+                 <Button
+                    className={cn(
+                      "w-auto mt-2 text-sm",
+                      "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border border-[var(--btn-primary-lg-border)]",
+                      "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)]",
+                      "focus-visible:ring-[var(--btn-primary-lg-focus-ring)]",
+                      "[&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]"
+                    )}
+                    onClick={() => {console.log("Custom Button Clicked!")}}
+                  >
+                    Custom Styled Button
+                </Button>
               </>
             ) : (
               <>
@@ -427,7 +411,6 @@ export default function Home() {
               </>
             )}
           </div>
-          {/* Fields Section */}
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
             <h2 className="text-sm font-semibold mb-2 text-foreground">Fields</h2>
             <div className="space-y-1">
@@ -451,9 +434,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Main Content Area: Data Preview and Visualization */}
         <div className="flex-grow flex flex-col overflow-hidden bg-secondary">
-          {/* Data Preview Section (Collapsible) */}
           <div className="bg-card"> 
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0"> 
@@ -495,7 +476,6 @@ export default function Home() {
             </Accordion>
           </div>
 
-          {/* Visualization Section (Collapsible) */}
           <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border-secondary"> 
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
@@ -504,7 +484,7 @@ export default function Home() {
                   </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-2 flex flex-col flex-grow bg-card">
                   <ChartVisualization
-                    jsonData={jsonData} // Pass nested jsonData
+                    jsonData={jsonData} 
                     headerTypes={headerTypes}
                     selectedFields={selectedFields}
                     setSelectedFields={setSelectedFields}
@@ -521,7 +501,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-      {/* Data Source Modal */}
       <DataSourceModal 
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
@@ -530,5 +509,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

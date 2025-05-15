@@ -85,10 +85,11 @@ export async function fetchCollections(connectionString: string, dbName: string)
 interface FetchCollectionDataResult {
     jsonData: any[];
     tableHeaders: string[];
-    rowCount: number;
+    sampledRowCount: number;
+    totalRowCount: number;
 }
 
-// Helper to flatten a document - still used for direct Atlas connections
+// Helper to flatten a document
 function flattenDocument(doc: Document, prefix: string = ''): Document {
   const flattened: Document = {};
   for (const key in doc) {
@@ -105,7 +106,7 @@ function flattenDocument(doc: Document, prefix: string = ''): Document {
           flattened[newKey] = value.toISOString();
         }
       } else if (Array.isArray(value)) {
-        flattened[newKey] = JSON.stringify(value); // Simple stringify for arrays in flattened view
+        flattened[newKey] = JSON.stringify(value); 
       } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value) && Object.keys(value).length > 0) {
         Object.assign(flattened, flattenDocument(value, newKey));
       } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value) && Object.keys(value).length === 0) {
@@ -124,7 +125,7 @@ export async function fetchCollectionData(
     connectionString: string, 
     dbName: string, 
     collectionName: string,
-    limit: number = 100 
+    limit: number = 1000 
 ): Promise<AtlasActionResult<FetchCollectionDataResult>> {
   if (!connectionString || !dbName || !collectionName) {
     return { success: false, error: 'Connection string, database name, and collection name are required.' };
@@ -142,14 +143,17 @@ export async function fetchCollectionData(
     await client.connect();
     const collection: Collection<Document> = client.db(dbName).collection(collectionName);
     
+    const totalRowCount = await collection.countDocuments();
     const documents = await collection.find().limit(limit).toArray();
-    console.log(`Successfully fetched ${documents.length} documents from ${dbName}.${collectionName}`);
+    const sampledRowCount = documents.length;
+
+    console.log(`Successfully fetched ${sampledRowCount} of ${totalRowCount} documents from ${dbName}.${collectionName}`);
 
     if (documents.length === 0) {
-      return { success: true, data: { jsonData: [], tableHeaders: [], rowCount: 0 } };
+      return { success: true, data: { jsonData: [], tableHeaders: [], sampledRowCount: 0, totalRowCount } };
     }
 
-    const flattenedDocs = documents.map(doc => flattenDocument(doc as Document)); // Cast to Document
+    const flattenedDocs = documents.map(doc => flattenDocument(doc as Document)); 
     
     const headersSet = new Set<string>();
     flattenedDocs.forEach(doc => {
@@ -170,7 +174,8 @@ export async function fetchCollectionData(
         data: { 
             jsonData, 
             tableHeaders,
-            rowCount: documents.length 
+            sampledRowCount,
+            totalRowCount
         } 
     };
   } catch (error) {
