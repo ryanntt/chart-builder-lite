@@ -587,8 +587,8 @@ export default function Home() {
                     onClick={() => setIsModalOpen(true)} 
                     className={cn(
                         "w-full",
-                        "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)]",
-                        "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:shadow-[var(--btn-primary-lg-hover-shadow)]",
+                        "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border border-[var(--btn-primary-lg-border)]",
+                        "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:shadow-[var(--btn-primary-lg-hover-shadow)] hover:border-[var(--btn-primary-lg-hover-border)]",
                         "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-primary-lg-focus-ring)]"
                       )}
                   >
@@ -627,19 +627,6 @@ export default function Home() {
               )) : (
                 <p className="text-sm text-muted-foreground p-2">Connect a data source to see fields.</p>
               )}
-            </div>
-             {/* Example of a custom styled button using CSS variables */}
-            <div className="mt-auto pt-4">
-                <Button
-                  className={cn(
-                    "w-full",
-                    "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)]",
-                    "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:shadow-[var(--btn-primary-lg-hover-shadow)]",
-                    "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-primary-lg-focus-ring)]" 
-                  )}
-                >
-                  Custom Styled Button
-                </Button>
             </div>
           </div>
         </div>
@@ -806,3 +793,4 @@ export default function Home() {
     </div>
   );
 }
+

@@ -227,7 +227,6 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
               <Label htmlFor="connectionString" className="text-muted-foreground">MongoDB Connection String</Label>
               <Input 
                 id="connectionString" 
-                type="password" 
                 placeholder="mongodb+srv://<username>:<password>@<cluster-url>/..." 
                 value={connectionString}
                 onChange={(e) => setConnectionString(e.target.value)}
