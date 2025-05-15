@@ -214,21 +214,21 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0 bg-card border-border-secondary">
+      <DialogContent className="sm:max-w-[600px] p-0 bg-card border-[var(--border-color-secondary)]">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-foreground">Connect Data Source</DialogTitle>
           <DialogDescription className="text-muted-foreground">Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-border-secondary bg-muted">
+          <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-b-[var(--border-color-secondary)] bg-muted">
             <TabsTrigger value="upload" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Upload File</TabsTrigger>
             <TabsTrigger value="atlas" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Connect to Atlas</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="p-6">
             <div
-              className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-md cursor-pointer  transition-colors border-border 
-                ${isDragging ? 'border-primary bg-accent/10' : 'bg-background hover:bg-accent/50'}`}
+              className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-md cursor-pointer  transition-colors 
+                ${isDragging ? 'border-primary bg-accent/10' : 'bg-background hover:bg-accent/50 border-[var(--border-color-secondary)]'}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -239,7 +239,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   <span className="font-semibold">Click to browse</span> or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">CSV files only</p>
-                <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4 border-border" disabled={isLoading}>
+                <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4 border-[var(--border-color-secondary)]" disabled={isLoading}>
                   {isLoading && activeTab === 'upload' ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" /> : null}
                   Browse File
                 </Button>
@@ -260,7 +260,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                     value={connectionString}
                     onChange={(e) => setConnectionString(e.target.value)}
                     disabled={isFetchingDatabases || isFetchingCollections || isLoading}
-                    className="border-border pr-8" // Add padding for the clear button
+                    className="border-[var(--border-color-secondary)] pr-8" 
                   />
                   {hasStoredConnectionString && connectionString && (
                     <Button
@@ -294,7 +294,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
             
             <div className="min-h-[240px] max-h-[300px] overflow-y-auto"> 
               {isFetchingDatabases && (
-                <ScrollArea className="h-[240px] w-full rounded-md border border-border-secondary">
+                <ScrollArea className="h-[240px] w-full rounded-md border border-[var(--border-color-secondary)]">
                   <div className="p-2">
                     {[...Array(5)].map((_, i) => <SkeletonListItem key={i} />)}
                   </div>
@@ -304,7 +304,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
               {!isFetchingDatabases && databases.length > 0 && !selectedDatabase && (
                 <div className="space-y-2">
                   <Label className="text-foreground font-medium">Select a Database:</Label>
-                  <ScrollArea className="h-[240px] w-full rounded-md border border-border-secondary">
+                  <ScrollArea className="h-[240px] w-full rounded-md border border-[var(--border-color-secondary)]">
                     <div className="p-2">
                       {databases.map(dbName => (
                         <Button 
@@ -327,12 +327,12 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 <>
                   <div className="flex justify-between items-center mb-2">
                     <Label className="text-foreground font-medium">Select a Collection from {selectedDatabase}:</Label>
-                    <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="border-border h-auto py-1 px-2 text-xs">
+                    <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="border-[var(--border-color-secondary)] h-auto py-1 px-2 text-xs">
                       <ChevronLeft className="mr-1 h-3 w-3" /> Back to Databases
                     </Button>
                   </div>
                   {isFetchingCollections && (
-                     <ScrollArea className="h-[200px] w-full rounded-md border border-border-secondary"> 
+                     <ScrollArea className="h-[200px] w-full rounded-md border border-[var(--border-color-secondary)]"> 
                         <div className="p-2">
                         {[...Array(5)].map((_, i) => <SkeletonListItem key={i} />)}
                         </div>
@@ -340,7 +340,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   )}
                   {!isFetchingCollections && collections.length > 0 && (
                     <div className="space-y-2">
-                      <ScrollArea className="h-[200px] w-full rounded-md border border-border-secondary"> 
+                      <ScrollArea className="h-[200px] w-full rounded-md border border-[var(--border-color-secondary)]"> 
                         <div className="p-2">
                           {collections.map(colName => (
                             <Button 
@@ -367,11 +367,10 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
             </div>
           </TabsContent>
         </Tabs>
-        <DialogFooter className="p-6 pt-0 border-t-0 border-t-border-secondary">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections} className="border-border">Cancel</Button>
+        <DialogFooter className="p-6 pt-0 border-t-0 border-t-[var(--border-color-secondary)]">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections} className="border-[var(--border-color-secondary)]">Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

@@ -369,14 +369,10 @@ export function ChartVisualization({
 
   const handleXAxisClear = () => {
     setXAxisField(null);
-    // The responsibility to deselect from the main panel if no longer used by any axis
-    // should ideally be handled by the parent component (page.tsx) or a more centralized state management.
-    // For now, this just clears the local axis.
   };
 
   const handleYAxisClear = () => {
     setYAxisField(null);
-    // Similar to X-axis, deferring main panel deselection logic.
   };
   
   const getAxisLabel = (axisType: 'x' | 'y'): string => {
@@ -548,7 +544,7 @@ export function ChartVisualization({
 
       {/* Right Panel: Chart Rendering Area */}
       <div className="flex-grow flex flex-col min-w-0">
-        <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-card border border-border-secondary rounded-md">
+        <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-card border border-[var(--border-color-secondary)] rounded-md">
           {isChartLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-card/50 z-10 rounded-md">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -590,7 +586,7 @@ export function ChartVisualization({
           <Button
               variant="outline"
               size="sm"
-              className="h-8 rounded-md px-3 text-xs border-border-secondary"
+              className="h-8 rounded-md px-3 text-xs border-[var(--border-color-secondary)]"
               onClick={handleDownloadChart}
               disabled={!chartOptionsToRender || !isChartApiReady} 
               aria-label="Download chart"
@@ -604,5 +600,3 @@ export function ChartVisualization({
     </div>
   );
 }
-
-    

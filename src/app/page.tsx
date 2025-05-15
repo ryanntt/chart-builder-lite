@@ -55,7 +55,7 @@ const getFieldTypeIcon = (type: string) => {
 };
 
 const AppHeader = () => (
-  <header className="sticky top-0 z-40 w-full border-b border-border-secondary bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+  <header className="sticky top-0 z-40 w-full border-b border-[var(--border-color-secondary)] bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
     <div className="mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
         <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
@@ -398,9 +398,9 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border-secondary">
-        <div className="w-[300px] flex-shrink-0 border-r border-border-secondary bg-card flex flex-col">
-          <div className="p-4 border-b border-border-secondary">
+      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-[var(--border-color-secondary)]">
+        <div className="w-[300px] flex-shrink-0 border-r border-[var(--border-color-secondary)] bg-card flex flex-col">
+          <div className="p-4 border-b border-[var(--border-color-secondary)]">
             {dataSourceName ? (
               <>
                 <div className="flex items-center justify-between mb-1">
@@ -497,7 +497,7 @@ export default function Home() {
                             {dataSourceType === 'atlas' ? (
                               <div className="space-y-2 p-1">
                                 {jsonData.slice(0, 10).map((doc, index) => (
-                                  <Card key={index} className="bg-card border-border-secondary">
+                                  <Card key={index} className="bg-card border-[var(--border-color-secondary)]">
                                     <CardContent className="p-2 font-mono text-xs">
                                       <ReactJson
                                         src={doc}
@@ -554,7 +554,7 @@ export default function Home() {
             </Accordion>
           </div>
 
-          <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border-secondary">
+          <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-[var(--border-color-secondary)]">
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
                  <AccordionPrimitiveTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
@@ -589,7 +589,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
-
-    
