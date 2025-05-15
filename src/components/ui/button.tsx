@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -19,7 +20,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         lgPrimary:
-          "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border border-[var(--btn-primary-lg-border)] hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)]",
+          "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border border-[var(--btn-primary-lg-border)] hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -56,3 +57,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
+
