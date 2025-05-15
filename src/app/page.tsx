@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
+import { Card, CardContent } from "@/components/ui/card"; // Added Card and CardContent
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { DataSourceModal } from '@/components/data-source-modal';
 import { ChartVisualization } from '@/components/chart-visualization';
@@ -482,16 +483,22 @@ export default function Home() {
                         ) : (
                           <>
                             {dataSourceType === 'atlas' ? (
-                              <div className="font-mono text-xs space-y-2 p-2">
-                                <ReactJson 
-                                  src={jsonData.slice(0, 10)}
-                                  theme={resolvedTheme === 'dark' ? 'ocean' : 'rjv-default'}
-                                  name={false}
-                                  collapsed={1}
-                                  displayDataTypes={false}
-                                  enableClipboard={false}
-                                  style={{ backgroundColor: 'hsl(var(--card))', padding: '0.5rem' }}
-                                />
+                              <div className="max-h-[250px] overflow-y-auto space-y-2 p-1">
+                                {jsonData.slice(0, 10).map((doc, index) => (
+                                  <Card key={index} className="bg-card border-border-secondary">
+                                    <CardContent className="p-2 font-mono text-xs">
+                                      <ReactJson 
+                                        src={doc}
+                                        theme={resolvedTheme === 'dark' ? 'ocean' : 'rjv-default'}
+                                        name={false}
+                                        collapsed={1}
+                                        displayDataTypes={false}
+                                        enableClipboard={false}
+                                        style={{ backgroundColor: 'hsl(var(--card))' }}
+                                      />
+                                    </CardContent>
+                                  </Card>
+                                ))}
                               </div>
                             ) : dataSourceType === 'csv' && Object.keys(jsonData[0] || {}).length > 0 ? (
                               <Table>
