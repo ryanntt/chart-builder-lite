@@ -5,6 +5,16 @@
 
 :root {
   /* Leafy Green palette - Reference for --btn-primary-lg variables */
+  --lg-black: hsl(198, 100%, 8%);
+  
+  --lg-gray-light-2: hsl(156, 12%, 92%);
+  --lg-gray-light-1: hsl(170, 5%, 77%);
+  --lg-gray-base: hsl(196, 7%, 56%);
+  --lg-gray-dark-1: hsl(202, 12%, 41%);
+  --lg-gray-dark-2: hsl(200, 18%, 29%);
+  --lg-gray-dark-3: hsl(204, 33%, 16%);
+  --lg-gray-dark-4: hsl(201, 50%, 13%);
+  
   --lg-green-light-2: 159 85% 87%;
   --lg-green-light-1: 153 88% 70%;
   --lg-green-base: 145 100% 46%;
@@ -13,15 +23,15 @@
 
 
   --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
+  --foreground: var(--lg-black);
   --card: 0 0% 100%;
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
   --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
+  --primary-foreground: var(--lg-black);
   --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
+  --secondary-foreground: var(--lg-gray-dark-1);
   --muted: 240 4.8% 95.9%;
   --muted-foreground: 240 3.8% 46.1%;
   --accent: 240 5.9% 10%;
@@ -50,7 +60,7 @@
   --btn-primary-lg-fg: hsl(0 0% 100%);
   --btn-primary-lg-border: hsl(var(--lg-green-dark-2));
 
-  --btn-primary-lg-icon-hsl: var(--lg-green-light-2); /* raw HSL values */
+  --btn-primary-lg-icon-hsl: var(--lg-green-light-2);
 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
   --btn-primary-lg-hover-fg: hsl(0 0% 100%);
@@ -60,22 +70,21 @@
   --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; /* Light blue HSL values for visibility */
   --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl)); /* conventional shadow */
 
-
   --btn-primary-lg-focus-ring-hsl: 153 88% 70%; /* Light green */
   --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl)); /* Full HSL string */
 }
 
 .dark {
-  --background: 240 6% 10%;
-  --foreground: 0 0% 95%;
+  --background: var(--lg-black);
+  --foreground: var(--lg-gray-light-2);
   --card: 240 6% 10%;
   --card-foreground: 0 0% 95%;
   --popover: 240 6% 10%;
   --popover-foreground: 0 0% 95%;
   --primary: 0 0% 95%;
-  --primary-foreground: 240 6% 10%;
+  --primary-foreground: var(--lg-gray-light-2);
   --secondary: 240 5% 15%;
-  --secondary-foreground: 0 0% 95%;
+  --secondary-foreground: var(--lg-gray-light-1);
   --muted: 240 5% 15%;
   --muted-foreground: 0 0% 60%;
   --accent: 240 5% 15%;
@@ -99,13 +108,13 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables - Dark Mode */
-  --btn-primary-lg-bg: hsl(var(--lg-green-base)); /* Lighter green for dark mode */
+  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2));
   --btn-primary-lg-fg: hsl(0 0% 100%);
-  --btn-primary-lg-border: hsl(var(--lg-green-base));
+  --btn-primary-lg-border: hsl(var(--lg-green-dark-1));
 
-  --btn-primary-lg-icon-hsl: var(--lg-green-light-1); /* raw HSL values */
+  --btn-primary-lg-icon-hsl: var(--lg-green-light-1);
 
-  --btn-primary-lg-hover-bg: hsl(var(--lg-green-dark-1));
+  --btn-primary-lg-hover-bg: hsl(162 100% 17%);;
   --btn-primary-lg-hover-fg: hsl(0 0% 100%);
   --btn-primary-lg-hover-border: hsl(var(--lg-green-dark-1));
 
