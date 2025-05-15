@@ -20,6 +20,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as Accordi
 import { useTheme } from "next-themes";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { DataSourceModal } from '@/components/data-source-modal';
+import { cn } from "@/lib/utils";
 
 
 const getFieldTypeIcon = (type: string) => {
@@ -38,8 +39,8 @@ const getFieldTypeIcon = (type: string) => {
 };
 
 const AppHeader = () => (
-  <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="container mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
+  <header className="sticky top-0 z-40 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
       <div className="flex gap-2 items-center">
         <Logo className="h-6 w-6 text-primary" data-ai-hint="database logo" />
         <h1 className="text-xl font-semibold text-foreground">CSV Atlas Uploader</h1>
@@ -102,6 +103,7 @@ export default function Home() {
       });
       resizeObserver.observe(container);
 
+      // Initial size
       const { width, height } = container.getBoundingClientRect();
        if (width > 0 && height > 0) {
          if (!chartDimensions || Math.abs(chartDimensions.width - width) > 1 || Math.abs(chartDimensions.height - height) > 1) {
@@ -111,7 +113,7 @@ export default function Home() {
       return () => resizeObserver.unobserve(container);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartContainerRef.current]); 
+  }, [chartContainerRef.current]); // Dependency on chartContainerRef.current might not re-trigger if only the ref object changes.
 
 
   const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, numRows: number) => {
@@ -131,8 +133,9 @@ export default function Home() {
         } else if (typeof sampleValue === 'boolean') {
           types[header] = 'boolean';
         } else if (sampleValue instanceof Date || (typeof sampleValue === 'string' && !isNaN(new Date(sampleValue).getTime()))) {
+          // More robust date check, ensuring it's not just a number string
           if (sampleValue instanceof Date || (typeof sampleValue === 'string' && (/\d{4}-\d{2}-\d{2}/.test(sampleValue) || /\d{1,2}\/\d{1,2}\/\d{4}/.test(sampleValue)))) {
-            if (!isNaN(new Date(sampleValue).getTime())) {
+            if (!isNaN(new Date(sampleValue).getTime())) { // Final check after regex
               types[header] = 'date';
             } else {
               types[header] = 'string';
@@ -147,15 +150,16 @@ export default function Home() {
     }
     setHeaderTypes(types);
     
+    // Transform data based on detected types, especially for dates
     const transformedData = data.map(row => {
       const newRow: any = {};
       for (const header of headers) {
         let value = row[header];
         if (types[header] === 'date' && typeof value === 'string' && value !== null && value !== "") {
           const dateValue = new Date(value);
-          newRow[header] = isNaN(dateValue.getTime()) ? value : dateValue;
+          newRow[header] = isNaN(dateValue.getTime()) ? value : dateValue; // Keep original if not a valid date
         } else if (types[header] === 'number' && (value === "" || value === null) ) {
-          newRow[header] = null;
+          newRow[header] = null; // Treat empty strings/nulls as null for numbers
         }
         else {
           newRow[header] = value;
@@ -165,17 +169,17 @@ export default function Home() {
     });
 
     setJsonData(transformedData);
-    setSelectedFields([]); 
+    setSelectedFields([]); // Reset selected fields
     setXAxisField(null);
     setYAxisField(null);
-    setInternalChartOptions(null); 
+    setInternalChartOptions(null); // Clear previous chart configuration
     
     toast({
       title: "Data Source Connected!",
       description: `${numRows} data rows from "${fileName}" are ready.`,
     });
     setIsChartLoading(false);
-    setIsModalOpen(false); 
+    setIsModalOpen(false); // Close the modal on successful connection
   };
 
 
@@ -185,6 +189,7 @@ export default function Home() {
         ? prev.filter(f => f !== field)
         : [...prev, field];
 
+      // If a field is deselected, remove it from X/Y axis if it was there
       if (!newSelection.includes(field)) { 
         if (xAxisField === field) setXAxisField(null);
         if (yAxisField === field) setYAxisField(null);
@@ -193,16 +198,21 @@ export default function Home() {
     });
   };
   
+  // Auto-assign X/Y axes when selectedFields change
  useEffect(() => {
     if (jsonData.length > 0 && selectedFields.length > 0) {
         let currentX = xAxisField;
         let currentY = yAxisField;
 
+        // If X and Y are the same, try to clear Y (or X if Y was the new one)
         if (currentX && currentY && currentX === currentY) {
-             setYAxisField(null);
+             // This logic will be hit if a single field is selected, or if user explicitly makes them same.
+             // Let's prioritize keeping X if only one field is available.
+             setYAxisField(null); // Clear Y, try to find a new Y later if possible
              currentY = null;
         }
 
+        // If current X or Y is no longer in selectedFields, clear it
         if (currentX && !selectedFields.includes(currentX)) {
             currentX = null;
             setXAxisField(null);
@@ -212,30 +222,34 @@ export default function Home() {
             setYAxisField(null);
         }
         
-        if (!currentX && (currentY || (!currentX && !currentY))) {
+        // Attempt to fill X-axis if empty or if current X is invalid
+        if (!currentX && (currentY || (!currentX && !currentY))) { // Fill X if X is empty, regardless of Y
+            // Prefer string/date for X-axis, then number, then anything else not already Y
             const potentialX = 
                 selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) ||
-                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) ||
-                selectedFields.find(f => f !== currentY);
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) || // then number
+                selectedFields.find(f => f !== currentY); // then any other field not Y
             if (potentialX) {
-                if (potentialX !== currentY) { 
+                if (potentialX !== currentY) { // Ensure it's not the same as Y
                     setXAxisField(potentialX);
-                    currentX = potentialX; 
-                } else if (selectedFields.length === 1) { 
+                    currentX = potentialX; // Update currentX for Y-axis logic
+                } else if (selectedFields.length === 1) { // If only one field selected, assign it to X
                     setXAxisField(potentialX);
                     currentX = potentialX;
                 }
             }
         }
         
-        if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) { 
+        // Attempt to fill Y-axis if empty or if current Y is invalid, and X is set
+        if (!currentY && (currentX || (!currentX && !currentY && xAxisField))) { // Fill Y if Y is empty AND X is (now) set
+            // Prefer number for Y-axis, then anything else not already X or object
             const potentialY = 
-                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || xAxisField)) || 
-                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object'); 
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || xAxisField)) || // Prefer number not X
+                selectedFields.find(f => f !== (currentX || xAxisField) && headerTypes[f] !== 'object'); // then any other non-object field not X
              if (potentialY) {
-                if (potentialY !== (currentX || xAxisField)) { 
+                if (potentialY !== (currentX || xAxisField)) { // Ensure it's not the same as X
                     setYAxisField(potentialY);
-                } else if (selectedFields.length === 1) { 
+                } else if (selectedFields.length === 1) { // If only one field selected (already on X), assign it to Y too (common for counts/histograms)
                     setYAxisField(potentialY);
                 }
             }
@@ -245,11 +259,11 @@ export default function Home() {
         setYAxisField(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData, headerTypes]);
+  }, [selectedFields, jsonData, headerTypes]); // Rerun when selectedFields, data, or types change.
 
 
   const handleDragStart = (field: string, origin: 'x' | 'y') => {
-    if (!selectedFields.includes(field)) return; 
+    if (!selectedFields.includes(field)) return; // Only draggable if selected
     setDraggedItem({ field, origin });
   };
 
@@ -257,6 +271,7 @@ export default function Home() {
     if (draggedItem) {
         const sourceField = draggedItem.field;
         
+        // Ensure the dragged field is still selected (it should be if drag started)
         if (!selectedFields.includes(sourceField)) {
             setDraggedItem(null);
             return;
@@ -265,31 +280,37 @@ export default function Home() {
         const currentX = xAxisField;
         const currentY = yAxisField;
 
-        if (target === 'x') { 
-            if (sourceField === currentY) { 
+        if (target === 'x') { // Dropped onto X-axis
+            if (sourceField === currentY) { // If dragging Y's field to X (swap)
                 setXAxisField(sourceField);
-                setYAxisField(currentX); 
-            } else if (sourceField !== currentX) { 
+                setYAxisField(currentX); // Old X becomes new Y
+            } else if (sourceField !== currentX) { // If dragging a different field to X
                 setXAxisField(sourceField);
             }
-        } else { 
-            if (sourceField === currentX) { 
+        } else { // Dropped onto Y-axis
+            if (sourceField === currentX) { // If dragging X's field to Y (swap)
                 setYAxisField(sourceField);
-                setXAxisField(currentY); 
-            } else if (sourceField !== currentY) { 
+                setXAxisField(currentY); // Old Y becomes new X
+            } else if (sourceField !== currentY) { // If dragging a different field to Y
                 setYAxisField(sourceField);
             }
         }
         
-        if (xAxisField === yAxisField && xAxisField !== null) {
+        // Post-drop check: if X and Y became the same due to a non-swap drop
+        // (e.g., X was A, Y was B, user dragged A from field list to Y)
+        // In this case, we generally want to clear the original slot of the duplicate.
+        // This check should be more specific. If X and Y are now identical, and it wasn't a direct swap.
+        if (xAxisField === yAxisField && xAxisField !== null) { // This check is after potential setX/Y
             if (target === 'x' && draggedItem.origin === 'y') { 
-                 setYAxisField(currentX); 
-            } else if (target === 'y' && draggedItem.origin === 'x') { 
-                 setXAxisField(currentY); 
-            } else if (target === 'x') {
-                 setYAxisField(null); 
-            } else {
-                 setXAxisField(null); 
+                // This was a swap: Y (source) to X (target), X (currentX) to Y (new YAxisField)
+                // Already handled by the swap logic above.
+            } else if (target === 'y' && draggedItem.origin === 'x') {
+                // This was a swap: X (source) to Y (target), Y (currentY) to X (new XAxisField)
+                // Already handled.
+            } else if (target === 'x') { // Dragged a field (that was also Y) to X, or a new field to X making it same as Y
+                 setYAxisField(null); // If X becomes same as Y, clear Y
+            } else { // Dragged a field to Y, making it same as X
+                 setXAxisField(null); // If Y becomes same as X, clear X
             }
         }
         setDraggedItem(null);
@@ -319,15 +340,18 @@ export default function Home() {
     let axes: AgCartesianAxisOptions[] = [];
     let titleText = `${yAxisField} by ${xAxisField}`;
     
+    // Data filtering for bar/horizontal-bar charts with string/date categories
     if ( (chartType === 'bar' && (xFieldType === 'string' || xFieldType === 'date') ) ) {
+        // Aggregate Y values for each unique X category
         const valueCounts = chartData.reduce((acc, row) => {
-            const value = String(row[xAxisField]);
+            const value = String(row[xAxisField]); // Ensure category is string for grouping
             acc[value] = (acc[value] || 0) + (yFieldType === 'number' && typeof row[yAxisField] === 'number' ? Number(row[yAxisField]) : 1);
             return acc;
         }, {} as Record<string, number>);
 
+        // Sort categories by aggregated Y values (descending) and take top 20
         const sortedUniqueValues = Object.entries(valueCounts)
-            .sort(([, valA], [, valB]) => valB - valA) 
+            .sort(([, valA], [, valB]) => valB - valA) // Sort by aggregated value
             .map(([value]) => value);
 
         if (sortedUniqueValues.length > 20) {
@@ -339,8 +363,9 @@ export default function Home() {
             });
         }
     }  else if ( (chartType === 'horizontal-bar' && (yFieldType === 'string' || yFieldType === 'date') ) ) { 
+        // For horizontal bar, Y-axis is categorical, X-axis is numerical
         const valueCounts = chartData.reduce((acc, row) => {
-            const value = String(row[yAxisField]); 
+            const value = String(row[yAxisField]); // Ensure category (Y-axis) is string for grouping
             acc[value] = (acc[value] || 0) + (xFieldType === 'number' && typeof row[xAxisField] === 'number' ? Number(row[xAxisField]) : 1);
             return acc;
         }, {} as Record<string, number>);
@@ -351,7 +376,7 @@ export default function Home() {
         
         if (sortedUniqueValues.length > 20) {
             const top20Values = new Set(sortedUniqueValues.slice(0, 20));
-            chartData = chartData.filter(row => top20Values.has(String(row[yAxisField])));
+            chartData = chartData.filter(row => top20Values.has(String(row[yAxisField]))); // Filter based on Y-axis categories
              toast({
                 title: "Data Filtered",
                 description: `Y-axis field "${yAxisField}" displaying top 20 unique values by their aggregated X-axis values or frequency.`,
@@ -359,7 +384,7 @@ export default function Home() {
         }
     }
     
-    if (chartData.length === 0) {
+    if (chartData.length === 0) { // Check if filtering left no data
         toast({
           title: "No Data After Filtering",
           description: "No data remains for the selected fields after filtering. Please check your selections or data.",
@@ -379,12 +404,13 @@ export default function Home() {
         ];
         break;
       case 'horizontal-bar':
+        // For horizontal bar, xKey is numeric, yKey is categorical
         series = [{ type: 'bar', direction:'horizontal',  xKey: xAxisField, yKey: yAxisField, xName: xAxisField, yName: yAxisField }];
         axes = [
             { type: 'number', position: 'bottom', title: { text: xAxisField } }, 
             { type: (yFieldType === 'string' || yFieldType === 'date') ? 'category' : 'number', position: 'left', title: { text: yAxisField } }, 
         ];
-        titleText = `${xAxisField} by ${yAxisField}`; 
+        titleText = `${xAxisField} by ${yAxisField}`; // Title might need to reflect this swap if axes are swapped in AG sense
         break;
       case 'scatter':
         if ((xFieldType !== 'number' && xFieldType !== 'date') || (yFieldType !== 'number' && yFieldType !== 'date')) {
@@ -398,16 +424,16 @@ export default function Home() {
         ];
         break;
       case 'donut':
-        if (yFieldType !== 'number') {
+        if (yFieldType !== 'number') { // Angle key (values) must be numeric
             toast({ title: "Type Error", description: "Donut charts require a numeric field for values (Angle Key).", variant: "destructive"});
             setInternalChartOptions(null); setIsChartLoading(false); return;
         }
-         if (xFieldType !== 'string' && xFieldType !== 'date') { 
+         if (xFieldType !== 'string' && xFieldType !== 'date') { // Callout label key (categories) should be string/date
             toast({ title: "Type Error", description: "Donut charts require a categorical or date field for labels (Callout Label Key).", variant: "destructive"});
             setInternalChartOptions(null); setIsChartLoading(false); return;
         }
         series = [{ type: 'donut', angleKey: yAxisField, calloutLabelKey: xAxisField, legendItemKey: xAxisField }];
-        axes = []; 
+        axes = []; // Pie/Donut charts don't have axes in the same way
         titleText = `Distribution of ${yAxisField} by ${xAxisField}`;
         break;
       default:
@@ -420,35 +446,39 @@ export default function Home() {
       title: { text: titleText },
       series: series,
       axes: axes.length > 0 ? axes : undefined,
-      autoSize: false, 
+      autoSize: false, // Important: disable autoSize for manual dimension control via chartDimensions
     };
     
     setInternalChartOptions(newBaseChartOptions);
-    setChartRenderKey(prevKey => prevKey + 1); 
+    setChartRenderKey(prevKey => prevKey + 1); // Force re-render of AgChartsReact
     setIsChartLoading(false);
 
+    // Toast only if chart is actually being generated/updated
     if(xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0) { 
       toast({
         title: "Visualization Updated!",
         description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.`,
       });
     }
-  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, headerTypes]); 
+  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, headerTypes]); // Dependencies for useCallback
 
+  // Effect to regenerate chart when relevant state changes
   useEffect(() => {
     if (xAxisField && yAxisField && jsonData.length > 0 && selectedFields.length > 0 && selectedFields.includes(xAxisField) && selectedFields.includes(yAxisField) && chartDimensions) {
       setIsChartLoading(true);
-      setIsChartApiReady(false); 
+      setIsChartApiReady(false); // Chart will be re-rendered
       const timer = setTimeout(() => {
         regenerateChartLogic();
-      }, 300); 
+      }, 300); // Debounce to avoid rapid re-renders during quick changes
       return () => clearTimeout(timer);
     } else {
-      setInternalChartOptions(null);
-      setIsChartLoading(false); 
+      setInternalChartOptions(null); // Clear chart if conditions not met
+      setIsChartLoading(false); // Ensure loading state is false
     }
-  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, headerTypes, chartDimensions, regenerateChartLogic, resolvedTheme]); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartType, xAxisField, yAxisField, jsonData, selectedFields, headerTypes, chartDimensions, regenerateChartLogic, resolvedTheme]); // Add regenerateChartLogic to deps
 
+  // When chart options are cleared, ensure API ready is false
   useEffect(() => {
     if (!chartOptionsToRender) {
       setIsChartApiReady(false);
@@ -458,6 +488,7 @@ export default function Home() {
 
   const sanitizeFilename = (name: string | undefined): string => {
     if (!name) return 'chart.png';
+    // Replace non-alphanumeric characters (except underscore, dot, hyphen) with underscore
     return name.replace(/[^a-z0-9_.-]+/gi, '_').replace(/_+/g, '_').toLowerCase() + '.png';
   };
 
@@ -472,9 +503,9 @@ export default function Home() {
                 const link = document.createElement('a');
                 link.href = dataUrl;
                 link.download = filename;
-                document.body.appendChild(link); 
+                document.body.appendChild(link); // Required for Firefox
                 link.click();
-                document.body.removeChild(link); 
+                document.body.removeChild(link); // Clean up
                 toast({
                     title: "Chart Downloading",
                     description: `Downloading ${filename}...`,
@@ -506,7 +537,7 @@ export default function Home() {
   const handleXAxisClear = () => {
     const fieldToDeselect = xAxisField;
     setXAxisField(null);
-    if (fieldToDeselect && yAxisField !== fieldToDeselect) { 
+    if (fieldToDeselect && yAxisField !== fieldToDeselect) { // Only deselect if it's not also on Y
         setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
     }
   };
@@ -514,7 +545,7 @@ export default function Home() {
   const handleYAxisClear = () => {
     const fieldToDeselect = yAxisField;
     setYAxisField(null);
-    if (fieldToDeselect && xAxisField !== fieldToDeselect) { 
+    if (fieldToDeselect && xAxisField !== fieldToDeselect) { // Only deselect if it's not also on X
          setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
     }
   };
@@ -524,7 +555,9 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
       <AppHeader />
       <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-border">
+        {/* Left Sidebar: Data Source and Fields */}
         <div className="w-[300px] flex-shrink-0 border-r border-border bg-card flex flex-col">
+          {/* Data Source Section */}
           <div className="p-4 border-b border-border">
             {dataSourceName ? (
               <>
@@ -554,6 +587,7 @@ export default function Home() {
               </>
             )}
           </div>
+          {/* Fields Section */}
           <div className="p-4 flex-grow flex flex-col overflow-y-auto">
             <h2 className="text-sm font-semibold mb-2 text-foreground">Fields</h2>
             <div className="space-y-1">
@@ -561,8 +595,8 @@ export default function Home() {
                 <div 
                   key={header} 
                   className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-accent transition-colors"
-                  draggable={selectedFields.includes(header)}
-                  onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))}
+                  draggable={selectedFields.includes(header)} // Make draggable if selected
+                  onDragStart={() => handleDragStart(header, selectedFields.includes(xAxisField || "") && xAxisField === header ? 'x' : (selectedFields.includes(yAxisField || "") && yAxisField === header ? 'y' : 'x'))} // Simplified origin, can refine if needed
                 >
                   <Checkbox
                     id={`checkbox-${header}`}
@@ -583,15 +617,31 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground p-2">Connect a data source to see fields.</p>
               )}
             </div>
+             {/* Example of a custom styled button using CSS variables */}
+            <div className="mt-auto pt-4">
+                <Button
+                  className={cn(
+                    "w-full",
+                    "bg-[hsl(var(--btn-custom-bg-hsl))] text-[hsl(var(--btn-custom-fg-hsl))]",
+                    "hover:bg-[hsl(var(--btn-custom-hover-bg-hsl))] hover:text-[hsl(var(--btn-custom-hover-fg-hsl))] hover:shadow-[var(--btn-custom-hover-shadow)]",
+                    "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[hsl(var(--btn-custom-focus-ring-hsl))]"
+                  )}
+                >
+                  Custom Styled Button
+                </Button>
+            </div>
           </div>
         </div>
 
+        {/* Main Content Area: Data Preview and Visualization */}
         <div className="flex-grow flex flex-col overflow-hidden bg-secondary">
+          {/* Data Preview Section (Collapsible) */}
           <div className="bg-card"> {/* Removed border-b */}
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
-              <AccordionItem value="preview-accordion-item" className="border-b-0"> 
+              <AccordionItem value="preview-accordion-item" className="border-b-0"> {/* Remove bottom border from item */}
                  <AccordionPrimitiveTrigger className="flex w-full items-center justify-between p-4 hover:no-underline text-sm font-semibold group data-[state=closed]:border-b data-[state=closed]:border-border text-foreground">
                      Data Preview
+                     {/* <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 text-muted-foreground" /> */}
                  </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
                   <div className="max-h-[250px] overflow-y-auto border border-border rounded-md bg-card">
@@ -626,10 +676,11 @@ export default function Home() {
             </Accordion>
           </div>
 
+          {/* Visualization Section (Collapsible) */}
           <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-border"> {/* Visualization section container with card bg */}
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                 <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b data-[state=closed]:border-b-0 border-border text-foreground">
+                 <div className="flex w-full items-center justify-between p-4 text-sm font-semibold group border-b data-[state=closed]:border-b-0 border-border text-foreground"> {/* Header for Vis section */}
                   <AccordionPrimitiveTrigger className="flex flex-1 items-center py-0 font-semibold text-sm transition-all hover:no-underline group text-foreground">
                      Visualization
                   </AccordionPrimitiveTrigger>
@@ -646,6 +697,7 @@ export default function Home() {
                     </Button>
                 </div>
                 <AccordionContent className="p-4 pt-2 space-y-4 flex flex-col flex-grow bg-card">
+                  {/* Chart Controls */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
                     <div className="space-y-1">
                       <Label htmlFor="chartType" className="text-xs text-muted-foreground">Chart Type</Label>
@@ -689,6 +741,7 @@ export default function Home() {
                     </div>
                   </div>
                                       
+                  {/* Chart Rendering Area */}
                   <div ref={chartContainerRef} className="w-full relative ag-chart-wrapper flex-grow min-h-0 h-[400px] max-h-[400px] bg-card border border-border rounded-md">
                     {isChartLoading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-card/50 z-10 rounded-md">
@@ -700,8 +753,8 @@ export default function Home() {
                         <AgChartsReact 
                           options={chartOptionsToRender} 
                           key={chartRenderKey} 
-                          onChartReady={(chart) => { 
-                            chartApiRef.current = chart;
+                          onChartReady={(chart) => { // Callback when chart instance is ready
+                            chartApiRef.current = chart; // Store the chart instance
                             setIsChartApiReady(true);
                           }}
                         />
@@ -717,7 +770,7 @@ export default function Home() {
                               <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="chart axes" />
                               <p className="text-sm text-muted-foreground">Assign fields to X and Y axes.</p>
                             </>
-                          ) : ( 
+                          ) : ( // Fallback if options are null but fields are selected (e.g. waiting for dimensions)
                              <>
                               <BarChart className="w-12 h-12 text-muted-foreground mb-2" data-ai-hint="analytics chart" />
                               <p className="text-sm text-muted-foreground">Chart will render here. Ensure container has dimensions and valid configuration.</p>
@@ -733,6 +786,7 @@ export default function Home() {
           </div>
         </div>
       </main>
+      {/* Data Source Modal */}
       <DataSourceModal 
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
@@ -741,3 +795,4 @@ export default function Home() {
     </div>
   );
 }
+

@@ -4,6 +4,10 @@
 @tailwind utilities;
 
 :root {
+  /* Leafy Green palette - REMOVED as per previous request, using ShadCN defaults now */
+  /* --lg-green-dark-1: 154, 100%, 32%; */
+  /* --lg-green-dark-2: 163, 100%, 20%; */
+
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
@@ -16,8 +20,9 @@
   --secondary-foreground: 240 5.9% 10%;
   --muted: 240 4.8% 95.9%;
   --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
+  /* --accent: hsl(var(--lg-green-dark-1)); -- Using ShadCN default accent below */
+  --accent: 240 5.9% 10%; /* Default ShadCN accent, can be overridden */
+  --accent-foreground: 0 0% 98%; /* Default ShadCN accent foreground */
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
   --border: 240 5.9% 90%;
@@ -28,19 +33,28 @@
   /* Chart specific colors (example) - these can use the base vars */
   --chart-1: hsl(var(--primary));
   --chart-2: hsl(var(--secondary));
-  --chart-3: hsl(var(--accent));
+  /* --chart-3: hsl(var(--accent)); -- Reverted to use a distinct color for demonstration */
+  --chart-3: 160 70% 45%; /* A distinct teal/green for charts */
   --chart-4: 180 50% 60%; /* teal-ish */
   --chart-5: 300 70% 50%; /* magenta-ish */
 
   /* Sidebar specific colors (example) - these can use the base vars */
-  --sidebar-background: hsl(var(--background)); /* or --card or --muted */
+  --sidebar-background: hsl(var(--card)); /* Using card as default sidebar bg */
   --sidebar-foreground: hsl(var(--foreground));
-  --sidebar-primary: hsl(var(--primary));
-  --sidebar-primary-foreground: hsl(var(--primary-foreground));
-  --sidebar-accent: hsl(var(--accent));
-  --sidebar-accent-foreground: hsl(var(--accent-foreground));
   --sidebar-border: hsl(var(--border));
-  --sidebar-ring: hsl(var(--ring));
+  
+  /* Custom Button Styling Foundation Variables */
+  --btn-custom-bg-hsl: 220 70% 50%; /* Example: A nice blue */
+  --btn-custom-fg-hsl: 0 0% 100%;   /* Example: White text */
+  
+  --btn-custom-hover-bg-hsl: 220 70% 60%;
+  --btn-custom-hover-fg-hsl: 0 0% 100%;
+  --btn-custom-hover-shadow-hsl: 220 40% 30%; /* For shadow color */
+  --btn-custom-hover-shadow: 0 4px 10px -2px hsla(var(--btn-custom-hover-shadow-hsl), 0.4);
+
+  --btn-custom-focus-ring-hsl: 220 80% 70%;
+  --btn-custom-focus-bg-hsl: 220 70% 55%; /* Optional: if background changes on focus */
+  --btn-custom-focus-fg-hsl: 0 0% 100%;   /* Optional: if foreground changes on focus */
 }
 
 .dark {
@@ -56,7 +70,7 @@
   --secondary-foreground: 0 0% 95%;
   --muted: 240 5% 15%;
   --muted-foreground: 0 0% 60%;
-  --accent: 240 5% 15%;
+  --accent: 240 5% 15%; 
   --accent-foreground: 0 0% 95%;
   --destructive: 0 62.8% 30.6%; /* Adjusted for dark theme */
   --destructive-foreground: 0 0% 98%;
@@ -67,53 +81,86 @@
   /* Chart specific colors (example) - dark theme adjustments */
   --chart-1: hsl(var(--primary));
   --chart-2: hsl(var(--secondary));
-  --chart-3: hsl(var(--accent));
+  /* --chart-3: hsl(var(--accent)); -- Reverted to use a distinct color for demonstration */
+  --chart-3: 160 60% 55%; /* Lighter teal/green for charts in dark mode */
   --chart-4: 180 50% 70%; /* lighter teal-ish */
   --chart-5: 300 70% 60%; /* lighter magenta-ish */
 
   /* Sidebar specific colors (example) - dark theme adjustments */
-  --sidebar-background: hsl(var(--background));
+  --sidebar-background: hsl(var(--card));
   --sidebar-foreground: hsl(var(--foreground));
-  --sidebar-primary: hsl(var(--primary));
-  --sidebar-primary-foreground: hsl(var(--primary-foreground));
-  --sidebar-accent: hsl(var(--accent));
-  --sidebar-accent-foreground: hsl(var(--accent-foreground));
   --sidebar-border: hsl(var(--border));
-  --sidebar-ring: hsl(var(--ring));
+
+  /* Custom Button Styling Foundation Variables - Dark Mode */
+  --btn-custom-bg-hsl: 220 60% 55%;
+  --btn-custom-fg-hsl: 0 0% 95%;
+  
+  --btn-custom-hover-bg-hsl: 220 60% 65%;
+  --btn-custom-hover-fg-hsl: 0 0% 95%;
+  --btn-custom-hover-shadow-hsl: 220 30% 20%;
+  --btn-custom-hover-shadow: 0 4px 10px -2px hsla(var(--btn-custom-hover-shadow-hsl), 0.5);
+
+  --btn-custom-focus-ring-hsl: 220 70% 75%;
+  --btn-custom-focus-bg-hsl: 220 60% 60%;
+  --btn-custom-focus-fg-hsl: 0 0% 95%;
 }
 
 
-/* Styles for AG Charts theme */
+/* Styles for AG Charts theme - Ensure these are compatible with ShadCN theme */
+/* Using default AG Charts themes and letting ShadCN variables influence them where possible */
 .ag-theme-alpine, .ag-theme-default {
-  --ag-background-color: hsl(var(--background));
-  --ag-foreground-color: hsl(var(--foreground));
+  --ag-background-color: hsl(var(--card)); /* Chart background */
+  --ag-foreground-color: hsl(var(--card-foreground)); /* Chart text/elements */
   --ag-border-color: hsl(var(--border));
   --ag-secondary-border-color: hsl(var(--border));
   --ag-input-disabled-background-color: hsl(var(--muted));
   --ag-input-background-color: hsl(var(--background));
-  --ag-data-color: hsl(var(--foreground));
-  --ag-modal-overlay-background-color: hsla(var(--background), 0.3);
-  /* Add more AG Chart specific variables here as needed */
+  --ag-data-color: hsl(var(--card-foreground)); /* Data points, series */
+  --ag-modal-overlay-background-color: hsla(var(--background), 0.6); /* Modal overlay */
+
+  /* You can add more specific AG Chart variables here if needed, 
+     mapping them to your ShadCN theme variables. */
 }
 
 .ag-theme-alpine-dark, .ag-theme-default-dark {
-  --ag-background-color: hsl(var(--background)); 
-  --ag-foreground-color: hsl(var(--foreground)); 
+  --ag-background-color: hsl(var(--card)); 
+  --ag-foreground-color: hsl(var(--card-foreground)); 
   --ag-border-color: hsl(var(--border)); 
   --ag-secondary-border-color: hsl(var(--border));
   --ag-input-disabled-background-color: hsl(var(--muted));
   --ag-input-background-color: hsl(var(--background)); 
-  --ag-data-color: hsl(var(--foreground)); 
-  --ag-modal-overlay-background-color: hsla(var(--foreground), 0.1);
-   /* Add more AG Chart specific variables here as needed */
+  --ag-data-color: hsl(var(--card-foreground)); 
+  --ag-modal-overlay-background-color: hsla(var(--background), 0.7); /* Darker modal overlay */
 }
 
 /* Ensure chart wrapper uses theme background */
 .ag-chart-wrapper {
   background-color: hsl(var(--card)); /* Use card background for chart wrapper */
+  border-radius: var(--radius); /* Consistent rounding */
 }
 
+
 body {
-  background-color: hsl(var(--background));
+  background-color: hsl(var(--secondary)); /* Use secondary for main page background for slight contrast */
   color: hsl(var(--foreground));
+  font-family: var(--font-ibm-plex-sans), sans-serif;
+}
+
+/* Ensure main layout containers use appropriate backgrounds */
+/* Example: if you have a main content wrapper */
+/* .main-content-area { 
+  background-color: hsl(var(--background));
+} */
+
+/* Styling for specific ShadCN components to use theme variables if needed */
+/* For example, if default Card needs slight adjustment */
+/* .custom-card {
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+} */
+
+/* General focus outline - can be customized further */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
