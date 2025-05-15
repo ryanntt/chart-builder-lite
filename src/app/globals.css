@@ -20,41 +20,40 @@
   --secondary-foreground: 240 5.9% 10%;
   --muted: 240 4.8% 95.9%;
   --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 5.9% 10%; 
-  --accent-foreground: 0 0% 98%; 
+  --accent: 240 5.9% 10%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%; /* Changed to match ShadCN default */
-  --input: 240 5.9% 90%;  /* Changed to match ShadCN default */
-  --ring: 240 5.9% 10%;   /* Changed to match ShadCN default */
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
   --radius: 0.5rem;
 
   /* Chart specific colors */
   --chart-1: hsl(var(--primary));
   --chart-2: hsl(var(--secondary));
-  --chart-3: hsl(160 70% 45%); 
-  --chart-4: hsl(180 50% 60%); 
+  --chart-3: hsl(160 70% 45%);
+  --chart-4: hsl(180 50% 60%);
   --chart-5: hsl(300 70% 50%);
 
   /* Sidebar specific colors */
-  --sidebar-background: hsl(var(--card)); 
+  --sidebar-background: hsl(var(--card));
   --sidebar-foreground: hsl(var(--foreground));
   --sidebar-border: hsl(var(--border));
-  
-  /* Custom Primary LG Button Styling Foundation Variables */
-  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2-hsl)); 
-  --btn-primary-lg-fg: hsl(0 0% 100%);   
-  
-  --btn-primary-lg-hover-bg: hsl(162 100% 17%); 
-  --btn-primary-lg-hover-fg: hsl(0 0% 100%); 
-  
-  /* --btn-primary-lg-hover-shadow-hsl: 200 70% 70%;  Raw HSL values for the shadow color */
-  /* Changed to make the hover shadow color direct in light mode */
-  --btn-primary-lg-hover-shadow: 0 0 0 3px hsl(200, 70%, 70%); /* Direct Light blue ring for debug */
 
-  --btn-primary-lg-focus-ring: hsl(220 80% 70%); 
-  --btn-primary-lg-focus-bg: hsl(220 70% 55%); 
-  --btn-primary-lg-focus-fg: hsl(0 0% 100%);   
+  /* Custom Primary LG Button Styling Foundation Variables */
+  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2-hsl));
+  --btn-primary-lg-fg: hsl(0 0% 100%);
+
+  --btn-primary-lg-hover-bg: hsl(162 100% 17%);
+  --btn-primary-lg-hover-fg: hsl(0 0% 100%);
+
+  --btn-primary-lg-hover-shadow: 0 0 0 3px #3498DB; /* Vibrant blue ring for debug */
+  --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; /* Keeping for reference or if hsl() is needed elsewhere */
+
+  --btn-primary-lg-focus-ring: hsl(220 80% 70%);
+  --btn-primary-lg-focus-bg: hsl(220 70% 55%);
+  --btn-primary-lg-focus-fg: hsl(0 0% 100%);
 }
 
 .dark {
@@ -70,20 +69,20 @@
   --secondary-foreground: 0 0% 95%;
   --muted: 240 5% 15%;
   --muted-foreground: 0 0% 60%;
-  --accent: 240 5% 15%; 
+  --accent: 240 5% 15%;
   --accent-foreground: 0 0% 95%;
-  --destructive: 0 62.8% 30.6%; 
+  --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%; /* Changed to match ShadCN default */
-  --input: 240 3.7% 15.9%;  /* Changed to match ShadCN default */
-  --ring: 240 4.9% 83.9%;   /* Changed to match ShadCN default */
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
 
   /* Chart specific colors - dark theme adjustments */
   --chart-1: hsl(var(--primary));
   --chart-2: hsl(var(--secondary));
-  --chart-3: hsl(160 60% 55%); 
-  --chart-4: hsl(180 50% 70%); 
-  --chart-5: hsl(300 70% 60%); 
+  --chart-3: hsl(160 60% 55%);
+  --chart-4: hsl(180 50% 70%);
+  --chart-5: hsl(300 70% 60%);
 
   /* Sidebar specific colors - dark theme adjustments */
   --sidebar-background: hsl(var(--card));
@@ -91,54 +90,54 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables - Dark Mode */
-  --btn-primary-lg-bg: hsl(220 60% 55%); 
-  --btn-primary-lg-fg: hsl(0 0% 95%); 
-  
-  --btn-primary-lg-hover-bg: hsl(220 60% 65%); 
-  --btn-primary-lg-hover-fg: hsl(0 0% 95%); 
-  
+  --btn-primary-lg-bg: hsl(220 60% 55%);
+  --btn-primary-lg-fg: hsl(0 0% 95%);
+
+  --btn-primary-lg-hover-bg: hsl(220 60% 65%);
+  --btn-primary-lg-hover-fg: hsl(0 0% 95%);
+
   --btn-primary-lg-hover-shadow-hsl: 220 30% 20%; /* Raw HSL values for the shadow color */
   --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-primary-lg-hover-shadow-hsl), 0.5); /* Drop shadow for dark mode */
 
-  --btn-primary-lg-focus-ring: hsl(220 70% 75%); 
-  --btn-primary-lg-focus-bg: hsl(220 60% 60%); 
-  --btn-primary-lg-focus-fg: hsl(0 0% 95%); 
+  --btn-primary-lg-focus-ring: hsl(220 70% 75%);
+  --btn-primary-lg-focus-bg: hsl(220 60% 60%);
+  --btn-primary-lg-focus-fg: hsl(0 0% 95%);
 }
 
 
 /* Styles for AG Charts theme - Ensure these are compatible with ShadCN theme */
 /* Using default AG Charts themes and letting ShadCN variables influence them where possible */
 .ag-theme-alpine, .ag-theme-default {
-  --ag-background-color: hsl(var(--card)); 
-  --ag-foreground-color: hsl(var(--card-foreground)); 
+  --ag-background-color: hsl(var(--card));
+  --ag-foreground-color: hsl(var(--card-foreground));
   --ag-border-color: hsl(var(--border));
   --ag-secondary-border-color: hsl(var(--border));
   --ag-input-disabled-background-color: hsl(var(--muted));
   --ag-input-background-color: hsl(var(--background));
-  --ag-data-color: hsl(var(--card-foreground)); 
-  --ag-modal-overlay-background-color: hsla(var(--background), 0.6); 
+  --ag-data-color: hsl(var(--card-foreground));
+  --ag-modal-overlay-background-color: hsla(var(--background), 0.6);
 }
 
 .ag-theme-alpine-dark, .ag-theme-default-dark {
-  --ag-background-color: hsl(var(--card)); 
-  --ag-foreground-color: hsl(var(--card-foreground)); 
-  --ag-border-color: hsl(var(--border)); 
+  --ag-background-color: hsl(var(--card));
+  --ag-foreground-color: hsl(var(--card-foreground));
+  --ag-border-color: hsl(var(--border));
   --ag-secondary-border-color: hsl(var(--border));
   --ag-input-disabled-background-color: hsl(var(--muted));
-  --ag-input-background-color: hsl(var(--background)); 
-  --ag-data-color: hsl(var(--card-foreground)); 
-  --ag-modal-overlay-background-color: hsla(var(--background), 0.7); 
+  --ag-input-background-color: hsl(var(--background));
+  --ag-data-color: hsl(var(--card-foreground));
+  --ag-modal-overlay-background-color: hsla(var(--background), 0.7);
 }
 
 /* Ensure chart wrapper uses theme background */
 .ag-chart-wrapper {
-  background-color: hsl(var(--card)); 
-  border-radius: var(--radius); 
+  background-color: hsl(var(--card));
+  border-radius: var(--radius);
 }
 
 
 body {
-  background-color: hsl(var(--secondary)); 
+  background-color: hsl(var(--secondary));
   color: hsl(var(--foreground));
   font-family: var(--font-ibm-plex-sans), sans-serif;
 }
