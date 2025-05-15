@@ -64,10 +64,7 @@ const RenderFieldItem: React.FC<{
   expandedFields: Set<string>;
   onToggleExpand: (path: string) => void;
   depth: number;
-  currentXAxisField: string | null;
-  currentYAxisField: string | null;
-  onDragStartAxis: (field: string, origin: 'x' | 'y') => void;
-}> = ({ field, selectedFields, onFieldSelect, expandedFields, onToggleExpand, depth, currentXAxisField, currentYAxisField, onDragStartAxis }) => {
+}> = ({ field, selectedFields, onFieldSelect, expandedFields, onToggleExpand, depth }) => {
   const isExpanded = expandedFields.has(field.path);
 
   if (field.isParent) {
@@ -97,9 +94,6 @@ const RenderFieldItem: React.FC<{
                 expandedFields={expandedFields}
                 onToggleExpand={onToggleExpand}
                 depth={depth + 1}
-                currentXAxisField={currentXAxisField}
-                currentYAxisField={currentYAxisField}
-                onDragStartAxis={onDragStartAxis}
               />
             ))}
           </div>
@@ -113,14 +107,6 @@ const RenderFieldItem: React.FC<{
       key={field.key} 
       className="flex items-center space-x-2 py-1.5 px-1 rounded-md hover:bg-accent transition-colors"
       style={{ paddingLeft: `${depth * 1.5}rem` }}
-      draggable={selectedFields.includes(field.path)}
-      onDragStart={() => {
-          if (selectedFields.includes(field.path)) {
-            const origin = currentXAxisField === field.path ? 'x' : (currentYAxisField === field.path ? 'y' : 'x'); 
-            onDragStartAxis(field.path, origin);
-          }
-        }
-      }
     >
       <Checkbox
         id={`checkbox-${field.path}`}
@@ -158,10 +144,6 @@ export default function Home() {
 
   const [processedFieldStructure, setProcessedFieldStructure] = useState<FieldDefinition[]>([]);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
-
-  const handleDragStartForAxis = (field: string, origin: 'x' | 'y') => {
-    if (!selectedFields.includes(field)) return; 
-  };
 
 
   const handleToggleExpand = (path: string) => {
@@ -297,6 +279,7 @@ export default function Home() {
         ? prev.filter(f => f !== fieldPath)
         : [...prev, fieldPath];
 
+      // If a field is deselected, also remove it from X/Y axis if it's currently set there
       if (!newSelection.includes(fieldPath)) { 
         if (currentXAxisField === fieldPath) setXAxisFieldInternal(null);
         if (currentYAxisField === fieldPath) setYAxisFieldInternal(null);
@@ -317,56 +300,63 @@ export default function Home() {
   };
   
  useEffect(() => {
+    // Auto-assign to X and Y axes when selectedFields change and jsonData is available
     if (jsonData.length > 0 && selectedFields.length > 0) {
         let currentX = currentXAxisField;
         let currentY = currentYAxisField;
 
+        // If X and Y are the same, clear Y
         if (currentX && currentY && currentX === currentY) {
              setYAxisFieldInternal(null); 
              currentY = null;
         }
 
+        // If current X is no longer in selectedFields, clear it
         if (currentX && !selectedFields.includes(currentX)) {
             currentX = null;
             setXAxisFieldInternal(null);
         }
+        // If current Y is no longer in selectedFields, clear it
         if (currentY && !selectedFields.includes(currentY)) {
             currentY = null;
             setYAxisFieldInternal(null);
         }
         
+        // Attempt to set X-axis if not set, or if Y is set and X isn't
         if (!currentX && (currentY || (!currentX && !currentY))) { 
             const potentialX = 
-                selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) ||
-                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) || 
-                selectedFields.find(f => f !== currentY); 
+                selectedFields.find(f => (headerTypes[f] === 'string' || headerTypes[f] === 'date') && f !== currentY) || // Prefer string/date for X
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== currentY) || // Then number
+                selectedFields.find(f => f !== currentY); // Then anything else not Y
             if (potentialX) {
-                if (potentialX !== currentY) { 
+                if (potentialX !== currentY) { // Ensure X and Y are different unless only one field is selected
                     setXAxisFieldInternal(potentialX);
-                } else if (selectedFields.length === 1) { 
+                } else if (selectedFields.length === 1) { // If only one field, set it to X
                     setXAxisFieldInternal(potentialX);
                 }
             }
         }
         
+        // Attempt to set Y-axis if not set, or if X is set and Y isn't (and X exists from above logic or prev state)
         if (!currentY && (currentX || (!currentX && !currentY && currentXAxisField))) { 
             const potentialY = 
-                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) || 
-                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array');
+                selectedFields.find(f => headerTypes[f] === 'number' && f !== (currentX || currentXAxisField)) || // Prefer number for Y
+                selectedFields.find(f => f !== (currentX || currentXAxisField) && headerTypes[f] !== 'object' && headerTypes[f] !== 'array'); // Then anything not object/array and not X
              if (potentialY) {
-                if (potentialY !== (currentX || currentXAxisField)) { 
+                if (potentialY !== (currentX || currentXAxisField)) { // Ensure X and Y are different unless only one field is selected
                     setYAxisFieldInternal(potentialY);
-                } else if (selectedFields.length === 1) { 
+                } else if (selectedFields.length === 1) { // If only one field, set it to Y (if X also picked it)
                     setYAxisFieldInternal(potentialY);
                 }
             }
         }
     } else if (selectedFields.length === 0) {
+        // Clear axes if no fields are selected
         setXAxisFieldInternal(null);
         setYAxisFieldInternal(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFields, jsonData.length, headerTypes]); 
+  }, [selectedFields, jsonData.length, headerTypes]); // Rerun when selectedFields, jsonData, or headerTypes change
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
@@ -420,9 +410,6 @@ export default function Home() {
                   expandedFields={expandedFields}
                   onToggleExpand={handleToggleExpand}
                   depth={0}
-                  currentXAxisField={currentXAxisField}
-                  currentYAxisField={currentYAxisField}
-                  onDragStartAxis={handleDragStartForAxis}
                 />
               )) : (
                 <p className="text-sm text-muted-foreground p-2">Connect a data source to see fields.</p>
@@ -526,6 +513,7 @@ export default function Home() {
                 <AccordionContent className="p-4 pt-2 flex flex-col flex-grow bg-card">
                   <ChartVisualization
                     jsonData={jsonData} 
+                    tableHeaders={tableHeaders}
                     headerTypes={headerTypes}
                     selectedFields={selectedFields}
                     setSelectedFields={setSelectedFields}
@@ -550,4 +538,3 @@ export default function Home() {
     </div>
   );
 }
-

@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -20,6 +21,7 @@ import { getNestedValue } from "@/lib/utils";
 
 interface ChartVisualizationProps {
   jsonData: any[]; 
+  tableHeaders: string[]; // Added: All available field paths
   headerTypes: Record<string, string>; 
   selectedFields: string[]; 
   setSelectedFields: React.Dispatch<React.SetStateAction<string[]>>;
@@ -33,6 +35,7 @@ interface ChartVisualizationProps {
 
 export function ChartVisualization({
   jsonData,
+  tableHeaders,
   headerTypes,
   selectedFields,
   setSelectedFields,
@@ -77,10 +80,11 @@ export function ChartVisualization({
         }
       });
       resizeObserver.observe(container);
+      // Initial dimension set
       const { width, height } = container.getBoundingClientRect();
       if (width > 0 && height > 0) {
-        if (!chartDimensions || Math.abs(chartDimensions.width - width) > 1 || Math.abs(chartDimensions.height - height) > 1) {
-          setChartDimensions({ width, height });
+         if (!chartDimensions || Math.abs(chartDimensions.width - width) > 1 || Math.abs(chartDimensions.height - height) > 1) {
+            setChartDimensions({ width, height });
         }
       }
       return () => resizeObserver.unobserve(container);
@@ -90,13 +94,13 @@ export function ChartVisualization({
 
 
   const regenerateChartLogic = useCallback(() => {
-    if (!currentXAxisField || jsonData.length === 0 || !selectedFields.includes(currentXAxisField) ) {
+    if (!currentXAxisField || jsonData.length === 0 ) { // Removed selectedFields check for X-axis
       setIsChartLoading(false);
       setInternalChartOptions(null);
       return;
     }
     
-    if (chartType !== 'donut' && chartType !== 'stacked-bar' && chartType !== 'grouped-bar' && (!currentYAxisField || !selectedFields.includes(currentYAxisField))) {
+    if (chartType !== 'donut' && chartType !== 'stacked-bar' && chartType !== 'grouped-bar' && (!currentYAxisField )) { // Removed selectedFields check for Y-axis
         setIsChartLoading(false);
         setInternalChartOptions(null);
         return;
@@ -108,7 +112,7 @@ export function ChartVisualization({
     const yFieldType = currentYAxisField ? headerTypes[currentYAxisField] : null;
 
     let series: AgChartOptions['series'] = [];
-    let axes: AgCartesianAxisOptions[] = [];
+    let axes: AgCartesianAxisOptions[] | undefined = []; // Explicitly allow undefined
     let titleText = currentYAxisField ? `${currentYAxisField} by ${currentXAxisField}` : `Distribution by ${currentXAxisField}`;
 
     if ((chartType === 'bar' && currentYAxisField && (xFieldType === 'string' || xFieldType === 'date'))) {
@@ -162,12 +166,13 @@ export function ChartVisualization({
         chartData = aggregatedDataForChart; 
       }
     } else if (chartType === 'stacked-bar' || chartType === 'grouped-bar') {
+        // For stacked/grouped, Y-keys are derived from *all* selected numeric fields not the X-axis
         const validNumericYKeys = selectedFields.filter(
             field => field !== currentXAxisField && headerTypes[field] === 'number'
         );
 
         if (validNumericYKeys.length === 0) {
-            toast({ title: "Configuration Error", description: "Stacked/Grouped Bar charts require at least one numeric Y-axis field.", variant: "destructive" });
+            toast({ title: "Configuration Error", description: "Stacked/Grouped Bar charts require at least one numeric Y-axis field selected.", variant: "destructive" });
             setInternalChartOptions(null); setIsChartLoading(false); return;
         }
         titleText = `${validNumericYKeys.join(', ')} by ${currentXAxisField}`;
@@ -191,31 +196,33 @@ export function ChartVisualization({
             chartData = Array.from(aggregatedDataMap.values());
 
             if (chartData.length > 20 && validNumericYKeys.length > 0) {
+                // Sort by the first Y key for consistent top 20
                 chartData.sort((a, b) => Number(getNestedValue(b, validNumericYKeys[0])) - Number(getNestedValue(a, validNumericYKeys[0])));
                 chartData = chartData.slice(0, 20);
-                toast({ title: "Data Filtered", description: `X-axis displaying top 20 categories.` });
+                toast({ title: "Data Filtered", description: `X-axis displaying top 20 categories based on '${validNumericYKeys[0]}'.` });
             }
-        } else {
+        } else { // If X-axis is numeric (less common for stacked/grouped)
              toast({ title: "Axis Type Suggestion", description: "Stacked/Grouped Bar charts typically use a categorical X-axis.", variant: "default" });
+             // Directly use jsonData, ensuring Y-values are numeric
              chartData = jsonData.map(row => {
                 const item: { [key: string]: any } = { [currentXAxisField!]: getNestedValue(row, currentXAxisField!) };
                 validNumericYKeys.forEach(yKey => {
                     const val = getNestedValue(row, yKey);
-                    item[yKey] = (typeof val === 'number') ? val : null;
+                    item[yKey] = (typeof val === 'number') ? val : null; // Ensure numeric or null
                 });
                 return item;
-            }).filter(item => validNumericYKeys.some(yKey => item[yKey] !== null && item[yKey] !== undefined));
+            }).filter(item => validNumericYKeys.some(yKey => item[yKey] !== null && item[yKey] !== undefined)); // Keep rows with at least one valid Y value
         }
          series = [{ 
             type: 'bar', 
             xKey: currentXAxisField!, 
             yKeys: validNumericYKeys, 
-            yNames: validNumericYKeys.map(name => name),
+            yNames: validNumericYKeys.map(name => name), // Display actual field names in legend/tooltips
             stacked: chartType === 'stacked-bar',
         }];
         axes = [
             { type: (xFieldType === 'string' || xFieldType === 'date') ? 'category' : 'number', position: 'bottom', title: { text: currentXAxisField } },
-            { type: 'number', position: 'left', title: { text: 'Values' } }, 
+            { type: 'number', position: 'left', title: { text: 'Values' } }, // Y-axis is always numeric
         ];
     }
 
@@ -241,8 +248,8 @@ export function ChartVisualization({
         series = [{ 
             type: 'bar', 
             direction: 'horizontal', 
-            xKey: currentXAxisField, 
-            yKey: currentYAxisField,
+            xKey: currentXAxisField, // Numeric axis
+            yKey: currentYAxisField, // Category axis
         }];
         axes = [
           { type: 'number', position: 'bottom', title: { text: currentXAxisField } },
@@ -304,22 +311,23 @@ export function ChartVisualization({
   }, [chartType, currentXAxisField, currentYAxisField, jsonData, selectedFields, headerTypes, resolvedTheme]); 
 
   useEffect(() => {
-    const xReady = currentXAxisField && selectedFields.includes(currentXAxisField);
-    const yReady = chartType === 'donut' || chartType === 'stacked-bar' || chartType === 'grouped-bar' || (currentYAxisField && selectedFields.includes(currentYAxisField));
+    const xReady = currentXAxisField; // Field must be set
+    const yReadyForNonSpecialTypes = currentYAxisField; // Y field must be set for most types
+    const yReadyForSpecialTypes = chartType === 'donut' || chartType === 'stacked-bar' || chartType === 'grouped-bar';
 
-    if (xReady && yReady && jsonData.length > 0 && chartDimensions) {
-      setIsChartLoading(true);
-      setIsChartApiReady(false); 
-      const timer = setTimeout(() => {
-        regenerateChartLogic();
-      }, 300); 
-      return () => clearTimeout(timer);
+    if (xReady && (yReadyForNonSpecialTypes || yReadyForSpecialTypes) && jsonData.length > 0 && chartDimensions) {
+        setIsChartLoading(true);
+        setIsChartApiReady(false); 
+        const timer = setTimeout(() => {
+            regenerateChartLogic();
+        }, 300); 
+        return () => clearTimeout(timer);
     } else {
-      setInternalChartOptions(null); 
-      setIsChartLoading(false);
+        setInternalChartOptions(null); 
+        setIsChartLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartType, currentXAxisField, currentYAxisField, jsonData.length, selectedFields, headerTypes, chartDimensions, resolvedTheme, regenerateChartLogic]); 
+  }, [chartType, currentXAxisField, currentYAxisField, jsonData.length, selectedFields, headerTypes, chartDimensions, resolvedTheme, regenerateChartLogic]); // selectedFields added to deps for stacked/grouped
 
   useEffect(() => {
     if (!chartOptionsToRender) {
@@ -362,20 +370,22 @@ export function ChartVisualization({
   const handleXAxisClear = () => {
     const fieldToDeselect = currentXAxisField;
     setXAxisField(null);
+    // Only deselect from main list if it's not used by Y-axis and not the only selected field
     if (fieldToDeselect && currentYAxisField !== fieldToDeselect) { 
-      setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
-    } else if (fieldToDeselect && !currentYAxisField) { 
-      setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
+      setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect || (prev.length === 1 && f === fieldToDeselect)));
+    } else if (fieldToDeselect && !currentYAxisField) { // If Y is null, just deselect X
+      setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect || (prev.length === 1 && f === fieldToDeselect)));
     }
   };
 
   const handleYAxisClear = () => {
     const fieldToDeselect = currentYAxisField;
     setYAxisField(null);
+    // Only deselect from main list if it's not used by X-axis and not the only selected field
     if (fieldToDeselect && currentXAxisField !== fieldToDeselect) { 
-       setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
-    } else if (fieldToDeselect && !currentXAxisField) { 
-       setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect));
+       setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect || (prev.length === 1 && f === fieldToDeselect)));
+    } else if (fieldToDeselect && !currentXAxisField) { // If X is null, just deselect Y
+       setSelectedFields(prev => prev.filter(f => f !== fieldToDeselect || (prev.length === 1 && f === fieldToDeselect)));
     }
   };
   
@@ -423,7 +433,7 @@ export function ChartVisualization({
   };
 
   const getValidFieldsForAxis = (axis: 'x' | 'y'): string[] => {
-    if (selectedFields.length === 0) return [];
+    if (tableHeaders.length === 0) return [];
 
     const isNumeric = (field: string) => headerTypes[field] === 'number';
     const isCategorical = (field: string) => headerTypes[field] === 'string' || headerTypes[field] === 'date';
@@ -432,30 +442,41 @@ export function ChartVisualization({
 
     switch (chartType) {
       case 'bar':
-        if (axis === 'x') return selectedFields.filter(f => isCategorical(f) || isNumeric(f));
-        if (axis === 'y') return selectedFields.filter(f => isNumeric(f) && f !== currentXAxisField);
+        if (axis === 'x') return tableHeaders.filter(f => isCategorical(f) || isNumeric(f));
+        if (axis === 'y') return tableHeaders.filter(f => isNumeric(f) && f !== currentXAxisField);
         break;
       case 'horizontal-bar':
-        if (axis === 'x') return selectedFields.filter(f => isNumeric(f));
-        if (axis === 'y') return selectedFields.filter(f => isCategorical(f) && f !== currentXAxisField);
+        if (axis === 'x') return tableHeaders.filter(f => isNumeric(f));
+        if (axis === 'y') return tableHeaders.filter(f => isCategorical(f) && f !== currentXAxisField);
         break;
       case 'scatter':
-        if (axis === 'x') return selectedFields.filter(f => isNumeric(f) || headerTypes[f] === 'date');
-        if (axis === 'y') return selectedFields.filter(f => (isNumeric(f) || headerTypes[f] === 'date') && f !== currentXAxisField);
+        if (axis === 'x') return tableHeaders.filter(f => isNumeric(f) || headerTypes[f] === 'date');
+        if (axis === 'y') return tableHeaders.filter(f => (isNumeric(f) || headerTypes[f] === 'date') && f !== currentXAxisField);
         break;
       case 'donut':
-        if (axis === 'x') return selectedFields.filter(f => isCategorical(f)); // Labels
-        if (axis === 'y') return selectedFields.filter(f => isNumeric(f) && f !== currentXAxisField); // Values
+        if (axis === 'x') return tableHeaders.filter(f => isCategorical(f)); // Labels
+        if (axis === 'y') return tableHeaders.filter(f => isNumeric(f) && f !== currentXAxisField); // Values
         break;
       case 'stacked-bar':
       case 'grouped-bar':
-        if (axis === 'x') return selectedFields.filter(f => isCategorical(f));
+        if (axis === 'x') return tableHeaders.filter(f => isCategorical(f));
         // For Y-axis in stacked/grouped, it's usually multiple numeric fields.
         // The Select input will pick one, and the logic derives all applicable numeric yKeys.
-        if (axis === 'y') return selectedFields.filter(f => isNumeric(f) && f !== currentXAxisField);
+        if (axis === 'y') return tableHeaders.filter(f => isNumeric(f) && f !== currentXAxisField);
         break;
     }
-    return selectedFields.filter(f => !isGeo(f)); // Default: return all non-geo selected fields
+    return tableHeaders.filter(f => !isGeo(f)); // Default: return all non-geo selected fields not used by other axis
+  };
+
+  const handleSetAxisField = (field: string | null, axis: 'x' | 'y') => {
+    if (axis === 'x') {
+      setXAxisField(field);
+    } else {
+      setYAxisField(field);
+    }
+    if (field && !selectedFields.includes(field)) {
+      setSelectedFields(prev => [...new Set([...prev, field])]);
+    }
   };
 
 
@@ -470,7 +491,7 @@ export function ChartVisualization({
               value={chartType} 
               onValueChange={(value) => { setChartType(value); }} 
               name="chartType"
-              disabled={selectedFields.length === 0 && jsonData.length === 0}
+              // disabled={jsonData.length === 0} // Allow selection before data load
             >
               <SelectTrigger id="chartType" className="h-9 text-xs"><SelectValue placeholder="Select chart type" /></SelectTrigger>
               <SelectContent>
@@ -489,7 +510,7 @@ export function ChartVisualization({
             <div className="flex items-center space-x-1">
               <Select
                 value={currentXAxisField || ""}
-                onValueChange={(value) => setXAxisField(value === "" ? null : value)}
+                onValueChange={(value) => handleSetAxisField(value === "" ? null : value, 'x')}
                 name="xAxisSelect"
                 disabled={getValidFieldsForAxis('x').length === 0 && !currentXAxisField}
               >
@@ -513,10 +534,10 @@ export function ChartVisualization({
              <div className="flex items-center space-x-1">
               <Select
                 value={currentYAxisField || ""}
-                onValueChange={(value) => setYAxisField(value === "" ? null : value)}
+                onValueChange={(value) => handleSetAxisField(value === "" ? null : value, 'y')}
                 name="yAxisSelect"
                 disabled={
-                  (chartType === 'stacked-bar' || chartType === 'grouped-bar') ||
+                  (chartType === 'stacked-bar' || chartType === 'grouped-bar') || // Y-axis handled differently for these
                   (getValidFieldsForAxis('y').length === 0 && !currentYAxisField)
                 }
               >
@@ -559,10 +580,10 @@ export function ChartVisualization({
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                  {(selectedFields.length === 0 || jsonData.length === 0) ? (
+                  {(tableHeaders.length === 0 || jsonData.length === 0) ? (
                     <>
                       <BarChart className="h-12 w-12 text-muted-foreground mb-2" data-ai-hint="document data" />
-                      <p className="text-sm text-muted-foreground">Connect data and select fields to visualize.</p>
+                      <p className="text-sm text-muted-foreground">Connect data to visualize.</p>
                     </>
                   ) : (!currentXAxisField || (chartType !== 'donut' && chartType !== 'stacked-bar' && chartType !== 'grouped-bar' && !currentYAxisField) ) ? (
                     <>
