@@ -43,18 +43,18 @@
   --sidebar-foreground: hsl(var(--foreground));
   --sidebar-border: hsl(var(--border));
   
-  /* Custom Button Styling Foundation Variables */
-  --btn-lg-bg: hsl(var(--lg-green-dark-2)); /* Stores full hsl() string */
-  --btn-lg-fg: hsl(0 0% 100%);   /* Stores full hsl() string */
+  /* Custom Primary LG Button Styling Foundation Variables */
+  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2)); /* Stores full hsl() string */
+  --btn-primary-lg-fg: hsl(0 0% 100%);   /* Stores full hsl() string */
   
-  --btn-lg-hover-bg: hsl(220 70% 60%); /* Stores full hsl() string */
-  --btn-lg-hover-fg: hsl(0 0% 100%); /* Stores full hsl() string */
-  --btn-lg-hover-shadow-hsl: 220 40% 30%; /* For shadow color - stores HSL values for hsla() */
-  --btn-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-lg-hover-shadow-hsl), 0.4); 
+  --btn-primary-lg-hover-bg: hsl(162 100% 17%); /* Stores full hsl() string */
+  --btn-primary-lg-hover-fg: hsl(0 0% 100%); /* Stores full hsl() string */
+  --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; /* DEBUG: Light blue, raw HSL values for hsl() */
+  --btn-primary-lg-hover-shadow: 0 0 0 3px hsl(var(--btn-primary-lg-hover-shadow-hsl)); /* Light blue ring for debug */
 
-  --btn-lg-focus-ring: hsl(220 80% 70%); /* Stores full hsl() string */
-  --btn-lg-focus-bg: hsl(220 70% 55%); /* Stores full hsl() string */
-  --btn-lg-focus-fg: hsl(0 0% 100%);   /* Stores full hsl() string */
+  --btn-primary-lg-focus-ring: hsl(220 80% 70%); /* Stores full hsl() string */
+  --btn-primary-lg-focus-bg: hsl(220 70% 55%); /* Stores full hsl() string */
+  --btn-primary-lg-focus-fg: hsl(0 0% 100%);   /* Stores full hsl() string */
 }
 
 .dark {
@@ -91,18 +91,18 @@
   --sidebar-foreground: hsl(var(--foreground));
   --sidebar-border: hsl(var(--border));
 
-  /* Custom Button Styling Foundation Variables - Dark Mode */
-  --btn-lg-bg: hsl(220 60% 55%); /* Stores full hsl() string */
-  --btn-lg-fg: hsl(0 0% 95%); /* Stores full hsl() string */
+  /* Custom Primary LG Button Styling Foundation Variables - Dark Mode */
+  --btn-primary-lg-bg: hsl(220 60% 55%); /* Stores full hsl() string */
+  --btn-primary-lg-fg: hsl(0 0% 95%); /* Stores full hsl() string */
   
-  --btn-lg-hover-bg: hsl(220 60% 65%); /* Stores full hsl() string */
-  --btn-lg-hover-fg: hsl(0 0% 95%); /* Stores full hsl() string */
-  --btn-lg-hover-shadow-hsl: 220 30% 20%; /* Stores HSL values for hsla() */
-  --btn-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-lg-hover-shadow-hsl), 0.5);
+  --btn-primary-lg-hover-bg: hsl(220 60% 65%); /* Stores full hsl() string */
+  --btn-primary-lg-hover-fg: hsl(0 0% 95%); /* Stores full hsl() string */
+  --btn-primary-lg-hover-shadow-hsl: 220 30% 20%; /* Stores HSL values for hsla() */
+  --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsla(var(--btn-primary-lg-hover-shadow-hsl), 0.5);
 
-  --btn-lg-focus-ring: hsl(220 70% 75%); /* Stores full hsl() string */
-  --btn-lg-focus-bg: hsl(220 60% 60%); /* Stores full hsl() string */
-  --btn-lg-focus-fg: hsl(0 0% 95%); /* Stores full hsl() string */
+  --btn-primary-lg-focus-ring: hsl(220 70% 75%); /* Stores full hsl() string */
+  --btn-primary-lg-focus-bg: hsl(220 60% 60%); /* Stores full hsl() string */
+  --btn-primary-lg-focus-fg: hsl(0 0% 95%); /* Stores full hsl() string */
 }
 
 
@@ -164,4 +164,3 @@ body {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
-

@@ -622,9 +622,9 @@ export default function Home() {
                 <Button
                   className={cn(
                     "w-full",
-                    "bg-[var(--btn-lg-bg)] text-[var(--btn-lg-fg)]", // Use renamed vars
-                    "hover:bg-[var(--btn-lg-hover-bg)] hover:text-[var(--btn-lg-hover-fg)] hover:shadow-[var(--btn-lg-hover-shadow)]",
-                    "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-lg-focus-ring)]" // Use renamed var
+                    "bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)]",
+                    "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:shadow-[var(--btn-primary-lg-hover-shadow)]",
+                    "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--btn-primary-lg-focus-ring)]" 
                   )}
                 >
                   Custom Styled Button
