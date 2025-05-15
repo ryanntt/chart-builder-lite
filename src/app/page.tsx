@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FileText, Type, Hash, CalendarDays, ToggleLeft, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets } from "lucide-react";
+import { FileText, Type, Hash, CalendarDays, ToggleLeft, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
 import { Logo } from "@/components/icons/logo";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
@@ -19,7 +19,7 @@ interface FieldDefinition {
   key: string; 
   name: string; 
   path: string; 
-  type: 'string' | 'number' | 'boolean' | 'date' | 'object' | 'array' | 'unknown';
+  type: 'string' | 'number' | 'boolean' | 'date' | 'object' | 'array' | 'geojson-coordinates' | 'unknown';
   isParent: boolean;
   children?: FieldDefinition[];
 }
@@ -33,11 +33,13 @@ const getFieldTypeIcon = (type: string) => {
     case 'date':
       return <CalendarDays className="h-4 w-4 text-muted-foreground" />;
     case 'boolean':
-      return <ToggleLeft className="h-4 w-4 text-muted-foreground" />;
+      return <Binary className="h-4 w-4 text-muted-foreground" />;
     case 'object':
       return <Brackets className="h-4 w-4 text-muted-foreground" />;
     case 'array':
       return <Brackets className="h-4 w-4 text-muted-foreground" />; 
+    case 'geojson-coordinates':
+      return <Globe className="h-4 w-4 text-muted-foreground" />;
     default:
       return <FileText className="h-4 w-4 text-muted-foreground" />; 
   }
@@ -141,6 +143,7 @@ const RenderFieldItem: React.FC<{
 
 export default function Home() {
   const [dataSourceName, setDataSourceName] = useState<string | null>(null);
+  const [dataSourceType, setDataSourceType] = useState<'csv' | 'atlas' | null>(null);
   const [jsonData, setJsonData] = useState<any[]>([]);
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [headerTypes, setHeaderTypes] = useState<Record<string, string>>({});
@@ -222,8 +225,9 @@ export default function Home() {
   };
 
 
-  const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, sampledRows: number, totalRows: number) => {
+  const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, sampledRows: number, totalRows: number, sourceType: 'csv' | 'atlas') => {
     setDataSourceName(fileName);
+    setDataSourceType(sourceType);
     
     let countTextVal = "";
     if (totalRows > sampledRows) {
@@ -246,7 +250,10 @@ export default function Home() {
           types[headerPath] = 'boolean';
         } else if (sampleValue instanceof Date || (typeof sampleValue === 'string' && !isNaN(new Date(sampleValue).getTime()) && /\d{4}-\d{2}-\d{2}/.test(sampleValue))) {
           types[headerPath] = 'date';
-        } else if (Array.isArray(sampleValue)){
+        } else if (Array.isArray(sampleValue) && sampleValue.length === 2 && typeof sampleValue[0] === 'number' && typeof sampleValue[1] === 'number') {
+          types[headerPath] = 'geojson-coordinates';
+        }
+         else if (Array.isArray(sampleValue)){
           types[headerPath] = 'array';
         } else if (typeof sampleValue === 'object' && sampleValue !== null && !(sampleValue instanceof Date)){
           types[headerPath] = 'object';
@@ -434,27 +441,69 @@ export default function Home() {
                  </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
                   <div className="max-h-[250px] overflow-y-auto border border-border-secondary rounded-md bg-card">
-                    {selectedFields.length > 0 && jsonData.length > 0 ? (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            {selectedFields.map((header) => (
-                              <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-card z-10 text-muted-foreground">{header}</TableHead>
-                            ))}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {jsonData.slice(0, 10).map((row, index) => (
-                            <TableRow key={index}>
-                              {selectedFields.map((header) => (
-                                <TableCell key={header} className="text-xs py-1 px-2 text-foreground">
-                                  {String(getNestedValue(row, header))}
-                                </TableCell>
+                    {jsonData.length > 0 ? (
+                      <>
+                        {selectedFields.length > 0 ? (
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                {selectedFields.map((header) => (
+                                  <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-card z-10 text-muted-foreground">{header}</TableHead>
+                                ))}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {jsonData.slice(0, 10).map((row, index) => (
+                                <TableRow key={index}>
+                                  {selectedFields.map((header) => (
+                                    <TableCell key={header} className="text-xs py-1 px-2 text-foreground">
+                                      {String(getNestedValue(row, header))}
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
                               ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                            </TableBody>
+                          </Table>
+                        ) : (
+                          <>
+                            {dataSourceType === 'atlas' ? (
+                              <div className="font-mono text-xs space-y-2 p-2">
+                                {jsonData.slice(0, 10).map((doc, index) => (
+                                  <pre key={index} className="bg-muted p-2 rounded-sm overflow-auto">
+                                    <code>{JSON.stringify(doc, null, 2)}</code>
+                                  </pre>
+                                ))}
+                              </div>
+                            ) : dataSourceType === 'csv' && Object.keys(jsonData[0] || {}).length > 0 ? (
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    {Object.keys(jsonData[0]).map((header) => (
+                                      <TableHead key={header} className="text-xs h-8 px-2 sticky top-0 bg-card z-10 text-muted-foreground">{header}</TableHead>
+                                    ))}
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {jsonData.slice(0, 10).map((row, index) => (
+                                    <TableRow key={index}>
+                                      {Object.keys(row).map((header) => (
+                                        <TableCell key={header} className="text-xs py-1 px-2 text-foreground">
+                                          {String(row[header])}
+                                        </TableCell>
+                                      ))}
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center h-[150px] text-center">
+                                <FileText className="h-8 w-8 text-muted-foreground mb-2" data-ai-hint="document icon" />
+                                <p className="text-sm text-muted-foreground">No data available or recognized format for preview.</p>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </>
                     ) : (
                       <div className="flex flex-col items-center justify-center h-[150px] text-center">
                          <FileText className="h-8 w-8 text-muted-foreground mb-2" data-ai-hint="document icon" />
@@ -501,3 +550,4 @@ export default function Home() {
     </div>
   );
 }
+

@@ -12,13 +12,13 @@ import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, CircleAlert, ChevronLeft, PlugZap, Database, Folder } from 'lucide-react';
+import { Loader2, UploadCloud, CircleAlert, ChevronLeft, PlugZap, Database, Folder, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataSourceModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onDataSourceConnected: (data: any[], headers: string[], fileName: string, sampledRowCount: number, totalRowCount: number) => void;
+  onDataSourceConnected: (data: any[], headers: string[], fileName: string, sampledRowCount: number, totalRowCount: number, sourceType: 'csv' | 'atlas') => void;
 }
 
 const SkeletonListItem = () => (
@@ -39,12 +39,25 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
   const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null);
   const [collections, setCollections] = useState<string[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const [hasStoredConnectionString, setHasStoredConnectionString] = useState(false);
   
   // Shared loading/error states
   const [isLoading, setIsLoading] = useState(false); 
   const [isFetchingDatabases, setIsFetchingDatabases] = useState(false);
   const [isFetchingCollections, setIsFetchingCollections] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab === 'atlas') {
+      const storedConnectionString = localStorage.getItem('atlasConnectionString');
+      if (storedConnectionString) {
+        setConnectionString(storedConnectionString);
+        setHasStoredConnectionString(true);
+      } else {
+        setHasStoredConnectionString(false);
+      }
+    }
+  }, [activeTab, isOpen]);
 
 
   const processAndConnectFile = (file: File) => {
@@ -67,7 +80,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           setIsLoading(false);
           return;
         }
-        onDataSourceConnected(parsedData, headers, file.name, parsedData.length, parsedData.length);
+        onDataSourceConnected(parsedData, headers, file.name, parsedData.length, parsedData.length, 'csv');
         toast({ title: "CSV Uploaded", description: `${file.name} processed successfully.` });
         setIsLoading(false);
         onOpenChange(false); 
@@ -131,12 +144,21 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     const result = await fetchDatabases(connectionString);
     if (result.success && result.data) {
       setDatabases(result.data);
-      toast({ title: "Success", description: "Databases fetched successfully." });
+      localStorage.setItem('atlasConnectionString', connectionString);
+      setHasStoredConnectionString(true);
+      toast({ title: "Success", description: "Databases fetched. Connection string saved locally." });
     } else {
       setError(result.error || "Failed to fetch databases.");
       toast({ title: "Error", description: result.error || "Failed to fetch databases.", variant: "destructive" });
     }
     setIsFetchingDatabases(false);
+  };
+
+  const handleClearStoredConnectionString = () => {
+    localStorage.removeItem('atlasConnectionString');
+    setConnectionString('');
+    setHasStoredConnectionString(false);
+    toast({ title: "Stored Connection Cleared", description: "The locally stored Atlas connection string has been removed." });
   };
 
   const handleDatabaseSelect = async (dbName: string) => {
@@ -169,7 +191,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     const result = await fetchCollectionData(connectionString, selectedDatabase, collectionName);
     if (result.success && result.data) {
         const { jsonData, tableHeaders, sampledRowCount, totalRowCount } = result.data;
-        onDataSourceConnected(jsonData, tableHeaders, `${selectedDatabase}.${collectionName}`, sampledRowCount, totalRowCount);
+        onDataSourceConnected(jsonData, tableHeaders, `${selectedDatabase}.${collectionName}`, sampledRowCount, totalRowCount, 'atlas');
         toast({ title: "Data Loaded", description: `Data from ${selectedDatabase}.${collectionName} loaded.`});
         onOpenChange(false); 
     } else {
@@ -231,14 +253,27 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
             <div className="space-y-2">
               <Label htmlFor="connectionString" className="text-muted-foreground">MongoDB Connection String</Label>
               <div className="flex space-x-2 items-center">
-                <Input 
-                  id="connectionString" 
-                  placeholder="mongodb+srv://<username>:<password>@<cluster-url>/..." 
-                  value={connectionString}
-                  onChange={(e) => setConnectionString(e.target.value)}
-                  disabled={isFetchingDatabases || isFetchingCollections || isLoading}
-                  className="border-border flex-grow"
-                />
+                <div className="relative flex-grow">
+                  <Input 
+                    id="connectionString" 
+                    placeholder="mongodb+srv://<username>:<password>@<cluster-url>/..." 
+                    value={connectionString}
+                    onChange={(e) => setConnectionString(e.target.value)}
+                    disabled={isFetchingDatabases || isFetchingCollections || isLoading}
+                    className="border-border pr-8" // Add padding for the clear button
+                  />
+                  {hasStoredConnectionString && connectionString && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
+                      onClick={handleClearStoredConnectionString}
+                      aria-label="Clear stored connection string"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
                 <Button 
                   onClick={handleFetchDatabases} 
                   variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "lgPrimary"}
@@ -249,6 +284,10 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   Fetch
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Connection strings are stored in your browser's local storage for convenience. 
+                <Button variant="link" className="p-0 h-auto text-xs ml-1" onClick={() => toast({title: "Local Storage", description: "Storing connection strings locally is convenient for development but not recommended for production due to security risks."})}>Learn more</Button>
+              </p>
             </div>
             
             {error && <p className="text-sm text-destructive flex items-center"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>}
@@ -335,3 +374,4 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     </Dialog>
   );
 }
+
