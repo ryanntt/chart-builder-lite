@@ -31,11 +31,9 @@ const buttonVariants = cva(
           "border px-3 bg-[var(--btn-default-notext-lg-bg)] text-[var(--btn-default-notext-lg-fg)] border-[var(--btn-default-notext-lg-border)] hover:bg-[var(--btn-default-notext-lg-hover-bg)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-default-notext-lg-icon-hsl))]",
       },
       size: {
-        default: "h-10 px-4 py-2", // Default padding is 16px
-        sm: "h-9 rounded-md px-3", // Small padding is 12px
-        xs: "h-8 rounded-md px-2 text-xs", // New extra small size
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-9 px-3", // 36px height, 12px horizontal padding
+        sm: "h-7 px-3",    // 28px height, 12px horizontal padding
+        icon: "h-9 w-9",   // Adjusted to align with default height
       },
     },
     defaultVariants: {
