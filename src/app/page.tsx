@@ -17,7 +17,7 @@ import { ChartVisualization } from '@/components/chart-visualization';
 import { toast } from "@/hooks/use-toast";
 import { cn, getNestedValue } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 
 const ReactJson = dynamic(() => import('react-json-view'), {
@@ -58,14 +58,13 @@ const getFieldTypeIcon = (type: string) => {
 
 const AppHeader = () => (
   <header className="sticky top-0 z-40 w-full bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="flex h-12 items-center justify-between px-4"> {/* Changed from container mx-auto */}
+    <div className="flex h-12 items-center justify-between px-4">
       <div className="flex items-center gap-2">
         <h1 className="text-lg font-semibold text-foreground">Chart Builder Lite</h1>
       </div>
       <div className="flex items-center gap-3">
         <ThemeToggleButton />
         <Avatar className="h-8 w-8" data-ai-hint="letter R">
-          {/* AvatarImage src removed to always show fallback */}
           <AvatarFallback className="bg-[var(--avatar-fallback-bg)] text-[var(--avatar-fallback-fg)] font-semibold">
             R
           </AvatarFallback>
@@ -238,7 +237,7 @@ export default function Home() {
               }
             }
           }
-        } else if (!isLastNamePart && !node.isParent) { // If node exists and it's not the last part, ensure it's marked as parent
+        } else if (!isLastNamePart && !node.isParent) { 
             node.isParent = true;
             node.children = node.children || [];
             node.type = (index < parts.length -1 && /^\d+$/.test(parts[index+1])) ? 'array' : 'object';
@@ -321,7 +320,7 @@ export default function Home() {
         ? prev.filter(f => f !== fieldPath)
         : [...prev, fieldPath];
 
-      if (!newSelection.includes(fieldPath)) { // Field was just deselected
+      if (!newSelection.includes(fieldPath)) { 
         if (currentXAxisField === fieldPath) setXAxisFieldInternal(null);
         if (currentYAxisField === fieldPath) setYAxisFieldInternal(null);
       }
@@ -345,20 +344,17 @@ export default function Home() {
         let currentX = currentXAxisField;
         let currentY = currentYAxisField;
 
-        // If X and Y are the same, and there are other options, clear Y or X.
         if (currentX && currentY && currentX === currentY && selectedFields.length > 1) {
-             // Try to find a new Y first
             const potentialNewY = selectedFields.find(f => f !== currentX && (headerTypes[f] === 'number' || headerTypes[f] === 'string' || headerTypes[f] === 'date'));
             if (potentialNewY) {
                 setYAxisFieldInternal(potentialNewY);
                 currentY = potentialNewY;
             } else {
-                // If no other Y, try to find new X
                 const potentialNewX = selectedFields.find(f => f !== currentY && (headerTypes[f] === 'string' || headerTypes[f] === 'date' || headerTypes[f] === 'number'));
                  if (potentialNewX) {
                     setXAxisFieldInternal(potentialNewX);
                     currentX = potentialNewX;
-                } else { // If still no options, clear Y
+                } else { 
                     setYAxisFieldInternal(null);
                     currentY = null;
                 }
@@ -407,7 +403,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-3rem)] border-t border-[var(--border-color-secondary)]"> {/* Adjusted height for 48px header */}
+      <main className="flex-grow flex h-[calc(100vh-3rem)] border-t border-[var(--border-color-secondary)]">
         <div className="w-[300px] flex-shrink-0 border-r border-[var(--border-color-secondary)] bg-card flex flex-col">
           <div className="p-4 border-b border-[var(--border-color-secondary)]">
             {dataSourceName ? (
@@ -477,7 +473,7 @@ export default function Home() {
                      Data preview
                  </AccordionTrigger>
                 <AccordionContent className="p-4 pt-0">
-                  <div className="min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y">
+                  <div className="h-[150px] min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y">
                     {jsonData.length > 0 ? (
                       <>
                         {selectedFields.length > 0 ? (
@@ -543,7 +539,7 @@ export default function Home() {
                                 </TableBody>
                               </Table>
                             ) : (
-                              <div className="flex flex-col items-center justify-center h-[150px] text-center">
+                              <div className="flex flex-col items-center justify-center h-full text-center">
                                 <FileText className="h-8 w-8 text-muted-foreground mb-2" data-ai-hint="document icon" />
                                 <p className="text-sm text-muted-foreground">No data available or recognized format for preview.</p>
                               </div>
@@ -552,7 +548,7 @@ export default function Home() {
                         )}
                       </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center h-[150px] text-center">
+                      <div className="flex flex-col items-center justify-center h-full text-center">
                          <FileText className="h-8 w-8 text-muted-foreground mb-2" data-ai-hint="document icon" />
                         <p className="text-sm text-muted-foreground">Connect data and select fields to see a preview.</p>
                       </div>
@@ -600,3 +596,4 @@ export default function Home() {
 }
 
     
+
