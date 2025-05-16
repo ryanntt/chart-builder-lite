@@ -55,24 +55,24 @@
 
 
   --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
+  --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
+  --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: var(--lg-blue-base-raw);
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
   --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%; 
-  --input: 240 5.9% 90%;
-  --ring: 203 96% 47%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%; 
+  --input: 214.3 31.8% 91.4%;
+  --ring: 203 96% 47%; /* HSL for #0498EC */
   --radius: 0.5rem;
 
   /* Semantic border colors based on LeafyGreen */
@@ -104,8 +104,7 @@
   --btn-primary-lg-hover-border: hsl(162 100% 17%);
   --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; 
   --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl));
-  --btn-primary-lg-focus-ring-hsl: var(--ring);
-  --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl));
+  --btn-primary-lg-focus-ring: hsl(var(--ring)); /* Use main ring color */
 
   /* Custom Primary LG Disabled Button Styling */
   --btn-primary-lg-disabled-bg: hsl(var(--lg-gray-light-2-raw));
@@ -126,28 +125,31 @@
   --btn-default-notext-lg-border: hsl(var(--lg-gray-base-raw));
   --btn-default-notext-lg-fg: hsl(var(--lg-black-raw)); 
   --btn-default-notext-lg-icon-hsl: var(--lg-black-raw);
+
+  /* Custom Checkbox Styling */
+  --checkbox-checked-bg-hsl: var(--lg-blue-base-raw);
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 6% 10%;
-  --card-foreground: 0 0% 95%;
-  --popover: 240 6% 10%;
-  --popover-foreground: 0 0% 95%;
-  --primary: var(--lg-blue-light-1-raw);
-  --primary-foreground: 240 5% 10.9%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%; 
-  --input: 240 3.7% 15.9%;
-  --ring: 203 96% 47%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%; 
+  --input: 217.2 32.6% 17.5%;
+  --ring: 203 96% 47%; /* HSL for #0498EC */
 
   /* Semantic border colors based on LeafyGreen - Dark Mode */
   --border-color-primary: var(--lg-gray-base);
@@ -177,9 +179,8 @@
   --btn-primary-lg-hover-fg: hsl(var(--lg-white-raw));
   --btn-primary-lg-hover-border: hsl(var(--lg-green-dark-1-raw));
   --btn-primary-lg-hover-shadow-hsl: 163 100% 20%; 
-  --btn-primary-lg-hover-shadow: 0 0 0 3px hsla(var(--btn-primary-lg-hover-shadow-hsl), 0.7);
-  --btn-primary-lg-focus-ring-hsl: var(--ring);
-  --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl));
+  --btn-primary-lg-hover-shadow: 0 0 0 3px hsl(var(--btn-primary-lg-hover-shadow-hsl));
+  --btn-primary-lg-focus-ring: hsl(var(--ring)); /* Use main ring color */
 
   /* Custom Primary LG Disabled Button Styling - Dark Mode */
   --btn-primary-lg-disabled-bg: hsl(var(--lg-gray-dark-3-raw));
@@ -200,6 +201,9 @@
   --btn-default-notext-lg-border: hsl(var(--lg-gray-base-raw));
   --btn-default-notext-lg-fg: hsl(var(--lg-gray-light-2-raw)); 
   --btn-default-notext-lg-icon-hsl: var(--lg-white-raw);
+
+  /* Custom Checkbox Styling */
+  --checkbox-checked-bg-hsl: var(--lg-blue-light-1-raw);
 }
 
 
