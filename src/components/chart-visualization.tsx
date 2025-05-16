@@ -483,10 +483,10 @@ export function ChartVisualization({
             <SelectContent>
               <SelectItem value="bar" className="text-xs">Simple Bar</SelectItem>
               <SelectItem value="horizontal-bar" className="text-xs">Horizontal Bar</SelectItem>
-              <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
-              <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
               <SelectItem value="stacked-bar" className="text-xs">Stacked Bar</SelectItem>
               <SelectItem value="grouped-bar" className="text-xs">Grouped Bar</SelectItem>
+              <SelectItem value="scatter" className="text-xs">Scatter Plot</SelectItem>
+              <SelectItem value="donut" className="text-xs">Donut Chart</SelectItem>
             </SelectContent>
           </Select>
         </div>
