@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X, ChevronLeft } from 'lucide-react';
+import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -369,7 +369,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           </TabsContent>
         </Tabs>
         <DialogFooter className="p-6 pt-0 border-t-0 border-t-[var(--border-color-secondary)]">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections} className="border-[var(--border-color-secondary)]">Cancel</Button>
+          <Button variant="lgDefault" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections}>Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

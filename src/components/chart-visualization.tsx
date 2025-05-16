@@ -584,9 +584,9 @@ export function ChartVisualization({
         </div>
         <div className="pt-2 flex justify-end">
           <Button
-              variant="outline"
+              variant={!chartOptionsToRender || !isChartApiReady ? "lgDisabled" : "lgDefault"}
               size="sm"
-              className="h-8 rounded-md px-3 text-xs border-[var(--border-color-secondary)]"
+              className="h-8 rounded-md px-3 text-xs"
               onClick={handleDownloadChart}
               disabled={!chartOptionsToRender || !isChartApiReady} 
               aria-label="Download chart"
