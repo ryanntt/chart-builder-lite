@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { DataSourceModal } from '@/components/data-source-modal';
@@ -58,15 +58,17 @@ const getFieldTypeIcon = (type: string) => {
 
 const AppHeader = () => (
   <header className="sticky top-0 z-40 w-full bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="container mx-auto flex h-12 items-center justify-between px-4">
+    <div className="container mx-auto flex h-12 items-center justify-between">
       <div className="flex items-center gap-2">
         <h1 className="text-lg font-semibold text-foreground">Chart Builder Lite</h1>
       </div>
       <div className="flex items-center gap-3">
         <ThemeToggleButton />
-        <Avatar className="h-8 w-8">
-          <AvatarImage src="https://placehold.co/32x32.png" alt="User Avatar" data-ai-hint="person user" />
-          <AvatarFallback>U</AvatarFallback>
+        <Avatar className="h-8 w-8" data-ai-hint="letter R">
+          {/* AvatarImage src removed to always show fallback */}
+          <AvatarFallback className="bg-[var(--avatar-fallback-bg)] text-[var(--avatar-fallback-fg)] font-semibold">
+            R
+          </AvatarFallback>
         </Avatar>
       </div>
     </div>
@@ -470,10 +472,10 @@ export default function Home() {
           <div className="bg-card">
             <Accordion type="single" collapsible defaultValue="preview-accordion-item" className="w-full">
               <AccordionItem value="preview-accordion-item" className="border-b-0">
-                 <AccordionPrimitiveTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
+                 <AccordionTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 mr-2" />
                      Data preview
-                 </AccordionPrimitiveTrigger>
+                 </AccordionTrigger>
                 <AccordionContent className="p-4 pt-0">
                   <div className="min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y">
                     {jsonData.length > 0 ? (
@@ -564,10 +566,10 @@ export default function Home() {
           <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-[var(--border-color-secondary)]">
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
-                 <AccordionPrimitiveTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
+                 <AccordionTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 mr-2" />
                      Visualization
-                  </AccordionPrimitiveTrigger>
+                  </AccordionTrigger>
                 <AccordionContent className="p-4 pt-2 flex flex-col flex-grow bg-card">
                   <ChartVisualization
                     jsonData={jsonData}
@@ -596,4 +598,3 @@ export default function Home() {
     </div>
   );
 }
-

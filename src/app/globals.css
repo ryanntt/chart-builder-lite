@@ -25,8 +25,8 @@
   --lg-green-dark-2-raw: 163 100% 20%;
 
   --lg-blue-light-1-raw: 202 97% 47%;
-  --lg-blue-base-raw: 202 97% 47%;
-  --lg-blue-dark-1-raw: 202 97% 47%;
+  --lg-blue-base-raw: 202 97% 47%; /* User edited */
+  --lg-blue-dark-1-raw: 202 97% 47%;  /* User edited, was 216 82% 39% */
 
 
   /* Leafy Green palette - Full HSL strings */
@@ -104,7 +104,7 @@
   --btn-primary-lg-hover-border: hsl(162 100% 17%);
   --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; 
   --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl));
-  --btn-primary-lg-focus-ring: hsl(var(--ring)); /* Use main ring color */
+  --btn-primary-lg-focus-ring: hsl(var(--ring)); 
 
   /* Custom Primary LG Disabled Button Styling */
   --btn-primary-lg-disabled-bg: hsl(var(--lg-gray-light-2-raw));
@@ -128,6 +128,10 @@
 
   /* Custom Checkbox Styling */
   --checkbox-checked-bg-hsl: var(--lg-blue-base-raw);
+
+  /* Avatar Fallback Styling */
+  --avatar-fallback-bg: hsl(var(--lg-green-base-raw));
+  --avatar-fallback-fg: hsl(var(--lg-white-raw));
 }
 
 .dark {
@@ -180,7 +184,7 @@
   --btn-primary-lg-hover-border: hsl(var(--lg-green-dark-1-raw));
   --btn-primary-lg-hover-shadow-hsl: 163 100% 20%; 
   --btn-primary-lg-hover-shadow: 0 0 0 3px hsl(var(--btn-primary-lg-hover-shadow-hsl));
-  --btn-primary-lg-focus-ring: hsl(var(--ring)); /* Use main ring color */
+  --btn-primary-lg-focus-ring: hsl(var(--ring));
 
   /* Custom Primary LG Disabled Button Styling - Dark Mode */
   --btn-primary-lg-disabled-bg: hsl(var(--lg-gray-dark-3-raw));
@@ -204,6 +208,10 @@
 
   /* Custom Checkbox Styling */
   --checkbox-checked-bg-hsl: var(--lg-blue-light-1-raw);
+
+  /* Avatar Fallback Styling */
+  --avatar-fallback-bg: hsl(var(--lg-green-base-raw)); /* Same as light, or adjust if needed */
+  --avatar-fallback-fg: hsl(var(--lg-white-raw));
 }
 
 

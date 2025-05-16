@@ -221,7 +221,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           <DialogDescription className="text-muted-foreground">Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="inline-flex rounded-none px-6">
+          <TabsList className="flex w-full rounded-none"> {/* Changed from inline-flex and removed px-6 */}
             <TabsTrigger value="upload" className="rounded-none">Upload file</TabsTrigger>
             <TabsTrigger value="atlas" className="rounded-none">Connect to Atlas</TabsTrigger>
           </TabsList>
@@ -280,9 +280,9 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 <Button 
                   onClick={handleFetchDatabases} 
                   variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "lgDefault"}
+                  size="default"
                   disabled={isFetchAtlasButtonDisabled}
                   className="flex-shrink-0"
-                  size="default"
                 >
                   {isFetchingDatabases ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlugZap className="h-4 w-4" />}
                   Fetch
