@@ -221,22 +221,24 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           <DialogDescription className="text-muted-foreground">Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-b-[var(--border-color-secondary)] bg-muted">
-            <TabsTrigger value="upload" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Upload file</TabsTrigger>
-            <TabsTrigger value="atlas" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Connect to Atlas</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 rounded-none">
+            <TabsTrigger value="upload" className="rounded-none">Upload file</TabsTrigger>
+            <TabsTrigger value="atlas" className="rounded-none">Connect to Atlas</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="p-6">
             <div
-              className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-md cursor-pointer  transition-colors 
-                ${isDragging ? 'border-primary bg-accent/10' : 'bg-background hover:bg-accent/50 border-[var(--border-color-secondary)]'}`}
+              className={cn(`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-md cursor-pointer transition-colors 
+                border-[var(--border-color-secondary)] hover:bg-accent/50 bg-background`, 
+                isDragging && 'border-primary bg-accent/10'
+              )}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
             >
               <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-                <UploadCloud className={`w-10 h-10 mb-3 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
-                <p className={`mb-2 text-sm ${isDragging ? 'text-primary' : 'text-muted-foreground'}`}>
+                <UploadCloud className={cn("w-10 h-10 mb-3 text-muted-foreground", isDragging && "text-primary")} />
+                <p className={cn("mb-2 text-sm text-muted-foreground", isDragging && "text-primary")}>
                   <span className="font-semibold">Click to browse</span> or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">CSV files only</p>
@@ -280,6 +282,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "lgPrimary"}
                   disabled={isFetchAtlasButtonDisabled}
                   className="flex-shrink-0"
+                  size="sm"
                 >
                   {isFetchingDatabases ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlugZap className="h-4 w-4" />}
                   Fetch
@@ -328,7 +331,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 <>
                   <div className="flex justify-between items-center mb-2">
                     <Label className="text-foreground font-medium">Select a collection from {selectedDatabase}:</Label>
-                    <Button variant="lgDefault" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="h-auto py-1 px-2 text-xs">
+                    <Button variant="lgDefault" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading}>
                        Change database
                     </Button>
                   </div>
@@ -375,3 +378,4 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     </Dialog>
   );
 }
+
