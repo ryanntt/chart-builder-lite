@@ -2,19 +2,20 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import dynamic from 'next/dynamic';
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Type, Hash, CalendarDays, Loader2, ChevronDown, ChevronRight, DatabaseZap, Brackets, Binary, Globe } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger as AccordionPrimitiveTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { DataSourceModal } from '@/components/data-source-modal';
 import { ChartVisualization } from '@/components/chart-visualization';
+import { toast } from "@/hooks/use-toast";
 import { cn, getNestedValue } from "@/lib/utils";
-import dynamic from 'next/dynamic';
 import { useTheme } from "next-themes";
 
 const ReactJson = dynamic(() => import('react-json-view'), {
@@ -291,7 +292,7 @@ export default function Home() {
       toastDescription = `${totalRows} data rows from "${fileName}" are ready.`;
     }
     toast({
-      title: "Data Source Connected!",
+      title: "Data source connected!",
       description: toastDescription,
     });
     setIsModalOpen(false);
@@ -301,7 +302,7 @@ export default function Home() {
   const handleFieldSelect = (fieldPath: string) => {
     const fieldDefinition = findFieldInTree(processedFieldStructure, fieldPath);
     if (fieldDefinition && fieldDefinition.isParent) {
-      toast({ title: "Selection Info", description: "Parent fields cannot be directly selected for charting. Please select their child fields.", variant: "default"});
+      toast({ title: "Selection info", description: "Parent fields cannot be directly selected for charting. Please select their child fields.", variant: "default"});
       return;
     }
 
@@ -402,7 +403,7 @@ export default function Home() {
             {dataSourceName ? (
               <>
                 <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-sm font-semibold text-foreground">Data Source</h2>
+                  <h2 className="text-sm font-semibold text-foreground">Data source</h2>
                   <Button
                     onClick={() => setIsModalOpen(true)}
                     size="sm"
@@ -421,13 +422,17 @@ export default function Home() {
               </>
             ) : (
               <>
-                <h2 className="text-sm font-semibold mb-2 text-foreground">Data Source</h2>
+                <h2 className="text-sm font-semibold mb-2 text-foreground">Data source</h2>
                  <Button
                     onClick={() => setIsModalOpen(true)}
                     variant="lgPrimary"
-                    className="w-full"
+                    className={cn("w-full", 
+                    "border bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border-[var(--btn-primary-lg-border)]",
+                    "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)]",
+                    "focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]"
+                  )}
                   >
-                    <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
+                    <DatabaseZap className="mr-2 h-4 w-4" /> Connect data source
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">Upload a CSV or connect to Atlas.</p>
               </>
@@ -463,7 +468,7 @@ export default function Home() {
               <AccordionItem value="preview-accordion-item" className="border-b-0">
                  <AccordionPrimitiveTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 mr-2" />
-                     Data Preview
+                     Data preview
                  </AccordionPrimitiveTrigger>
                 <AccordionContent className="p-4 pt-0">
                   <div className="min-h-[150px] max-h-[500px] overflow-y-auto rounded-md bg-card resize-y">
@@ -587,5 +592,3 @@ export default function Home() {
     </div>
   );
 }
-
-

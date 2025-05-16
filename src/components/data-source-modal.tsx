@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, CircleAlert, ChevronLeft, PlugZap, Database, Folder, X } from 'lucide-react';
+import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface DataSourceModalProps {
@@ -158,7 +158,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     localStorage.removeItem('atlasConnectionString');
     setConnectionString('');
     setHasStoredConnectionString(false);
-    toast({ title: "Stored Connection Cleared", description: "The locally stored Atlas connection string has been removed." });
+    toast({ title: "Stored connection cleared", description: "The locally stored Atlas connection string has been removed." });
   };
 
   const handleDatabaseSelect = async (dbName: string) => {
@@ -216,12 +216,12 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] p-0 bg-card border-[var(--border-color-secondary)]">
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-foreground">Connect Data Source</DialogTitle>
+          <DialogTitle className="text-foreground">Connect data source</DialogTitle>
           <DialogDescription className="text-muted-foreground">Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-b-[var(--border-color-secondary)] bg-muted">
-            <TabsTrigger value="upload" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Upload File</TabsTrigger>
+            <TabsTrigger value="upload" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Upload file</TabsTrigger>
             <TabsTrigger value="atlas" className="rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-card">Connect to Atlas</TabsTrigger>
           </TabsList>
           
@@ -239,9 +239,9 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   <span className="font-semibold">Click to browse</span> or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">CSV files only</p>
-                <Button type="button" onClick={handleBrowseClick} variant="outline" className="mt-4 border-[var(--border-color-secondary)]" disabled={isLoading}>
+                <Button type="button" onClick={handleBrowseClick} variant="lgDefault" className="mt-4" disabled={isLoading}>
                   {isLoading && activeTab === 'upload' ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" /> : null}
-                  Browse File
+                  Browse file
                 </Button>
               </div>
               <Input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileSelected} className="hidden" disabled={isLoading} />
@@ -251,7 +251,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
           <TabsContent value="atlas" className="p-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="connectionString" className="text-muted-foreground">MongoDB Connection String</Label>
+              <Label htmlFor="connectionString" className="text-muted-foreground">MongoDB connection string</Label>
               <div className="flex space-x-2 items-center">
                 <div className="relative flex-grow">
                   <Input 
@@ -303,7 +303,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
 
               {!isFetchingDatabases && databases.length > 0 && !selectedDatabase && (
                 <div className="space-y-2">
-                  <Label className="text-foreground font-medium">Select a Database:</Label>
+                  <Label className="text-foreground font-medium">Select a database:</Label>
                   <ScrollArea className="h-[240px] w-full rounded-md border border-[var(--border-color-secondary)]">
                     <div className="p-2">
                       {databases.map(dbName => (
@@ -326,9 +326,9 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
               {selectedDatabase && (
                 <>
                   <div className="flex justify-between items-center mb-2">
-                    <Label className="text-foreground font-medium">Select a Collection from {selectedDatabase}:</Label>
-                    <Button variant="outline" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="border-[var(--border-color-secondary)] h-auto py-1 px-2 text-xs">
-                      <ChevronLeft className="mr-1 h-3 w-3" /> Back to Databases
+                    <Label className="text-foreground font-medium">Select a collection from {selectedDatabase}:</Label>
+                    <Button variant="lgDefault" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading} className="h-auto py-1 px-2 text-xs">
+                       Change database
                     </Button>
                   </div>
                   {isFetchingCollections && (

@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -20,19 +20,19 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         lgPrimary:
-          "border bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border-[var(--btn-primary-lg-border)] hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]",
+          "border px-3 gap-1.5 bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border-[var(--btn-primary-lg-border)] hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]",
         lgDisabled:
-          "border bg-[var(--btn-primary-lg-disabled-bg)] text-[var(--btn-primary-lg-disabled-fg)] border-[var(--btn-primary-lg-disabled-border)] [&_svg]:text-[hsl(var(--btn-primary-lg-disabled-icon-hsl))] cursor-not-allowed opacity-100",
+          "border px-3 gap-1.5 bg-[var(--btn-primary-lg-disabled-bg)] text-[var(--btn-primary-lg-disabled-fg)] border-[var(--btn-primary-lg-disabled-border)] [&_svg]:text-[hsl(var(--btn-primary-lg-disabled-icon-hsl))] cursor-not-allowed opacity-100",
         themedSystem: 
           "bg-neutral-200 text-neutral-900 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600",
         lgDefault:
-          "border bg-[var(--btn-default-lg-bg)] text-[var(--btn-default-lg-fg)] border-[var(--btn-default-lg-border)] hover:bg-[var(--btn-default-lg-hover-bg)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-default-lg-icon-hsl))]",
+          "border px-3 gap-1.5 bg-[var(--btn-default-lg-bg)] text-[var(--btn-default-lg-fg)] border-[var(--btn-default-lg-border)] hover:bg-[var(--btn-default-lg-hover-bg)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-default-lg-icon-hsl))]",
         lgDefaultNoText:
-          "border bg-[var(--btn-default-notext-lg-bg)] text-[var(--btn-default-notext-lg-fg)] border-[var(--btn-default-notext-lg-border)] hover:bg-[var(--btn-default-notext-lg-hover-bg)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-default-notext-lg-icon-hsl))]",
+          "border px-3 bg-[var(--btn-default-notext-lg-bg)] text-[var(--btn-default-notext-lg-fg)] border-[var(--btn-default-notext-lg-border)] hover:bg-[var(--btn-default-notext-lg-hover-bg)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-default-notext-lg-icon-hsl))]",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
+        default: "h-10 px-4 py-2", // Default padding is 16px
+        sm: "h-9 rounded-md px-3", // Small padding is 12px
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
       },
@@ -65,5 +65,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
-
-    

@@ -106,7 +106,7 @@ export function ChartVisualization({
             field => field !== currentXAxisField && headerTypes[field] === 'number'
         );
         if (yKeysForChart.length === 0) {
-             toast({ title: "Configuration Error", description: "Stacked/Grouped Bar charts require at least one numeric Y-axis field selected (from the main Fields panel).", variant: "destructive" });
+             toast({ title: "Configuration error", description: "Stacked/Grouped Bar charts require at least one numeric Y-axis field selected (from the main Fields panel).", variant: "destructive" });
              setInternalChartOptions(null); setIsChartLoading(false); return;
         }
     } else if (chartType !== 'donut' && !currentYAxisField) {
@@ -145,7 +145,7 @@ export function ChartVisualization({
 
       if (sortedAggregatedValues.length > 20) {
         chartData = sortedAggregatedValues.slice(0, 20);
-        toast({ title: "Data Filtered", description: `X-axis field "${currentXAxisField}" displaying top 20 unique values by their aggregated Y-axis values.` });
+        toast({ title: "Data filtered", description: `X-axis field "${currentXAxisField}" displaying top 20 unique values by their aggregated Y-axis values.` });
       } else {
          chartData = aggregatedDataForChart;
       }
@@ -171,7 +171,7 @@ export function ChartVisualization({
       
       if (sortedAggregatedValues.length > 20) {
         chartData = sortedAggregatedValues.slice(0, 20); 
-        toast({ title: "Data Filtered", description: `Y-axis field "${currentYAxisField}" displaying top 20 unique values by their aggregated X-axis values.` });
+        toast({ title: "Data filtered", description: `Y-axis field "${currentYAxisField}" displaying top 20 unique values by their aggregated X-axis values.` });
       } else {
         chartData = aggregatedDataForChart; 
       }
@@ -200,10 +200,10 @@ export function ChartVisualization({
             if (chartData.length > 20 && validNumericYKeys.length > 0) {
                 chartData.sort((a, b) => Number(getNestedValue(b, validNumericYKeys[0])) - Number(getNestedValue(a, validNumericYKeys[0])));
                 chartData = chartData.slice(0, 20);
-                toast({ title: "Data Filtered", description: `X-axis displaying top 20 categories based on '${validNumericYKeys[0]}'.` });
+                toast({ title: "Data filtered", description: `X-axis displaying top 20 categories based on '${validNumericYKeys[0]}'.` });
             }
         } else { 
-             toast({ title: "Axis Type Suggestion", description: "Stacked/Grouped Bar charts typically use a categorical X-axis.", variant: "default" });
+             toast({ title: "Axis type suggestion", description: "Stacked/Grouped Bar charts typically use a categorical X-axis.", variant: "default" });
              chartData = jsonData.map(row => {
                 const item: { [key: string]: any } = { [currentXAxisField!]: getNestedValue(row, currentXAxisField!) };
                 validNumericYKeys.forEach(yKey => {
@@ -228,7 +228,7 @@ export function ChartVisualization({
 
 
     if (chartData.length === 0 && (chartType === 'bar' || chartType === 'horizontal-bar' || chartType === 'stacked-bar' || chartType === 'grouped-bar')) {
-      toast({ title: "No Data After Filtering", description: "No data remains for the selected fields after filtering. Please check your selections or data.", variant: "destructive" });
+      toast({ title: "No data after filtering", description: "No data remains for the selected fields after filtering. Please check your selections or data.", variant: "destructive" });
       setInternalChartOptions(null);
       setIsChartLoading(false);
       return;
@@ -259,7 +259,7 @@ export function ChartVisualization({
         break;
       case 'scatter':
         if (!currentYAxisField || (xFieldType !== 'number' && xFieldType !== 'date') || (yFieldType !== 'number' && yFieldType !== 'date')) {
-          toast({ title: "Type Error", description: "Scatter plots require numeric or date X and Y axes.", variant: "destructive" });
+          toast({ title: "Type error", description: "Scatter plots require numeric or date X and Y axes.", variant: "destructive" });
           setInternalChartOptions(null); setIsChartLoading(false); return;
         }
         series = [{ type: 'scatter', xKey: currentXAxisField, yKey: currentYAxisField }];
@@ -270,11 +270,11 @@ export function ChartVisualization({
         break;
       case 'donut':
         if (!currentYAxisField || headerTypes[currentYAxisField!] !== 'number') {
-          toast({ title: "Type Error", description: "Donut charts require a numeric field for values (Angle Key).", variant: "destructive" });
+          toast({ title: "Type error", description: "Donut charts require a numeric field for values (Angle Key).", variant: "destructive" });
           setInternalChartOptions(null); setIsChartLoading(false); return;
         }
         if (xFieldType !== 'string' && xFieldType !== 'date') {
-          toast({ title: "Type Error", description: "Donut charts require a categorical or date field for labels (Callout Label Key).", variant: "destructive" });
+          toast({ title: "Type error", description: "Donut charts require a categorical or date field for labels (Callout Label Key).", variant: "destructive" });
           setInternalChartOptions(null); setIsChartLoading(false); return;
         }
         series = [{ type: 'donut', angleKey: currentYAxisField!, calloutLabelKey: currentXAxisField, legendItemKey: currentXAxisField }];
@@ -286,7 +286,7 @@ export function ChartVisualization({
         // Series and axes already defined above
         break;
       default:
-        toast({ title: "Unknown Chart Type", description: "Selected chart type is not supported.", variant: "destructive" });
+        toast({ title: "Unknown chart type", description: "Selected chart type is not supported.", variant: "destructive" });
         setInternalChartOptions(null); setIsChartLoading(false); return;
     }
     
@@ -305,7 +305,7 @@ export function ChartVisualization({
     setChartRenderKey(prevKey => prevKey + 1); 
     setIsChartLoading(false);
     if (currentXAxisField && (currentYAxisField || chartType === 'donut' || chartType === 'stacked-bar' || chartType === 'grouped-bar') && jsonData.length > 0 && (selectedFields.length > 0 || ( (chartType === 'stacked-bar' || chartType === 'grouped-bar') && yKeysForChart.length > 0 )  ) ) {
-      toast({ title: "Visualization Updated!", description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.` });
+      toast({ title: "Visualization updated!", description: `${chartType.replace('-', ' ')} chart for ${titleText} is ready.` });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartType, currentXAxisField, currentYAxisField, jsonData, selectedFields, headerTypes, resolvedTheme]); 
@@ -354,16 +354,16 @@ export function ChartVisualization({
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          toast({ title: "Chart Downloading", description: `Downloading ${filename}...` });
+          toast({ title: "Chart downloading", description: `Downloading ${filename}...` });
         } catch (error) {
           console.error("Error generating chart image:", error);
-          toast({ title: "Download Failed", description: "Could not generate chart image.", variant: "destructive" });
+          toast({ title: "Download failed", description: "Could not generate chart image.", variant: "destructive" });
         }
       } else {
-        toast({ title: "Download Failed", description: "Chart is not ready or canvas element not found.", variant: "destructive" });
+        toast({ title: "Download failed", description: "Chart is not ready or canvas element not found.", variant: "destructive" });
       }
     } else {
-      toast({ title: "Download Failed", description: "Chart container not found.", variant: "destructive" });
+      toast({ title: "Download failed", description: "Chart container not found.", variant: "destructive" });
     }
   };
 
@@ -412,7 +412,7 @@ export function ChartVisualization({
         return axisType === 'x' ? 'Select Labels (Category/Date)' : 'Select Values (Numeric)';
       case 'stacked-bar':
       case 'grouped-bar':
-        return axisType === 'x' ? 'Select X-Axis (Categories)' : (axisType === 'y' ? 'Select Y-Axis (Values)' : 'Y-Axis (Multiple Numeric)');
+        return axisType === 'x' ? 'Select X-Axis (Categories)' : (axisType === 'y' ? 'Y-Axis (Multiple Numeric)' : 'Y-Axis (Multiple Numeric)');
       default:
         return `Select field for ${axisType.toUpperCase()}-Axis`;
     }
@@ -446,7 +446,7 @@ export function ChartVisualization({
       case 'stacked-bar':
       case 'grouped-bar':
         if (axis === 'x') return tableHeaders.filter(f => isCategorical(f));
-        if (axis === 'y') return tableHeaders.filter(f => isNumeric(f) && f !== currentXAxisField);
+        if (axis === 'y') return tableHeaders.filter(f => isNumeric(f) && f !== currentXAxisField); // Allow selecting one Y-axis field, others are auto-derived
         break;
     }
     return tableHeaders.filter(f => !isGeo(f)); 
@@ -469,7 +469,7 @@ export function ChartVisualization({
       {/* Left Panel: Controls */}
       <div className="w-[200px] flex-shrink-0 space-y-3">
         <div>
-          <Label htmlFor="chartType" className="text-xs text-muted-foreground">Chart Type</Label>
+          <Label htmlFor="chartType" className="text-xs text-muted-foreground">Chart type</Label>
           <Select 
             value={chartType} 
             onValueChange={(value) => { setChartType(value); }} 
@@ -593,7 +593,7 @@ export function ChartVisualization({
               title="Download chart as PNG"
             >
               <Download className="mr-1.5 h-3.5 w-3.5" />
-              Download Chart
+              Download chart
           </Button>
         </div>
       </div>
