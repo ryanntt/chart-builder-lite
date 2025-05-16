@@ -35,7 +35,7 @@ const TabsTrigger = React.forwardRef<
       "border-b-2 border-transparent", // Base transparent border for inactive state
       "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)] focus-visible:rounded-t-sm", // Focus state
       "disabled:pointer-events-none disabled:opacity-50",
-      "data-[state=active]:text-[var(--lg-green-dark-2)] dark:data-[state=active]:text-[var(--lg-green-dark-2)]", // Active text color
+      "data-[state=active]:text-[var(--lg-green-dark-2)] dark:data-[state=active]:text-[var(--lg-green-dark-2)] data-[state=active]:font-semibold", // Active text color and bolder font
       "data-[state=active]:border-[var(--lg-green-dark-1)] dark:data-[state=active]:border-[var(--lg-green-dark-1)]", // Active border color
       className
     )}
@@ -60,4 +60,3 @@ const TabsContent = React.forwardRef<
 TabsContent.displayName = TabsPrimitive.Content.displayName
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }
-

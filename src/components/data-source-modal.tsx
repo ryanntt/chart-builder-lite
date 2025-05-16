@@ -279,7 +279,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 </div>
                 <Button 
                   onClick={handleFetchDatabases} 
-                  variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "default"}
+                  variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "lgDefault"}
                   disabled={isFetchAtlasButtonDisabled}
                   className="flex-shrink-0"
                   size="default"
@@ -290,7 +290,13 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
               </div>
               <p className="text-xs text-muted-foreground">
                 Connection strings are stored in your browser's local storage for convenience. 
-                <Button variant="link" className="p-0 h-auto text-xs ml-1" onClick={() => toast({title: "Local Storage", description: "Storing connection strings locally is convenient for development but not recommended for production due to security risks."})}>Learn more</Button>
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto text-xs ml-1 text-[var(--lg-blue-base)] underline decoration-[var(--secondary-foreground)]" 
+                  onClick={() => toast({title: "Local Storage", description: "Storing connection strings locally is convenient for development but not recommended for production due to security risks."})}
+                >
+                  Learn more
+                </Button>
               </p>
             </div>
             
@@ -378,4 +384,3 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     </Dialog>
   );
 }
-
