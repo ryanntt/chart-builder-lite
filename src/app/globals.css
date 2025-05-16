@@ -25,8 +25,8 @@
   --lg-green-dark-2-raw: 163 100% 20%;
 
   --lg-blue-light-1-raw: 202 97% 47%;
-  --lg-blue-base-raw: 202 97% 47%; /* User edited */
-  --lg-blue-dark-1-raw: 202 97% 47%;  /* User edited, was 216 82% 39% */
+  --lg-blue-base-raw: 202 97% 47%; 
+  --lg-blue-dark-1-raw: 202 97% 47%;  
 
 
   /* Leafy Green palette - Full HSL strings */
@@ -72,7 +72,7 @@
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%; 
   --input: 214.3 31.8% 91.4%;
-  --ring: 203 96% 47%; /* HSL for #0498EC */
+  --ring: 203 96% 47%; 
   --radius: 0.5rem;
 
   /* Semantic border colors based on LeafyGreen */
@@ -95,42 +95,42 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables */
-  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2-raw)); 
-  --btn-primary-lg-fg: hsl(var(--lg-white-raw));
-  --btn-primary-lg-border: hsl(var(--lg-green-dark-2-raw));
+  --btn-primary-lg-bg: var(--lg-green-dark-2); 
+  --btn-primary-lg-fg: var(--lg-white);
+  --btn-primary-lg-border: var(--lg-green-dark-2);
   --btn-primary-lg-icon-hsl: var(--lg-green-light-2-raw); 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
-  --btn-primary-lg-hover-fg: hsl(var(--lg-white-raw));
+  --btn-primary-lg-hover-fg: var(--lg-white);
   --btn-primary-lg-hover-border: hsl(162 100% 17%);
   --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; 
   --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl));
   --btn-primary-lg-focus-ring: hsl(var(--ring)); 
 
   /* Custom Primary LG Disabled Button Styling */
-  --btn-primary-lg-disabled-bg: hsl(var(--lg-gray-light-2-raw));
-  --btn-primary-lg-disabled-fg: hsl(var(--lg-gray-base-raw));
-  --btn-primary-lg-disabled-border: hsl(var(--lg-gray-light-1-raw));
+  --btn-primary-lg-disabled-bg: var(--lg-gray-light-2);
+  --btn-primary-lg-disabled-fg: var(--lg-gray-base);
+  --btn-primary-lg-disabled-border: var(--lg-gray-light-1);
   --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-light-1-raw);
 
   /* Custom Default LG Button Styling */
-  --btn-default-lg-bg: hsl(var(--lg-gray-light-3-raw));
-  --btn-default-lg-hover-bg: hsl(var(--lg-white-raw));
-  --btn-default-lg-border: hsl(var(--lg-gray-base-raw));
-  --btn-default-lg-fg: hsl(var(--lg-black-raw));
+  --btn-default-lg-bg: var(--lg-gray-light-3);
+  --btn-default-lg-hover-bg: var(--lg-white);
+  --btn-default-lg-border: var(--lg-gray-base);
+  --btn-default-lg-fg: var(--lg-black);
   --btn-default-lg-icon-hsl: var(--lg-gray-base-raw);
 
   /* Custom Default LG NoText (Icon-Only) Button Styling */
-  --btn-default-notext-lg-bg: hsl(var(--lg-gray-light-3-raw));
-  --btn-default-notext-lg-hover-bg: hsl(var(--lg-white-raw));
-  --btn-default-notext-lg-border: hsl(var(--lg-gray-base-raw));
-  --btn-default-notext-lg-fg: hsl(var(--lg-black-raw)); 
+  --btn-default-notext-lg-bg: var(--lg-gray-light-3);
+  --btn-default-notext-lg-hover-bg: var(--lg-white);
+  --btn-default-notext-lg-border: var(--lg-gray-base);
+  --btn-default-notext-lg-fg: var(--lg-black); 
   --btn-default-notext-lg-icon-hsl: var(--lg-black-raw);
 
   /* Custom Checkbox Styling */
   --checkbox-checked-bg-hsl: var(--lg-blue-base-raw);
 
   /* Avatar Fallback Styling */
-  --avatar-fallback-bg: hsl(var(--lg-green-dark-1-raw));
+  --avatar-fallback-bg: hsl(var(--lg-green-base-raw));
   --avatar-fallback-fg: hsl(var(--lg-white-raw));
 }
 
@@ -175,42 +175,42 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables - Dark Mode */
-  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2-raw));
-  --btn-primary-lg-fg: hsl(var(--lg-white-raw));
-  --btn-primary-lg-border: hsl(var(--lg-green-dark-1-raw));
+  --btn-primary-lg-bg: var(--lg-green-dark-2);
+  --btn-primary-lg-fg: var(--lg-white);
+  --btn-primary-lg-border: var(--lg-green-dark-1);
   --btn-primary-lg-icon-hsl: var(--lg-green-light-1-raw); 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
-  --btn-primary-lg-hover-fg: hsl(var(--lg-white-raw));
-  --btn-primary-lg-hover-border: hsl(var(--lg-green-dark-1-raw));
+  --btn-primary-lg-hover-fg: var(--lg-white);
+  --btn-primary-lg-hover-border: var(--lg-green-dark-1);
   --btn-primary-lg-hover-shadow-hsl: 163 100% 20%; 
   --btn-primary-lg-hover-shadow: 0 0 0 3px hsl(var(--btn-primary-lg-hover-shadow-hsl));
   --btn-primary-lg-focus-ring: hsl(var(--ring));
 
   /* Custom Primary LG Disabled Button Styling - Dark Mode */
-  --btn-primary-lg-disabled-bg: hsl(var(--lg-gray-dark-3-raw));
-  --btn-primary-lg-disabled-fg: hsl(var(--lg-gray-dark-1-raw));
-  --btn-primary-lg-disabled-border: hsl(var(--lg-gray-dark-1-raw));
+  --btn-primary-lg-disabled-bg: var(--lg-gray-dark-3);
+  --btn-primary-lg-disabled-fg: var(--lg-gray-dark-1);
+  --btn-primary-lg-disabled-border: var(--lg-gray-dark-1);
   --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-dark-2-raw); 
 
   /* Custom Default LG Button Styling - Dark Mode */
-  --btn-default-lg-bg: hsl(var(--lg-gray-dark-2-raw));
-  --btn-default-lg-hover-bg: hsl(var(--lg-gray-dark-1-raw));
-  --btn-default-lg-border: hsl(var(--lg-gray-base-raw));
-  --btn-default-lg-fg: hsl(var(--lg-gray-light-2-raw));
+  --btn-default-lg-bg: var(--lg-gray-dark-2);
+  --btn-default-lg-hover-bg: var(--lg-gray-dark-1);
+  --btn-default-lg-border: var(--lg-gray-base);
+  --btn-default-lg-fg: var(--lg-gray-light-2);
   --btn-default-lg-icon-hsl: var(--lg-gray-light-2-raw);
 
   /* Custom Default LG NoText (Icon-Only) Button Styling - Dark Mode */
-  --btn-default-notext-lg-bg: hsl(var(--lg-gray-dark-2-raw));
-  --btn-default-notext-lg-hover-bg: hsl(var(--lg-gray-dark-1-raw));
-  --btn-default-notext-lg-border: hsl(var(--lg-gray-base-raw));
-  --btn-default-notext-lg-fg: hsl(var(--lg-gray-light-2-raw)); 
+  --btn-default-notext-lg-bg: var(--lg-gray-dark-2);
+  --btn-default-notext-lg-hover-bg: var(--lg-gray-dark-1);
+  --btn-default-notext-lg-border: var(--lg-gray-base);
+  --btn-default-notext-lg-fg: var(--lg-gray-light-2); 
   --btn-default-notext-lg-icon-hsl: var(--lg-white-raw);
 
   /* Custom Checkbox Styling */
   --checkbox-checked-bg-hsl: var(--lg-blue-light-1-raw);
 
   /* Avatar Fallback Styling */
-  --avatar-fallback-bg: hsl(var(--lg-green-base-raw)); /* Same as light, or adjust if needed */
+  --avatar-fallback-bg: hsl(var(--lg-green-base-raw)); 
   --avatar-fallback-fg: hsl(var(--lg-white-raw));
 }
 
