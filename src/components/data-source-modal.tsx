@@ -4,7 +4,7 @@
 import type React from 'react';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -221,7 +221,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           <DialogDescription className="text-muted-foreground">Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 rounded-none">
+          <TabsList className="inline-flex rounded-none px-6"> {/* Adjusted: px-6 to align with content padding */}
             <TabsTrigger value="upload" className="rounded-none">Upload file</TabsTrigger>
             <TabsTrigger value="atlas" className="rounded-none">Connect to Atlas</TabsTrigger>
           </TabsList>
@@ -279,10 +279,10 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 </div>
                 <Button 
                   onClick={handleFetchDatabases} 
-                  variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "lgPrimary"}
+                  variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "default"}
                   disabled={isFetchAtlasButtonDisabled}
                   className="flex-shrink-0"
-                  size="sm"
+                  size="default"
                 >
                   {isFetchingDatabases ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlugZap className="h-4 w-4" />}
                   Fetch

@@ -15,7 +15,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-start border-b border-[var(--border-color-secondary)] text-muted-foreground",
+      "inline-flex items-center justify-start border-b border-[var(--border-color-secondary)] text-muted-foreground", // Ensure justify-start for content-wrapping width
       className
     )}
     {...props}
@@ -60,3 +60,4 @@ const TabsContent = React.forwardRef<
 TabsContent.displayName = TabsPrimitive.Content.displayName
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }
+

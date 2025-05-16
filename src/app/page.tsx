@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from 'next/dynamic';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,8 @@ import { ChartVisualization } from '@/components/chart-visualization';
 import { toast } from "@/hooks/use-toast";
 import { cn, getNestedValue } from "@/lib/utils";
 import { useTheme } from "next-themes";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 const ReactJson = dynamic(() => import('react-json-view'), {
   ssr: false,
@@ -56,11 +58,17 @@ const getFieldTypeIcon = (type: string) => {
 
 const AppHeader = () => (
   <header className="sticky top-0 z-40 w-full bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="mx-auto flex h-16 items-center px-4 sm:justify-between sm:space-x-0">
-      <div className="flex gap-2 items-center">
-        <h1 className="text-xl font-semibold text-foreground">Chart Builder Lite</h1>
+    <div className="container mx-auto flex h-12 items-center justify-between px-4">
+      <div className="flex items-center gap-2">
+        <h1 className="text-lg font-semibold text-foreground">Chart Builder Lite</h1>
       </div>
-      <ThemeToggleButton />
+      <div className="flex items-center gap-3">
+        <ThemeToggleButton />
+        <Avatar className="h-8 w-8">
+          <AvatarImage src="https://placehold.co/32x32.png" alt="User Avatar" data-ai-hint="person user" />
+          <AvatarFallback>U</AvatarFallback>
+        </Avatar>
+      </div>
     </div>
   </header>
 );
@@ -107,7 +115,7 @@ const RenderFieldItem: React.FC<{
             {field.name}
           </Label>
           {!isExpanded && hasSelectedDescendant && (
-            <span className="ml-auto mr-1 h-1.5 w-1.5 rounded-full bg-primary inline-block"></span>
+            <span className="ml-auto mr-1 h-1.5 w-1.5 rounded-full bg-[hsl(var(--checkbox-checked-bg-hsl))] inline-block"></span>
           )}
         </div>
         {isExpanded && field.children && field.children.length > 0 && (
@@ -285,7 +293,7 @@ export default function Home() {
     setYAxisFieldInternal(null);
     setExpandedFields(new Set());
 
-    let toastDescription = `"${fileName}" are ready.`;
+    let toastDescription = `"${fileName}" connected.`;
     if (totalRows > sampledRows) {
       toastDescription = `Sampled ${sampledRows} of ${totalRows} data rows from "${fileName}" are ready.`;
     } else {
@@ -397,7 +405,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
       <AppHeader />
-      <main className="flex-grow flex h-[calc(100vh-4rem)] border-t border-[var(--border-color-secondary)]">
+      <main className="flex-grow flex h-[calc(100vh-3rem)] border-t border-[var(--border-color-secondary)]"> {/* Adjusted height for 48px header */}
         <div className="w-[300px] flex-shrink-0 border-r border-[var(--border-color-secondary)] bg-card flex flex-col">
           <div className="p-4 border-b border-[var(--border-color-secondary)]">
             {dataSourceName ? (
@@ -588,3 +596,4 @@ export default function Home() {
     </div>
   );
 }
+
