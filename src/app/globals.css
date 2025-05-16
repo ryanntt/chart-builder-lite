@@ -130,7 +130,7 @@
   --checkbox-checked-bg-hsl: var(--lg-blue-base-raw);
 
   /* Avatar Fallback Styling */
-  --avatar-fallback-bg: hsl(var(--lg-green-base-raw));
+  --avatar-fallback-bg: hsl(var(--lg-green-dark-1-raw));
   --avatar-fallback-fg: hsl(var(--lg-white-raw));
 }
 

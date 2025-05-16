@@ -58,7 +58,7 @@ const getFieldTypeIcon = (type: string) => {
 
 const AppHeader = () => (
   <header className="sticky top-0 z-40 w-full bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="container mx-auto flex h-12 items-center justify-between">
+    <div className="flex h-12 items-center justify-between px-4"> {/* Changed from container mx-auto */}
       <div className="flex items-center gap-2">
         <h1 className="text-lg font-semibold text-foreground">Chart Builder Lite</h1>
       </div>
@@ -598,3 +598,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
