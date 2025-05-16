@@ -33,6 +33,7 @@ const buttonVariants = cva(
       size: {
         default: "h-10 px-4 py-2", // Default padding is 16px
         sm: "h-9 rounded-md px-3", // Small padding is 12px
+        xs: "h-8 rounded-md px-2 text-xs", // New extra small size
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
       },
