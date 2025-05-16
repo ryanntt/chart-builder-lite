@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X } from 'lucide-react';
+import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X, ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -221,7 +221,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           <DialogDescription className="text-muted-foreground">Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex w-full rounded-none"> {/* Changed from inline-flex and removed px-6 */}
+          <TabsList className="flex w-full rounded-none px-6">
             <TabsTrigger value="upload" className="rounded-none">Upload file</TabsTrigger>
             <TabsTrigger value="atlas" className="rounded-none">Connect to Atlas</TabsTrigger>
           </TabsList>
@@ -338,7 +338,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   <div className="flex justify-between items-center mb-2">
                     <Label className="text-foreground font-medium">Select a collection from {selectedDatabase}:</Label>
                     <Button variant="lgDefault" size="sm" onClick={handleBackToDatabases} disabled={isFetchingCollections || isLoading}>
-                       Change database
+                       <ChevronLeft className="h-4 w-4" /> Change database
                     </Button>
                   </div>
                   {isFetchingCollections && (
