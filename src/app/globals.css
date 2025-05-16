@@ -6,7 +6,7 @@
 :root {
   /* Leafy Green palette - Raw HSL values (H S% L%) */
   --lg-black-raw: 198 100% 8%;
-  --lg-white-raw: 0 0% 100%; /* Added for consistency */
+  --lg-white-raw: 0 0% 100%;
   
   --lg-gray-light-3-raw: 180 6% 97%;
   --lg-gray-light-2-raw: 156 12% 92%;
@@ -24,12 +24,14 @@
   --lg-green-dark-1-raw: 154 100% 32%;
   --lg-green-dark-2-raw: 163 100% 20%;
 
-  /* Focus Ring Color */
-  --custom-focus-ring-raw: 203 96% 47%; /* #0498EC */
+  --lg-blue-light-1-raw: 202 97% 47%;
+  --lg-blue-base-raw: 202 97% 47%;
+  --lg-blue-dark-1-raw: 202 97% 47%;
+
 
   /* Leafy Green palette - Full HSL strings */
   --lg-black: hsl(var(--lg-black-raw));
-  --lg-white: hsl(var(--lg-white-raw)); /* Added */
+  --lg-white: hsl(var(--lg-white-raw));
   
   --lg-gray-light-3: hsl(var(--lg-gray-light-3-raw));
   --lg-gray-light-2: hsl(var(--lg-gray-light-2-raw));
@@ -47,6 +49,10 @@
   --lg-green-dark-1: hsl(var(--lg-green-dark-1-raw));
   --lg-green-dark-2: hsl(var(--lg-green-dark-2-raw));
 
+  --lg-blue-light-1: hsl(var(--lg-blue-light-1-raw));
+  --lg-blue-base: hsl(var(--lg-blue-base-raw));
+  --lg-blue-dark-1: hsl(var(--lg-blue-dark-1-raw));
+
 
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
@@ -54,7 +60,7 @@
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
+  --primary: var(--lg-blue-base-raw);
   --primary-foreground: 0 0% 98%;
   --secondary: 240 4.8% 95.9%;
   --secondary-foreground: 240 5.9% 10%;
@@ -66,7 +72,7 @@
   --destructive-foreground: 0 0% 98%;
   --border: 240 5.9% 90%; 
   --input: 240 5.9% 90%;
-  --ring: var(--custom-focus-ring-raw); /* Updated */
+  --ring: 203 96% 47%;
   --radius: 0.5rem;
 
   /* Semantic border colors based on LeafyGreen */
@@ -89,36 +95,36 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables */
-  --btn-primary-lg-bg: var(--lg-green-dark-2); 
-  --btn-primary-lg-fg: var(--lg-white);
-  --btn-primary-lg-border: var(--lg-green-dark-2);
+  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2-raw)); 
+  --btn-primary-lg-fg: hsl(var(--lg-white-raw));
+  --btn-primary-lg-border: hsl(var(--lg-green-dark-2-raw));
   --btn-primary-lg-icon-hsl: var(--lg-green-light-2-raw); 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
-  --btn-primary-lg-hover-fg: var(--lg-white);
+  --btn-primary-lg-hover-fg: hsl(var(--lg-white-raw));
   --btn-primary-lg-hover-border: hsl(162 100% 17%);
   --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; 
   --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl));
-  --btn-primary-lg-focus-ring-hsl: var(--custom-focus-ring-raw); /* Updated */
+  --btn-primary-lg-focus-ring-hsl: var(--ring);
   --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl));
 
   /* Custom Primary LG Disabled Button Styling */
-  --btn-primary-lg-disabled-bg: var(--lg-gray-light-2);
-  --btn-primary-lg-disabled-fg: var(--lg-gray-base);
-  --btn-primary-lg-disabled-border: var(--lg-gray-light-1);
+  --btn-primary-lg-disabled-bg: hsl(var(--lg-gray-light-2-raw));
+  --btn-primary-lg-disabled-fg: hsl(var(--lg-gray-base-raw));
+  --btn-primary-lg-disabled-border: hsl(var(--lg-gray-light-1-raw));
   --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-light-1-raw);
 
   /* Custom Default LG Button Styling */
-  --btn-default-lg-bg: var(--lg-gray-light-3);
-  --btn-default-lg-hover-bg: var(--lg-white);
-  --btn-default-lg-border: var(--lg-gray-base);
-  --btn-default-lg-fg: var(--lg-black);
+  --btn-default-lg-bg: hsl(var(--lg-gray-light-3-raw));
+  --btn-default-lg-hover-bg: hsl(var(--lg-white-raw));
+  --btn-default-lg-border: hsl(var(--lg-gray-base-raw));
+  --btn-default-lg-fg: hsl(var(--lg-black-raw));
   --btn-default-lg-icon-hsl: var(--lg-gray-base-raw);
 
   /* Custom Default LG NoText (Icon-Only) Button Styling */
-  --btn-default-notext-lg-bg: var(--lg-gray-light-3);
-  --btn-default-notext-lg-hover-bg: var(--lg-white);
-  --btn-default-notext-lg-border: var(--lg-gray-base);
-  --btn-default-notext-lg-fg: var(--lg-black); /* Text color still defined, though likely not used */
+  --btn-default-notext-lg-bg: hsl(var(--lg-gray-light-3-raw));
+  --btn-default-notext-lg-hover-bg: hsl(var(--lg-white-raw));
+  --btn-default-notext-lg-border: hsl(var(--lg-gray-base-raw));
+  --btn-default-notext-lg-fg: hsl(var(--lg-black-raw)); 
   --btn-default-notext-lg-icon-hsl: var(--lg-black-raw);
 }
 
@@ -129,7 +135,7 @@
   --card-foreground: 0 0% 95%;
   --popover: 240 6% 10%;
   --popover-foreground: 0 0% 95%;
-  --primary: 0 0% 95%;
+  --primary: var(--lg-blue-light-1-raw);
   --primary-foreground: 240 5% 10.9%;
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
@@ -141,7 +147,7 @@
   --destructive-foreground: 0 0% 98%;
   --border: 240 3.7% 15.9%; 
   --input: 240 3.7% 15.9%;
-  --ring: var(--custom-focus-ring-raw); /* Updated */
+  --ring: 203 96% 47%;
 
   /* Semantic border colors based on LeafyGreen - Dark Mode */
   --border-color-primary: var(--lg-gray-base);
@@ -163,36 +169,36 @@
   --sidebar-border: hsl(var(--border));
 
   /* Custom Primary LG Button Styling Foundation Variables - Dark Mode */
-  --btn-primary-lg-bg: var(--lg-green-dark-2);
-  --btn-primary-lg-fg: var(--lg-white);
-  --btn-primary-lg-border: var(--lg-green-dark-1);
+  --btn-primary-lg-bg: hsl(var(--lg-green-dark-2-raw));
+  --btn-primary-lg-fg: hsl(var(--lg-white-raw));
+  --btn-primary-lg-border: hsl(var(--lg-green-dark-1-raw));
   --btn-primary-lg-icon-hsl: var(--lg-green-light-1-raw); 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
-  --btn-primary-lg-hover-fg: var(--lg-white);
-  --btn-primary-lg-hover-border: var(--lg-green-dark-1);
+  --btn-primary-lg-hover-fg: hsl(var(--lg-white-raw));
+  --btn-primary-lg-hover-border: hsl(var(--lg-green-dark-1-raw));
   --btn-primary-lg-hover-shadow-hsl: 163 100% 20%; 
   --btn-primary-lg-hover-shadow: 0 0 0 3px hsla(var(--btn-primary-lg-hover-shadow-hsl), 0.7);
-  --btn-primary-lg-focus-ring-hsl: var(--custom-focus-ring-raw); /* Updated */
+  --btn-primary-lg-focus-ring-hsl: var(--ring);
   --btn-primary-lg-focus-ring: hsl(var(--btn-primary-lg-focus-ring-hsl));
 
   /* Custom Primary LG Disabled Button Styling - Dark Mode */
-  --btn-primary-lg-disabled-bg: var(--lg-gray-dark-3);
-  --btn-primary-lg-disabled-fg: var(--lg-gray-dark-1);
-  --btn-primary-lg-disabled-border: var(--lg-gray-dark-1);
+  --btn-primary-lg-disabled-bg: hsl(var(--lg-gray-dark-3-raw));
+  --btn-primary-lg-disabled-fg: hsl(var(--lg-gray-dark-1-raw));
+  --btn-primary-lg-disabled-border: hsl(var(--lg-gray-dark-1-raw));
   --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-dark-2-raw); 
 
   /* Custom Default LG Button Styling - Dark Mode */
-  --btn-default-lg-bg: var(--lg-gray-dark-2);
-  --btn-default-lg-hover-bg: var(--lg-gray-dark-1);
-  --btn-default-lg-border: var(--lg-gray-base);
-  --btn-default-lg-fg: var(--lg-gray-light-2);
+  --btn-default-lg-bg: hsl(var(--lg-gray-dark-2-raw));
+  --btn-default-lg-hover-bg: hsl(var(--lg-gray-dark-1-raw));
+  --btn-default-lg-border: hsl(var(--lg-gray-base-raw));
+  --btn-default-lg-fg: hsl(var(--lg-gray-light-2-raw));
   --btn-default-lg-icon-hsl: var(--lg-gray-light-2-raw);
 
   /* Custom Default LG NoText (Icon-Only) Button Styling - Dark Mode */
-  --btn-default-notext-lg-bg: var(--lg-gray-dark-2);
-  --btn-default-notext-lg-hover-bg: var(--lg-gray-dark-1);
-  --btn-default-notext-lg-border: var(--lg-gray-base);
-  --btn-default-notext-lg-fg: var(--lg-gray-light-2); 
+  --btn-default-notext-lg-bg: hsl(var(--lg-gray-dark-2-raw));
+  --btn-default-notext-lg-hover-bg: hsl(var(--lg-gray-dark-1-raw));
+  --btn-default-notext-lg-border: hsl(var(--lg-gray-base-raw));
+  --btn-default-notext-lg-fg: hsl(var(--lg-gray-light-2-raw)); 
   --btn-default-notext-lg-icon-hsl: var(--lg-white-raw);
 }
 
