@@ -12,8 +12,9 @@ import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
 import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X } from 'lucide-react';
+import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X, ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface DataSourceModalProps {
   isOpen: boolean;
@@ -48,7 +49,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (activeTab === 'atlas') {
+    if (isOpen && activeTab === 'atlas') {
       const storedConnectionString = localStorage.getItem('atlasConnectionString');
       if (storedConnectionString) {
         setConnectionString(storedConnectionString);
@@ -240,7 +241,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 </p>
                 <p className="text-xs text-muted-foreground">CSV files only</p>
                 <Button type="button" onClick={handleBrowseClick} variant="lgDefault" className="mt-4" disabled={isLoading}>
-                  {isLoading && activeTab === 'upload' ? <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" /> : null}
+                  {isLoading && activeTab === 'upload' ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : null}
                   Browse file
                 </Button>
               </div>
@@ -280,7 +281,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   disabled={isFetchAtlasButtonDisabled}
                   className="flex-shrink-0"
                 >
-                  {isFetchingDatabases ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlugZap className="mr-2 h-4 w-4" />}
+                  {isFetchingDatabases ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlugZap className="h-4 w-4" />}
                   Fetch
                 </Button>
               </div>
