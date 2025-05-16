@@ -245,7 +245,7 @@ export default function Home() {
 
     let countTextVal = "";
     if (totalRows > sampledRows) {
-      countTextVal = `(sampled ${sampledRows} of ${totalRows} rows)`;
+      countTextVal = `(Sampled ${sampledRows} of ${totalRows} rows)`;
     } else {
       countTextVal = `(${totalRows} rows)`;
     }
@@ -285,7 +285,7 @@ export default function Home() {
     setYAxisFieldInternal(null);
     setExpandedFields(new Set());
 
-    let toastDescription = `${fileName}" are ready.`;
+    let toastDescription = `"${fileName}" are ready.`;
     if (totalRows > sampledRows) {
       toastDescription = `Sampled ${sampledRows} of ${totalRows} data rows from "${fileName}" are ready.`;
     } else {
@@ -408,9 +408,9 @@ export default function Home() {
                     onClick={() => setIsModalOpen(true)}
                     size="sm"
                     variant="lgDefault"
-                    className="py-1 px-2 text-xs h-auto"
+                    className="text-xs"
                   >
-                    <DatabaseZap className="mr-1.5 h-3 w-3" /> Change
+                    <DatabaseZap className="h-3 w-3" /> Change
                   </Button>
                 </div>
                 <div>
@@ -426,13 +426,9 @@ export default function Home() {
                  <Button
                     onClick={() => setIsModalOpen(true)}
                     variant="lgPrimary"
-                    className={cn("w-full", 
-                    "border bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border-[var(--btn-primary-lg-border)]",
-                    "hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)]",
-                    "focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]"
-                  )}
+                    className="w-full"
                   >
-                    <DatabaseZap className="mr-2 h-4 w-4" /> Connect data source
+                    <DatabaseZap className="h-4 w-4" /> Connect data source
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">Upload a CSV or connect to Atlas.</p>
               </>

@@ -122,7 +122,7 @@ export function ChartVisualization({
     const yFieldType = currentYAxisField ? headerTypes[currentYAxisField] : null;
 
     let series: AgChartOptions['series'] = [];
-    let axes: AgCartesianAxisOptions[] | undefined = []; 
+    let axesOptions: AgCartesianAxisOptions[] | undefined = []; 
     let titleText = currentYAxisField ? `${currentYAxisField} by ${currentXAxisField}` : `Distribution by ${currentXAxisField}`;
 
     if ((chartType === 'bar' && currentYAxisField && (xFieldType === 'string' || xFieldType === 'date'))) {
@@ -220,7 +220,7 @@ export function ChartVisualization({
             yNames: validNumericYKeys.map(name => name), 
             stacked: chartType === 'stacked-bar',
         }];
-        axes = [
+        axesOptions = [
             { type: (xFieldType === 'string' || xFieldType === 'date') ? 'category' : 'number', position: 'bottom', title: { text: currentXAxisField } },
             { type: 'number', position: 'left', title: { text: 'Values' } }, 
         ];
@@ -238,7 +238,7 @@ export function ChartVisualization({
       case 'bar':
         if (!currentYAxisField) {setInternalChartOptions(null); setIsChartLoading(false); return;}
         series = [{ type: 'bar', xKey: currentXAxisField, yKey: currentYAxisField }];
-        axes = [
+        axesOptions = [
           { type: (xFieldType === 'string' || xFieldType === 'date') ? 'category' : 'number', position: 'bottom', title: { text: currentXAxisField } },
           { type: 'number', position: 'left', title: { text: currentYAxisField } },
         ];
@@ -251,7 +251,7 @@ export function ChartVisualization({
             xKey: currentXAxisField, 
             yKey: currentYAxisField, 
         }];
-        axes = [
+        axesOptions = [
           { type: 'number', position: 'bottom', title: { text: currentXAxisField } },
           { type: (yFieldType === 'string' || yFieldType === 'date') ? 'category' : 'number', position: 'left', title: { text: currentYAxisField } },
         ];
@@ -263,7 +263,7 @@ export function ChartVisualization({
           setInternalChartOptions(null); setIsChartLoading(false); return;
         }
         series = [{ type: 'scatter', xKey: currentXAxisField, yKey: currentYAxisField }];
-        axes = [
+        axesOptions = [
           { type: xFieldType === 'date' ? 'time' : 'number', position: 'bottom', title: { text: currentXAxisField } },
           { type: yFieldType === 'date' ? 'time' : 'number', position: 'left', title: { text: currentYAxisField } },
         ];
@@ -278,12 +278,12 @@ export function ChartVisualization({
           setInternalChartOptions(null); setIsChartLoading(false); return;
         }
         series = [{ type: 'donut', angleKey: currentYAxisField!, calloutLabelKey: currentXAxisField, legendItemKey: currentXAxisField }];
-        axes = undefined; 
+        axesOptions = undefined; // Donut charts do not use axes
         titleText = `Distribution of ${currentYAxisField} by ${currentXAxisField}`;
         break;
       case 'stacked-bar':
       case 'grouped-bar':
-        // Series and axes already defined above
+        // Series and axesOptions already defined above
         break;
       default:
         toast({ title: "Unknown chart type", description: "Selected chart type is not supported.", variant: "destructive" });
@@ -297,8 +297,8 @@ export function ChartVisualization({
       autoSize: false, 
     };
 
-    if (axes !== undefined && chartType !== 'donut') { 
-      baseOptionsConfig.axes = axes;
+    if (axesOptions !== undefined && chartType !== 'donut') { 
+      baseOptionsConfig.axes = axesOptions;
     }
     
     setInternalChartOptions(baseOptionsConfig);
@@ -446,7 +446,11 @@ export function ChartVisualization({
       case 'stacked-bar':
       case 'grouped-bar':
         if (axis === 'x') return tableHeaders.filter(f => isCategorical(f));
-        if (axis === 'y') return tableHeaders.filter(f => isNumeric(f) && f !== currentXAxisField); // Allow selecting one Y-axis field, others are auto-derived
+        // For Y-axis of stacked/grouped, it's based on multiple selected numeric fields.
+        // The Select input might represent one (e.g., the first, or none if implicit).
+        // For simplicity, let's allow selecting any numeric field not used in X.
+        // The actual series generation will use all selected numeric fields.
+        if (axis === 'y') return tableHeaders.filter(f => isNumeric(f) && f !== currentXAxisField); 
         break;
     }
     return tableHeaders.filter(f => !isGeo(f)); 
@@ -592,7 +596,7 @@ export function ChartVisualization({
               aria-label="Download chart"
               title="Download chart as PNG"
             >
-              <Download className="mr-1.5 h-3.5 w-3.5" />
+              <Download className="h-3.5 w-3.5" />
               Download chart
           </Button>
         </div>
