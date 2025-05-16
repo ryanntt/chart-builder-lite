@@ -22,9 +22,13 @@ const buttonVariants = cva(
         lgPrimary:
           "border bg-[var(--btn-primary-lg-bg)] text-[var(--btn-primary-lg-fg)] border-[var(--btn-primary-lg-border)] hover:bg-[var(--btn-primary-lg-hover-bg)] hover:text-[var(--btn-primary-lg-hover-fg)] hover:border-[var(--btn-primary-lg-hover-border)] hover:shadow-[var(--btn-primary-lg-hover-shadow)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-primary-lg-icon-hsl))]",
         lgDisabled:
-          "border bg-[var(--btn-primary-lg-disabled-bg)] text-[var(--btn-primary-lg-disabled-fg)] border-[var(--btn-primary-lg-disabled-border)] [&_svg]:text-[hsl(var(--btn-primary-lg-disabled-icon-hsl))] cursor-not-allowed opacity-100", // Ensure opacity is 100 if using this for visual disabled state
+          "border bg-[var(--btn-primary-lg-disabled-bg)] text-[var(--btn-primary-lg-disabled-fg)] border-[var(--btn-primary-lg-disabled-border)] [&_svg]:text-[hsl(var(--btn-primary-lg-disabled-icon-hsl))] cursor-not-allowed opacity-100",
         themedSystem: 
           "bg-neutral-200 text-neutral-900 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600",
+        lgDefault:
+          "border bg-[var(--btn-default-lg-bg)] text-[var(--btn-default-lg-fg)] border-[var(--btn-default-lg-border)] hover:bg-[var(--btn-default-lg-hover-bg)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-default-lg-icon-hsl))]",
+        lgDefaultNoText:
+          "border bg-[var(--btn-default-notext-lg-bg)] text-[var(--btn-default-notext-lg-fg)] border-[var(--btn-default-notext-lg-border)] hover:bg-[var(--btn-default-notext-lg-hover-bg)] focus-visible:ring-[var(--btn-primary-lg-focus-ring)] [&_svg]:text-[hsl(var(--btn-default-notext-lg-icon-hsl))]",
       },
       size: {
         default: "h-10 px-4 py-2",

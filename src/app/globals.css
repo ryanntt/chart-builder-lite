@@ -6,6 +6,7 @@
 :root {
   /* Leafy Green palette - Raw HSL values (H S% L%) */
   --lg-black-raw: 198 100% 8%;
+  --lg-white-raw: 0 0% 100%; /* Added for consistency */
   
   --lg-gray-light-3-raw: 180 6% 97%;
   --lg-gray-light-2-raw: 156 12% 92%;
@@ -28,6 +29,7 @@
 
   /* Leafy Green palette - Full HSL strings */
   --lg-black: hsl(var(--lg-black-raw));
+  --lg-white: hsl(var(--lg-white-raw)); /* Added */
   
   --lg-gray-light-3: hsl(var(--lg-gray-light-3-raw));
   --lg-gray-light-2: hsl(var(--lg-gray-light-2-raw));
@@ -88,11 +90,11 @@
 
   /* Custom Primary LG Button Styling Foundation Variables */
   --btn-primary-lg-bg: var(--lg-green-dark-2); 
-  --btn-primary-lg-fg: hsl(0 0% 100%);
+  --btn-primary-lg-fg: var(--lg-white);
   --btn-primary-lg-border: var(--lg-green-dark-2);
   --btn-primary-lg-icon-hsl: var(--lg-green-light-2-raw); 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
-  --btn-primary-lg-hover-fg: hsl(0 0% 100%);
+  --btn-primary-lg-hover-fg: var(--lg-white);
   --btn-primary-lg-hover-border: hsl(162 100% 17%);
   --btn-primary-lg-hover-shadow-hsl: 200 70% 70%; 
   --btn-primary-lg-hover-shadow: 0 4px 10px -2px hsl(var(--btn-primary-lg-hover-shadow-hsl));
@@ -103,7 +105,21 @@
   --btn-primary-lg-disabled-bg: var(--lg-gray-light-2);
   --btn-primary-lg-disabled-fg: var(--lg-gray-base);
   --btn-primary-lg-disabled-border: var(--lg-gray-light-1);
-  --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-light-1-raw); 
+  --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-light-1-raw);
+
+  /* Custom Default LG Button Styling */
+  --btn-default-lg-bg: var(--lg-gray-light-3);
+  --btn-default-lg-hover-bg: var(--lg-white);
+  --btn-default-lg-border: var(--lg-gray-base);
+  --btn-default-lg-fg: var(--lg-black);
+  --btn-default-lg-icon-hsl: var(--lg-gray-base-raw);
+
+  /* Custom Default LG NoText (Icon-Only) Button Styling */
+  --btn-default-notext-lg-bg: var(--lg-gray-light-3);
+  --btn-default-notext-lg-hover-bg: var(--lg-white);
+  --btn-default-notext-lg-border: var(--lg-gray-base);
+  --btn-default-notext-lg-fg: var(--lg-black); /* Text color still defined, though likely not used */
+  --btn-default-notext-lg-icon-hsl: var(--lg-black-raw);
 }
 
 .dark {
@@ -148,11 +164,11 @@
 
   /* Custom Primary LG Button Styling Foundation Variables - Dark Mode */
   --btn-primary-lg-bg: var(--lg-green-dark-2);
-  --btn-primary-lg-fg: hsl(0 0% 100%);
+  --btn-primary-lg-fg: var(--lg-white);
   --btn-primary-lg-border: var(--lg-green-dark-1);
   --btn-primary-lg-icon-hsl: var(--lg-green-light-1-raw); 
   --btn-primary-lg-hover-bg: hsl(162 100% 17%);
-  --btn-primary-lg-hover-fg: hsl(0 0% 100%);
+  --btn-primary-lg-hover-fg: var(--lg-white);
   --btn-primary-lg-hover-border: var(--lg-green-dark-1);
   --btn-primary-lg-hover-shadow-hsl: 163 100% 20%; 
   --btn-primary-lg-hover-shadow: 0 0 0 3px hsla(var(--btn-primary-lg-hover-shadow-hsl), 0.7);
@@ -164,6 +180,20 @@
   --btn-primary-lg-disabled-fg: var(--lg-gray-dark-1);
   --btn-primary-lg-disabled-border: var(--lg-gray-dark-1);
   --btn-primary-lg-disabled-icon-hsl: var(--lg-gray-dark-2-raw); 
+
+  /* Custom Default LG Button Styling - Dark Mode */
+  --btn-default-lg-bg: var(--lg-gray-dark-2);
+  --btn-default-lg-hover-bg: var(--lg-gray-dark-1);
+  --btn-default-lg-border: var(--lg-gray-base);
+  --btn-default-lg-fg: var(--lg-gray-light-2);
+  --btn-default-lg-icon-hsl: var(--lg-gray-light-2-raw);
+
+  /* Custom Default LG NoText (Icon-Only) Button Styling - Dark Mode */
+  --btn-default-notext-lg-bg: var(--lg-gray-dark-2);
+  --btn-default-notext-lg-hover-bg: var(--lg-gray-dark-1);
+  --btn-default-notext-lg-border: var(--lg-gray-base);
+  --btn-default-notext-lg-fg: var(--lg-gray-light-2); 
+  --btn-default-notext-lg-icon-hsl: var(--lg-white-raw);
 }
 
 

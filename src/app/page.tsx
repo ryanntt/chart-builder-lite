@@ -406,8 +406,8 @@ export default function Home() {
                   <Button
                     onClick={() => setIsModalOpen(true)}
                     size="sm"
-                    variant="outline"
-                    className="py-1 px-2 text-xs h-auto border-[var(--border-color-secondary)] hover:border-[var(--border-color-secondary)]"
+                    variant="lgDefault"
+                    className="py-1 px-2 text-xs h-auto"
                   >
                     <DatabaseZap className="mr-1.5 h-3 w-3" /> Change
                   </Button>
@@ -425,7 +425,7 @@ export default function Home() {
                  <Button
                     onClick={() => setIsModalOpen(true)}
                     variant="lgPrimary"
-                    className="w-full border border-[var(--btn-primary-lg-border)] hover:border-[var(--btn-primary-lg-hover-border)]"
+                    className="w-full"
                   >
                     <DatabaseZap className="mr-2 h-4 w-4" /> Connect Data Source
                 </Button>
@@ -587,4 +587,5 @@ export default function Home() {
     </div>
   );
 }
+
 
