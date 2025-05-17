@@ -129,9 +129,6 @@
   /* Custom Checkbox Styling */
   --checkbox-checked-bg-hsl: var(--lg-blue-base-raw); /* 202 97% 47% */
 
-  /* Avatar Fallback Styling */
-  --avatar-fallback-bg: hsl(var(--lg-green-dark-1-raw));
-  --avatar-fallback-fg: hsl(var(--lg-white-raw));
 }
 
 .dark {
@@ -209,9 +206,6 @@
   /* Custom Checkbox Styling */
   --checkbox-checked-bg-hsl: var(--lg-blue-light-1-raw); /* 202 97% 47% */
 
-  /* Avatar Fallback Styling */
-  --avatar-fallback-bg: hsl(var(--lg-green-dark-1-raw)); 
-  --avatar-fallback-fg: hsl(var(--lg-white-raw));
 }
 
 

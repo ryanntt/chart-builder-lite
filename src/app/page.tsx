@@ -17,7 +17,6 @@ import { ChartVisualization } from '@/components/chart-visualization';
 import { toast } from "@/hooks/use-toast";
 import { cn, getNestedValue } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 
 const ReactJson = dynamic(() => import('react-json-view'), {
@@ -64,11 +63,6 @@ const AppHeader = () => (
       </div>
       <div className="flex items-center gap-3">
         <ThemeToggleButton />
-        <Avatar className="h-8 w-8" data-ai-hint="letter R">
-          <AvatarFallback className="bg-[var(--avatar-fallback-bg)] text-[var(--avatar-fallback-fg)] font-semibold">
-            R
-          </AvatarFallback>
-        </Avatar>
       </div>
     </div>
   </header>
@@ -559,7 +553,7 @@ export default function Home() {
             </Accordion>
           </div>
 
-          <div className="flex-grow flex flex-col border-b-0 bg-card mt-0 border-t border-[var(--border-color-secondary)]">
+          <div className="flex-grow flex flex-col min-w-0 bg-card mt-0 border-t border-[var(--border-color-secondary)]">
              <Accordion type="single" collapsible defaultValue="viz-accordion-item" className="w-full flex flex-col flex-grow">
               <AccordionItem value="viz-accordion-item" className="border-b-0 flex flex-col flex-grow">
                  <AccordionTrigger className="flex w-full items-center p-4 hover:no-underline text-sm font-semibold group text-foreground">
@@ -594,6 +588,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
-
