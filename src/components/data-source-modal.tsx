@@ -10,16 +10,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import Papa from 'papaparse';
-import { fetchDatabases, fetchCollections, fetchCollectionData } from '@/actions/atlas';
+import { fetchDatabases, fetchCollections, fetchCollectionData, fetchSampleMflixMoviesData } from '@/actions/atlas';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X, ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 interface DataSourceModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onDataSourceConnected: (data: any[], headers: string[], fileName: string, sampledRowCount: number, totalRowCount: number, sourceType: 'csv' | 'atlas') => void;
+  onDataSourceConnected: (data: any[], headers: string[], fileName: string, sampledRowCount: number, totalRowCount: number, sourceType: 'csv' | 'atlas' | 'sample') => void;
 }
 
 const SkeletonListItem = () => (
@@ -46,6 +48,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
   const [isLoading, setIsLoading] = useState(false); 
   const [isFetchingDatabases, setIsFetchingDatabases] = useState(false);
   const [isFetchingCollections, setIsFetchingCollections] = useState(false);
+  const [isFetchingSampleData, setIsFetchingSampleData] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -203,6 +206,23 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     setSelectedCollection(null); 
   };
 
+  const handleLoadSampleMflixData = async () => {
+    setIsFetchingSampleData(true);
+    setError(null);
+    const result = await fetchSampleMflixMoviesData();
+    if (result.success && result.data) {
+      const { jsonData, tableHeaders, sampledRowCount, totalRowCount } = result.data;
+      onDataSourceConnected(jsonData, tableHeaders, "sample_mflix.movies", sampledRowCount, totalRowCount, 'sample');
+      toast({ title: "Sample Data Loaded", description: "sample_mflix.movies loaded." });
+      onOpenChange(false);
+    } else {
+      setError(result.error || "Failed to load sample mflix movies data.");
+      toast({ title: "Error", description: result.error || "Failed to load sample data.", variant: "destructive" });
+    }
+    setIsFetchingSampleData(false);
+  };
+
+
   const handleBackToDatabases = () => {
     setSelectedDatabase(null);
     setCollections([]);
@@ -218,12 +238,13 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
       <DialogContent className="sm:max-w-[600px] p-0 bg-card border-[var(--border-color-secondary)]">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-foreground">Connect data source</DialogTitle>
-          <DialogDescription className="text-muted-foreground">Upload a CSV file or connect to your MongoDB Atlas cluster.</DialogDescription>
+          <DialogDescription className="text-muted-foreground">Upload a CSV file, connect to MongoDB Atlas, or use sample data.</DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex w-full rounded-none px-6">
             <TabsTrigger value="upload" className="rounded-none">Upload file</TabsTrigger>
             <TabsTrigger value="atlas" className="rounded-none">Connect to Atlas</TabsTrigger>
+            <TabsTrigger value="sample" className="rounded-none">Sample data</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="p-6">
@@ -242,7 +263,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                   <span className="font-semibold">Click to browse</span> or drag and drop
                 </p>
                 <p className="text-xs text-muted-foreground">CSV files only</p>
-                <Button type="button" onClick={handleBrowseClick} variant="lgDefault" className="mt-4" disabled={isLoading}>
+                <Button type="button" onClick={handleBrowseClick} variant="lgDefault" size="default" className="mt-4" disabled={isLoading}>
                   {isLoading && activeTab === 'upload' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Browse file
                 </Button>
@@ -263,7 +284,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                     value={connectionString}
                     onChange={(e) => setConnectionString(e.target.value)}
                     disabled={isFetchingDatabases || isFetchingCollections || isLoading}
-                    className="border-[var(--border-color-secondary)] pr-8" 
+                    className="pr-8" 
                   />
                   {hasStoredConnectionString && connectionString && (
                     <Button
@@ -376,9 +397,29 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="sample" className="p-6 space-y-4">
+            <Label className="text-foreground font-medium">Available sample datasets:</Label>
+             <Button 
+                variant="lgDefault" 
+                size="default"
+                className="w-full justify-start"
+                onClick={handleLoadSampleMflixData}
+                disabled={isFetchingSampleData}
+              >
+                <Database className="h-4 w-4" />
+                sample_mflix.movies
+                {isFetchingSampleData && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Loads a predefined sample of the Atlas mflix.movies collection (approx. 3 documents with nested data).
+              </p>
+             {error && activeTab === 'sample' && <p className="text-sm text-destructive flex items-center"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>}
+          </TabsContent>
+
         </Tabs>
         <DialogFooter className="p-6 pt-0 border-t-0 border-t-[var(--border-color-secondary)]">
-          <Button variant="lgDefault" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections}>Cancel</Button>
+          <Button variant="lgDefault" size="default" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections || isFetchingSampleData}>Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

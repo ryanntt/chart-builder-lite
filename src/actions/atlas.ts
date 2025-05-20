@@ -89,35 +89,38 @@ interface FetchCollectionDataResult {
     totalRowCount: number;
 }
 
-// Helper to flatten a document
-function flattenDocument(doc: Document, prefix: string = ''): Document {
-  const flattened: Document = {};
+// Helper to process a document (handles BSON types like ObjectId and Date)
+// Keeps nested structure for direct JSON representation.
+function processDocument(doc: Document): Document {
+  const processed: Document = {};
   for (const key in doc) {
     if (Object.prototype.hasOwnProperty.call(doc, key)) {
-      const newKey = prefix ? `${prefix}.${key}` : key;
       const value = doc[key];
-
       if (value instanceof ObjectId) {
-        flattened[newKey] = value.toString();
+        processed[key] = value.toString(); // Convert ObjectId to string
       } else if (value instanceof Date) {
-        if (isNaN(value.getTime())) {
-          flattened[newKey] = null; 
+        if (isNaN(value.getTime())) { // Check for invalid Date
+          processed[key] = null; 
         } else {
-          flattened[newKey] = value.toISOString();
+          processed[key] = value.toISOString();
         }
       } else if (Array.isArray(value)) {
-        flattened[newKey] = JSON.stringify(value); 
-      } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value) && Object.keys(value).length > 0) {
-        Object.assign(flattened, flattenDocument(value, newKey));
-      } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value) && Object.keys(value).length === 0) {
-        flattened[newKey] = '{}'; 
+        // Recursively process elements in an array if they are objects or arrays
+        processed[key] = value.map(item => {
+          if (typeof item === 'object' && item !== null && !(item instanceof Date) && !(item instanceof ObjectId)) {
+            return processDocument(item as Document);
+          }
+          return item;
+        });
+      } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value)) {
+        processed[key] = processDocument(value as Document); // Recursively process nested objects
       }
-      else {
-        flattened[newKey] = Buffer.isBuffer(value) ? `[Buffer]` : value;
+       else {
+        processed[key] = Buffer.isBuffer(value) ? `[Buffer]` : value;
       }
     }
   }
-  return flattened;
+  return processed;
 }
 
 
@@ -152,27 +155,39 @@ export async function fetchCollectionData(
     if (documents.length === 0) {
       return { success: true, data: { jsonData: [], tableHeaders: [], sampledRowCount: 0, totalRowCount } };
     }
-
-    const flattenedDocs = documents.map(doc => flattenDocument(doc as Document)); 
+    
+    const processedDocs = documents.map(doc => processDocument(doc as Document)); 
     
     const headersSet = new Set<string>();
-    flattenedDocs.forEach(doc => {
-      Object.keys(doc).forEach(key => headersSet.add(key));
-    });
-    const tableHeaders = Array.from(headersSet);
+    const extractObjectPaths = (obj: any, prefix: string = ''): void => {
+      if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) { 
+        if(prefix) headersSet.add(prefix);
+        return;
+      }
+      
+      const keys = Object.keys(obj);
+      if (keys.length === 0 && prefix) { 
+         headersSet.add(prefix);
+         return;
+      }
 
-    const jsonData = flattenedDocs.map(doc => {
-        const row: any = {};
-        tableHeaders.forEach(header => {
-            row[header] = doc[header] !== undefined ? doc[header] : null;
-        });
-        return row;
-    });
+      keys.forEach(key => {
+        const newKey = prefix ? `${prefix}.${key}` : key;
+        const value = obj[key];
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          extractObjectPaths(value, newKey);
+        } else {
+          headersSet.add(newKey);
+        }
+      });
+    };
+    processedDocs.forEach(doc => extractObjectPaths(doc));
+    const tableHeaders = Array.from(headersSet).sort();
     
     return { 
         success: true, 
         data: { 
-            jsonData, 
+            jsonData: processedDocs,
             tableHeaders,
             sampledRowCount,
             totalRowCount
@@ -185,5 +200,186 @@ export async function fetchCollectionData(
     if (client) {
       await client.close();
     }
+  }
+}
+
+// --- Sample Mflix Data ---
+const SAMPLE_MFLIX_MOVIES_DATA = [
+  {
+    _id: new ObjectId("573a1390f29313caabcd4135"),
+    plot: "Three men hammer on an anvil and pass a bottle of beer around.",
+    genres: ["Short"],
+    runtime: 1,
+    cast: ["Charles Kayser", "John Ott"],
+    num_mflix_comments: 0,
+    title: "Blacksmith Scene",
+    fullplot: "A stationary camera looks at a large anvil with a blacksmith behind it and one on either side. The smith in the middle draws a heated metal rod from the fire, places it on the anvil, and all three begin a rhythmic hammering. After several blows, the metal goes back in the fire. One smith pulls out a bottle of beer, and they each take a swig. Then, out comes the heated metal and the hammering resumes.",
+    countries: ["USA"],
+    released: new Date(-2418758400000),
+    directors: ["William K.L. Dickson"],
+    rated: "UNRATED",
+    awards: {
+      wins: 1,
+      nominations: 0,
+      text: "1 win."
+    },
+    lastupdated: "2015-08-26 00:03:50.133000000",
+    year: 1893,
+    imdb: {
+      rating: 6.2,
+      votes: 1189,
+      id: 5
+    },
+    type: "movie",
+    tomatoes: {
+      viewer: {
+        rating: 3.0,
+        numReviews: 184,
+        meter: 32
+      },
+      fresh: 0,
+      critic: {
+        rating: 6.0, // Corrected from '6. crítico,'
+        numReviews: 1,
+        meter: 100
+      },
+      rotten: 0,
+      lastUpdated: new Date(1435516449000)
+    }
+  },
+  {
+    _id: new ObjectId("573a1390f29313caabcd42e8"),
+    plot: "A group of bandits resort to extremes to hijack a mail train.",
+    genres: ["Short", "Western"],
+    runtime: 11,
+    cast: [
+      "A.C. Abadie",
+      "Gilbert M. 'Broncho Billy' Anderson",
+      "George Barnes",
+      "Justus D. Barnes"
+    ],
+    num_mflix_comments: 0,
+    title: "The Great Train Robbery",
+    fullplot: "Among the earliest existing films in American cinema - notable as the first film that presented a narrative story to viewers.",
+    countries: ["USA"],
+    released: new Date(-2082883200000),
+    directors: ["Edwin S. Porter"],
+    rated: "TV-G",
+    awards: {
+      wins: 1,
+      nominations: 0,
+      text: "1 win."
+    },
+    lastupdated: "2015-08-09 00:27:09.100000000",
+    year: 1903,
+    imdb: {
+      rating: 7.4,
+      votes: 9847,
+      id: 439
+    },
+    type: "movie",
+    tomatoes: {
+      viewer: {
+        rating: 3.7,
+        numReviews: 2559,
+        meter: 75
+      },
+      dvd: new Date(1120492800000),
+      fresh: 6,
+      critic: {
+        rating: 7.6,
+        numReviews: 6,
+        meter: 100
+      },
+      rotten: 0,
+      lastUpdated: new Date(1431021504000)
+    }
+  },
+  {
+    _id: new ObjectId("573a1390f29313caabcd4323"),
+    plot: "A young boy, opressed by his mother, goes on a journey to find happiness.",
+    genres: ["Short", "Drama", "Fantasy"],
+    runtime: 7,
+    cast: ["Georges Mèliès", "Jeanne d'Alcy"],
+    num_mflix_comments: 0,
+    title: "The Impossible Voyage",
+    fullplot: "A group of scientists begin a journey to the sun.",
+    countries: ["France"],
+    released: new Date(-2064384000000),
+    directors: ["Georges Mèliès"],
+    writers: ["Georges Mèliès (scenario)"],
+    awards: {
+      wins: 0,
+      nominations: 0,
+      text: ""
+    },
+    lastupdated: "2015-08-13 00:27:00.800000000",
+    year: 1904,
+    imdb: {
+      rating: 7.0,
+      votes: 964,
+      id: 453
+    },
+    type: "movie",
+    tomatoes: {
+      viewer: {
+        rating: 3.6,
+        numReviews: 119,
+        meter: 71
+      },
+      fresh: 1,
+      rotten: 0,
+      lastUpdated: new Date(1413227121000)
+    }
+  }
+];
+
+
+// Helper function to extract all unique paths from a dataset
+const extractPathsFromData = (data: any[]): string[] => {
+  const paths = new Set<string>();
+  const extract = (obj: any, prefix = '') => {
+    if (typeof obj !== 'object' || obj === null) {
+      if (prefix) paths.add(prefix);
+      return;
+    }
+    if (Array.isArray(obj)) {
+      if (prefix) paths.add(prefix); 
+    } else {
+      if (Object.keys(obj).length === 0 && prefix) {
+         paths.add(prefix); 
+         return;
+      }
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          extract(obj[key], prefix ? `${prefix}.${key}` : key);
+        }
+      }
+    }
+  };
+  data.forEach(item => extract(item));
+  return Array.from(paths).sort();
+};
+
+
+export async function fetchSampleMflixMoviesData(): Promise<AtlasActionResult<FetchCollectionDataResult>> {
+  try {
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const processedData = SAMPLE_MFLIX_MOVIES_DATA.map(doc => processDocument(doc as Document));
+    const tableHeaders = extractPathsFromData(processedData);
+    
+    return {
+      success: true,
+      data: {
+        jsonData: processedData,
+        tableHeaders,
+        sampledRowCount: processedData.length,
+        totalRowCount: processedData.length, // Since this is a fixed sample
+      }
+    };
+  } catch (error) {
+    console.error("Error fetching sample mflix movies data:", error);
+    return { success: false, error: sanitizeError(error) };
   }
 }

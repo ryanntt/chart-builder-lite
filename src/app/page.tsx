@@ -17,6 +17,7 @@ import { ChartVisualization } from '@/components/chart-visualization';
 import { toast } from "@/hooks/use-toast";
 import { cn, getNestedValue } from "@/lib/utils";
 import { useTheme } from "next-themes";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 
 const ReactJson = dynamic(() => import('react-json-view'), {
@@ -47,7 +48,7 @@ const getFieldTypeIcon = (type: string) => {
     case 'object':
       return <Brackets className="h-4 w-4 text-muted-foreground" />;
     case 'array':
-      return <Brackets className="h-4 w-4 text-muted-foreground" />;
+      return <Brackets className="h-4 w-4 text-muted-foreground" />; // Using Brackets for array too, can be differentiated later
     case 'geojson-coordinates':
       return <Globe className="h-4 w-4 text-muted-foreground" />;
     default:
@@ -63,6 +64,9 @@ const AppHeader = () => (
       </div>
       <div className="flex items-center gap-3">
         <ThemeToggleButton />
+         <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-[var(--avatar-fallback-bg)] text-[var(--avatar-fallback-fg)] font-semibold text-sm" data-ai-hint="letter R">R</AvatarFallback>
+        </Avatar>
       </div>
     </div>
   </header>
@@ -163,7 +167,7 @@ const RenderFieldItem: React.FC<{
 
 export default function Home() {
   const [dataSourceName, setDataSourceName] = useState<string | null>(null);
-  const [dataSourceType, setDataSourceType] = useState<'csv' | 'atlas' | null>(null);
+  const [dataSourceType, setDataSourceType] = useState<'csv' | 'atlas' | 'sample' | null>(null);
   const [jsonData, setJsonData] = useState<any[]>([]);
   const [tableHeaders, setTableHeaders] = useState<string[]>([]);
   const [headerTypes, setHeaderTypes] = useState<Record<string, string>>({});
@@ -242,7 +246,7 @@ export default function Home() {
   };
 
 
-  const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, sampledRows: number, totalRows: number, sourceType: 'csv' | 'atlas') => {
+  const handleDataSourceConnected = (data: any[], headers: string[], fileName: string, sampledRows: number, totalRows: number, sourceType: 'csv' | 'atlas' | 'sample') => {
     setDataSourceName(fileName);
     setDataSourceType(sourceType);
 
@@ -493,7 +497,7 @@ export default function Home() {
                           </Table>
                         ) : (
                           <>
-                            {dataSourceType === 'atlas' ? (
+                            {dataSourceType === 'atlas' || dataSourceType === 'sample' ? (
                               <div className="space-y-2 p-1">
                                 {jsonData.slice(0, 10).map((doc, index) => (
                                   <Card key={index} className="bg-card border-[var(--border-color-secondary)]">
