@@ -15,7 +15,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, UploadCloud, CircleAlert, PlugZap, Database, Folder, X, ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 interface DataSourceModalProps {
@@ -206,7 +205,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
     setSelectedCollection(null); 
   };
 
-  const handleLoadSampleMflixData = async () => {
+  const handleLoadSampleData = async () => {
     setIsFetchingSampleData(true);
     setError(null);
     const result = await fetchSampleMflixMoviesData();
@@ -300,7 +299,7 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
                 </div>
                 <Button 
                   onClick={handleFetchDatabases} 
-                  variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "lgDefault"}
+                  variant={isFetchAtlasButtonDisabled ? "lgDisabled" : "default"}
                   size="default"
                   disabled={isFetchAtlasButtonDisabled}
                   className="flex-shrink-0"
@@ -399,29 +398,28 @@ export function DataSourceModal({ isOpen, onOpenChange, onDataSourceConnected }:
           </TabsContent>
 
           <TabsContent value="sample" className="p-6 space-y-4">
-            <Label className="text-foreground font-medium">Available sample datasets:</Label>
+            <Label className="text-foreground font-medium">Select a sample dataset:</Label>
              <Button 
                 variant="lgDefault" 
                 size="default"
                 className="w-full justify-start"
-                onClick={handleLoadSampleMflixData}
+                onClick={handleLoadSampleData}
                 disabled={isFetchingSampleData}
               >
-                <Database className="h-4 w-4" />
+                <Database className="mr-2 h-4 w-4" />
                 sample_mflix.movies
                 {isFetchingSampleData && <Loader2 className="ml-auto h-4 w-4 animate-spin" />}
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Loads a predefined sample of the Atlas mflix.movies collection (approx. 3 documents with nested data).
-              </p>
              {error && activeTab === 'sample' && <p className="text-sm text-destructive flex items-center"><CircleAlert className="w-4 h-4 mr-1" /> {error}</p>}
           </TabsContent>
 
         </Tabs>
-        <DialogFooter className="p-6 pt-0 border-t-0 border-t-[var(--border-color-secondary)]">
+        <DialogFooter className="p-6 pt-0 border-t border-t-[var(--border-color-secondary)]">
           <Button variant="lgDefault" size="default" onClick={() => onOpenChange(false)} disabled={isLoading || isFetchingDatabases || isFetchingCollections || isFetchingSampleData}>Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
+    

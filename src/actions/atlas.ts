@@ -3,6 +3,7 @@
 
 import { MongoClient, ServerApiVersion, Collection, ObjectId } from 'mongodb';
 import type { Document } from 'mongodb';
+import sampleMflixMoviesData from '../lib/sample-data/mflix-movies.json';
 
 interface AtlasActionResult<T> {
   success: boolean;
@@ -109,6 +110,10 @@ function processDocument(doc: Document): Document {
         processed[key] = value.map(item => {
           if (typeof item === 'object' && item !== null && !(item instanceof Date) && !(item instanceof ObjectId)) {
             return processDocument(item as Document);
+          } else if (item instanceof ObjectId) {
+            return item.toString();
+          } else if (item instanceof Date) {
+            return isNaN(item.getTime()) ? null : item.toISOString();
           }
           return item;
         });
@@ -156,17 +161,22 @@ export async function fetchCollectionData(
       return { success: true, data: { jsonData: [], tableHeaders: [], sampledRowCount: 0, totalRowCount } };
     }
     
+    // Process documents to handle BSON types (like ObjectId or Date) into JSON-friendly formats
+    // while keeping the nested structure.
     const processedDocs = documents.map(doc => processDocument(doc as Document)); 
     
+    // Extract all unique paths from the processed documents to serve as table headers
     const headersSet = new Set<string>();
     const extractObjectPaths = (obj: any, prefix: string = ''): void => {
       if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) { 
+        // If it's a primitive or an array (we treat array itself as a path if prefix exists, 
+        // or its elements if they are objects/arrays recursively)
         if(prefix) headersSet.add(prefix);
         return;
       }
       
       const keys = Object.keys(obj);
-      if (keys.length === 0 && prefix) { 
+      if (keys.length === 0 && prefix) { // Handle empty objects
          headersSet.add(prefix);
          return;
       }
@@ -174,9 +184,11 @@ export async function fetchCollectionData(
       keys.forEach(key => {
         const newKey = prefix ? `${prefix}.${key}` : key;
         const value = obj[key];
+        // If the value is an object (and not null or an array), recurse
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           extractObjectPaths(value, newKey);
         } else {
+          // Otherwise, it's a leaf node or an array (which we add as a path)
           headersSet.add(newKey);
         }
       });
@@ -187,8 +199,8 @@ export async function fetchCollectionData(
     return { 
         success: true, 
         data: { 
-            jsonData: processedDocs,
-            tableHeaders,
+            jsonData: processedDocs, // Return the processed, nested JSON data
+            tableHeaders, // Return the flat list of dot-notation headers
             sampledRowCount,
             totalRowCount
         } 
@@ -203,150 +215,22 @@ export async function fetchCollectionData(
   }
 }
 
-// --- Sample Mflix Data ---
-const SAMPLE_MFLIX_MOVIES_DATA = [
-  {
-    _id: new ObjectId("573a1390f29313caabcd4135"),
-    plot: "Three men hammer on an anvil and pass a bottle of beer around.",
-    genres: ["Short"],
-    runtime: 1,
-    cast: ["Charles Kayser", "John Ott"],
-    num_mflix_comments: 0,
-    title: "Blacksmith Scene",
-    fullplot: "A stationary camera looks at a large anvil with a blacksmith behind it and one on either side. The smith in the middle draws a heated metal rod from the fire, places it on the anvil, and all three begin a rhythmic hammering. After several blows, the metal goes back in the fire. One smith pulls out a bottle of beer, and they each take a swig. Then, out comes the heated metal and the hammering resumes.",
-    countries: ["USA"],
-    released: new Date(-2418758400000),
-    directors: ["William K.L. Dickson"],
-    rated: "UNRATED",
-    awards: {
-      wins: 1,
-      nominations: 0,
-      text: "1 win."
-    },
-    lastupdated: "2015-08-26 00:03:50.133000000",
-    year: 1893,
-    imdb: {
-      rating: 6.2,
-      votes: 1189,
-      id: 5
-    },
-    type: "movie",
-    tomatoes: {
-      viewer: {
-        rating: 3.0,
-        numReviews: 184,
-        meter: 32
-      },
-      fresh: 0,
-      critic: {
-        rating: 6.0, // Corrected from '6. crítico,'
-        numReviews: 1,
-        meter: 100
-      },
-      rotten: 0,
-      lastUpdated: new Date(1435516449000)
-    }
-  },
-  {
-    _id: new ObjectId("573a1390f29313caabcd42e8"),
-    plot: "A group of bandits resort to extremes to hijack a mail train.",
-    genres: ["Short", "Western"],
-    runtime: 11,
-    cast: [
-      "A.C. Abadie",
-      "Gilbert M. 'Broncho Billy' Anderson",
-      "George Barnes",
-      "Justus D. Barnes"
-    ],
-    num_mflix_comments: 0,
-    title: "The Great Train Robbery",
-    fullplot: "Among the earliest existing films in American cinema - notable as the first film that presented a narrative story to viewers.",
-    countries: ["USA"],
-    released: new Date(-2082883200000),
-    directors: ["Edwin S. Porter"],
-    rated: "TV-G",
-    awards: {
-      wins: 1,
-      nominations: 0,
-      text: "1 win."
-    },
-    lastupdated: "2015-08-09 00:27:09.100000000",
-    year: 1903,
-    imdb: {
-      rating: 7.4,
-      votes: 9847,
-      id: 439
-    },
-    type: "movie",
-    tomatoes: {
-      viewer: {
-        rating: 3.7,
-        numReviews: 2559,
-        meter: 75
-      },
-      dvd: new Date(1120492800000),
-      fresh: 6,
-      critic: {
-        rating: 7.6,
-        numReviews: 6,
-        meter: 100
-      },
-      rotten: 0,
-      lastUpdated: new Date(1431021504000)
-    }
-  },
-  {
-    _id: new ObjectId("573a1390f29313caabcd4323"),
-    plot: "A young boy, opressed by his mother, goes on a journey to find happiness.",
-    genres: ["Short", "Drama", "Fantasy"],
-    runtime: 7,
-    cast: ["Georges Mèliès", "Jeanne d'Alcy"],
-    num_mflix_comments: 0,
-    title: "The Impossible Voyage",
-    fullplot: "A group of scientists begin a journey to the sun.",
-    countries: ["France"],
-    released: new Date(-2064384000000),
-    directors: ["Georges Mèliès"],
-    writers: ["Georges Mèliès (scenario)"],
-    awards: {
-      wins: 0,
-      nominations: 0,
-      text: ""
-    },
-    lastupdated: "2015-08-13 00:27:00.800000000",
-    year: 1904,
-    imdb: {
-      rating: 7.0,
-      votes: 964,
-      id: 453
-    },
-    type: "movie",
-    tomatoes: {
-      viewer: {
-        rating: 3.6,
-        numReviews: 119,
-        meter: 71
-      },
-      fresh: 1,
-      rotten: 0,
-      lastUpdated: new Date(1413227121000)
-    }
-  }
-];
-
-
 // Helper function to extract all unique paths from a dataset
 const extractPathsFromData = (data: any[]): string[] => {
   const paths = new Set<string>();
   const extract = (obj: any, prefix = '') => {
-    if (typeof obj !== 'object' || obj === null) {
+    if (typeof obj !== 'object' || obj === null) { // Primitives
       if (prefix) paths.add(prefix);
       return;
     }
     if (Array.isArray(obj)) {
+       // For arrays, we add the path to the array itself.
+       // If elements need to be individually addressable as headers (e.g., array[0].field),
+       // this logic would need to be more complex, potentially adding paths like 'array.0', 'array.1', etc.
+       // For now, treating the array path as a single header.
       if (prefix) paths.add(prefix); 
-    } else {
-      if (Object.keys(obj).length === 0 && prefix) {
+    } else { // Objects
+      if (Object.keys(obj).length === 0 && prefix) { // Empty objects
          paths.add(prefix); 
          return;
       }
@@ -364,18 +248,22 @@ const extractPathsFromData = (data: any[]): string[] => {
 
 export async function fetchSampleMflixMoviesData(): Promise<AtlasActionResult<FetchCollectionDataResult>> {
   try {
+    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const processedData = SAMPLE_MFLIX_MOVIES_DATA.map(doc => processDocument(doc as Document));
+    // The imported data is already in JSON format (strings for ObjectId and Date)
+    // processDocument will mostly pass these through but ensure consistent structure.
+    const processedData = sampleMflixMoviesData.map(doc => processDocument(doc as Document));
     const tableHeaders = extractPathsFromData(processedData);
+    const totalRowCount = processedData.length;
     
     return {
       success: true,
       data: {
         jsonData: processedData,
         tableHeaders,
-        sampledRowCount: processedData.length,
-        totalRowCount: processedData.length, // Since this is a fixed sample
+        sampledRowCount: totalRowCount, // For sample data, sampled and total are the same
+        totalRowCount: totalRowCount, 
       }
     };
   } catch (error) {
@@ -383,3 +271,5 @@ export async function fetchSampleMflixMoviesData(): Promise<AtlasActionResult<Fe
     return { success: false, error: sanitizeError(error) };
   }
 }
+
+    
